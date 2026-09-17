@@ -1,0 +1,58 @@
+.section-title {
+  margin-bottom: var(--space-5);
+}
+
+.section-title--center {
+  text-align: center;
+}
+
+.section-title--left {
+  text-align: left;
+}
+
+.section-title__eyebrow {
+  display: block;
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+  color: var(--luxury-gold);
+  margin-bottom: var(--space-sm);
+}
+
+.section-title__heading {
+  font-size: clamp(2.2rem, 4.6vw, 3.5rem);
+  font-weight: var(--fw-medium);
+  color: var(--primary-green);
+  margin-bottom: var(--space-md);
+  letter-spacing: -0.02em;
+}
+
+.section-title__subtitle {
+  font-size: var(--fs-base);
+  max-width: 44ch;
+  margin-inline: auto;
+  color: var(--muted-text);
+  line-height: var(--lh-normal);
+}
+
+.section-title--left .section-title__subtitle {
+  margin-inline: 0;
+}
+
+.section-title__divider {
+  display: none;
+}
+
+.section-title--light .section-title__heading {
+  color: var(--ivory);
+}
+
+.section-title--light .section-title__subtitle {
+  color: rgba(247, 245, 240, 0.7);
+}
+
+.section-title--light .section-title__eyebrow {
+  color: var(--soft-gold);
+}

@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+.DS_Store
+npm-debug.log*
+
+src/uploads/products/*
+!src/uploads/products/.gitkeep
+src/uploads/temp/*
+!src/uploads/temp/.gitkeep

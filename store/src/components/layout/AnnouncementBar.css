@@ -1,0 +1,26 @@
+.announcement-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-announcement);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--announcement-height);
+  padding: 0.35rem var(--container-padding);
+  background: var(--glass-dark);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--glass-border-dark);
+}
+
+.announcement-bar__text {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(247, 245, 240, 0.88);
+  margin: 0;
+}

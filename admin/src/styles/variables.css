@@ -1,0 +1,99 @@
+:root {
+  --primary-green: #0b3d2e;
+  --dark-green: #062a1e;
+  --gold: #c6a15b;
+  --luxury-gold: #c6a15b;
+  --light-gold: #d8bd7a;
+  --soft-gold: #d8bd7a;
+  --ivory: #f7f5f0;
+  --cream: #efece5;
+  --white: #ffffff;
+  --background: #f7f5f0;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --border: rgba(26, 26, 26, 0.08);
+  --border-subtle: rgba(26, 26, 26, 0.08);
+  --danger: #8a1f1f;
+  --success: #0b3d2e;
+  --warning: #9a6b1f;
+  --info: #0b3d2e;
+
+  --sidebar-bg: #062a1e;
+  --sidebar-text: #f7f5f0;
+  --sidebar-muted: rgba(247, 245, 240, 0.62);
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: rgba(198, 161, 91, 0.16);
+  --header-bg: rgba(255, 255, 255, 0.68);
+  --card-bg: rgba(255, 255, 255, 0.72);
+  --overlay: rgba(6, 42, 30, 0.28);
+
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-strong: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-blur: blur(22px) saturate(180%);
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-float: 0 18px 50px rgba(6, 42, 30, 0.12);
+
+  --font-sans: 'Manrope', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-brand: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.8125rem;
+  --fs-base: 0.875rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.0625rem;
+  --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem;
+  --fs-3xl: 1.875rem;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 12px 32px rgba(6, 42, 30, 0.08);
+  --shadow-lg: 0 24px 60px rgba(6, 42, 30, 0.12);
+
+  --sidebar-width: 248px;
+  --sidebar-collapsed: 76px;
+  --sidebar-inset: 12px;
+  --header-height: 58px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --transition-fast: 150ms var(--ease-out);
+  --transition: 180ms var(--ease-out);
+  --transition-base: 250ms var(--ease-out);
+  --transition-slow: 400ms var(--ease-out);
+
+  --z-header: 40;
+  --z-sidebar: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-toast: 80;
+
+  --badge-draft-bg: #efece5;
+  --badge-draft-fg: #6b6b6b;
+  --badge-active-bg: rgba(11, 61, 46, 0.08);
+  --badge-active-fg: #0b3d2e;
+  --badge-inactive-bg: #efece5;
+  --badge-inactive-fg: #6b6b6b;
+  --badge-pending-bg: rgba(198, 161, 91, 0.16);
+  --badge-pending-fg: #7a5c28;
+  --badge-paid-bg: rgba(11, 61, 46, 0.08);
+  --badge-paid-fg: #0b3d2e;
+  --badge-failed-bg: #f7ecec;
+  --badge-failed-fg: #8a1f1f;
+  --badge-processing-bg: rgba(11, 61, 46, 0.06);
+  --badge-processing-fg: #062a1e;
+  --badge-shipped-bg: rgba(198, 161, 91, 0.12);
+  --badge-shipped-fg: #7a5c28;
+  --badge-low-bg: rgba(198, 161, 91, 0.16);
+  --badge-low-fg: #7a5c28;
+}

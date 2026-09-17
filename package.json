@@ -1,0 +1,13 @@
+{
+  "name": "anant-exotika",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ANANT EXOTIKA e-commerce platform — store, admin, and API",
+  "scripts": {
+    "dev": "concurrently -n store,server,admin -c cyan,green,magenta \"npm run dev --prefix store\" \"npm run dev --prefix server\" \"npm run dev --prefix admin\"",
+    "build": "npm run build --prefix store && npm run build --prefix admin"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

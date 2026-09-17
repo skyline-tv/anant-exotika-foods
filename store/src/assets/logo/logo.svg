@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" role="img" aria-labelledby="logoTitle logoDesc">
+  <title id="logoTitle">ANANT EXOTIKA</title>
+  <desc id="logoDesc">Anant Exotika brand logo</desc>
+  <text
+    x="160"
+    y="38"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="500"
+    letter-spacing="6"
+    fill="#0B3D2E"
+  >ANANT EXOTIKA</text>
+  <line x1="70" y1="50" x2="250" y2="50" stroke="#D4AF37" stroke-width="1"/>
+  <text
+    x="160"
+    y="68"
+    text-anchor="middle"
+    font-family="Helvetica, Arial, sans-serif"
+    font-size="9"
+    letter-spacing="3.5"
+    fill="#D4AF37"
+  >BEYOND TIME � BEYOND LUXURY</text>
+</svg>
