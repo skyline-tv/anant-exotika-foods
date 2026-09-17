@@ -16,6 +16,7 @@ const ORDER_STATUS = [
   'cancelled',
   'returned',
   'refunded',
+  'failed',
 ];
 const TOKEN_TYPE = {
   USER: 'user',

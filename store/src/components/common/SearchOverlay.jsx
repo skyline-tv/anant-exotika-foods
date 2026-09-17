@@ -103,8 +103,8 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search the collection"
-            aria-label="Search the collection"
+            placeholder="Search products"
+            aria-label="Search products"
           />
           <button type="button" onClick={onClose} aria-label="Close search">
             <X size={22} strokeWidth={1.4} />
@@ -140,7 +140,7 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
                   ))}
                 </ul>
               ) : !loading ? (
-                <p className="search-overlay__empty">No pieces matched that search.</p>
+                <p className="search-overlay__empty">No products matched that search.</p>
               ) : null}
               <button type="button" className="text-link" onClick={() => goToSearch(query)}>
                 View all results

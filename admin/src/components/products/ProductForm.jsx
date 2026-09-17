@@ -35,6 +35,7 @@ const EMPTY_FORM = {
   isFeatured: false,
   isNewArrival: false,
   isBestSeller: false,
+  displayOrder: '0',
   seoTitle: '',
   seoDescription: '',
 };
@@ -67,6 +68,7 @@ function toFormValues(product) {
     isFeatured: Boolean(product.isFeatured),
     isNewArrival: Boolean(product.isNewArrival),
     isBestSeller: Boolean(product.isBestSeller),
+    displayOrder: product.displayOrder ?? '0',
     seoTitle: product.seoTitle || '',
     seoDescription: product.seoDescription || '',
   };
@@ -161,6 +163,7 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
     isFeatured: values.isFeatured,
     isNewArrival: values.isNewArrival,
     isBestSeller: values.isBestSeller,
+    displayOrder: Number(values.displayOrder) || 0,
     seoTitle: values.seoTitle.trim(),
     seoDescription: values.seoDescription.trim(),
   });
@@ -613,6 +616,17 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
             />
             Best Seller
           </label>
+          <div className="field" style={{ marginTop: '1rem' }}>
+            <label htmlFor="displayOrder">Display order</label>
+            <input
+              id="displayOrder"
+              type="number"
+              className="input"
+              value={values.displayOrder}
+              onChange={(event) => updateField('displayOrder', event.target.value)}
+            />
+            <span className="hint">Lower numbers appear first in featured and manual sorts.</span>
+          </div>
         </div>
       </section>
 

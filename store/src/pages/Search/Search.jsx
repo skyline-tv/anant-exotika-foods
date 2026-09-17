@@ -51,18 +51,18 @@ const Search = () => {
   return (
     <section className="page-shell">
       <div className="container">
-        <PageHeader eyebrow="Search" title="Search the Collection" subtitle="Find a piece by name, material or mood." />
+        <PageHeader eyebrow="Search" title="Search" subtitle="Find dry fruits, hampers and gifts by name." />
         <form className="search-page-form" onSubmit={handleSubmit}>
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Search the collection"
+            placeholder="Search products"
             aria-label="Search products"
           />
           <Button type="submit">Search</Button>
         </form>
         {!query ? (
-          <EmptyState title="Begin with a word" message="Enter a product name, material or mood." />
+          <EmptyState title="Begin with a word" message="Enter a product name or category." />
         ) : loading ? (
           <Loader label="Searching" />
         ) : error ? (

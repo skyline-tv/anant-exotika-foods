@@ -16,6 +16,12 @@ const {
 } = require('../services/pricingService');
 const { PAYMENT_METHOD, ORDER_STATUS } = require('../utils/constants');
 const { toStoredAssetPath } = require('../utils/assetUrl');
+const { decrementStock, restoreStock, restoreStockItems } = require('../services/inventoryService');
+const {
+  isRazorpayConfigured,
+  createRazorpayOrder,
+} = require('../services/paymentService');
+const SiteContent = require('../models/SiteContent');
 
 const getPrimaryImage = (product) => {
   if (!product.images || product.images.length === 0) {
@@ -36,6 +42,11 @@ const createOrder = asyncHandler(async (req, res) => {
 
   if (!paymentMethod || !PAYMENT_METHOD.includes(paymentMethod)) {
     throw new AppError('Valid payment method is required (cod or razorpay).', 400);
+  }
+
+  const storefront = await SiteContent.findOne({ key: 'storefront' }).select('storeStatus');
+  if (storefront?.storeStatus === 'closed') {
+    throw new AppError('The store is temporarily closed. Orders cannot be placed right now.', 400);
   }
 
   const cart = await Cart.findOne({ user: req.user._id });
@@ -101,16 +112,30 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const pricing = calculateOrderPricing({ items: orderItems, coupon });
   const orderNumber = await generateOrderNumber();
+  const useRazorpay = paymentMethod === 'razorpay';
+
+  if (useRazorpay && !isRazorpayConfigured()) {
+    throw new AppError('Online payment is not available. Please choose Cash on Delivery.', 400);
+  }
+
+  let razorpayOrder = null;
+  if (useRazorpay) {
+    razorpayOrder = await createRazorpayOrder({
+      amount: pricing.total,
+      receipt: orderNumber,
+    });
+  }
 
   const payment = {
     method: paymentMethod,
     transactionId: '',
     paymentStatus: 'pending',
     paidAt: null,
-    gateway: paymentMethod === 'razorpay' ? 'razorpay' : '',
+    gateway: useRazorpay ? 'razorpay' : '',
+    gatewayOrderId: razorpayOrder?.id || '',
   };
 
-  const order = await Order.create({
+  const orderPayload = {
     orderNumber,
     user: req.user._id,
     items: orderItems,
@@ -122,7 +147,7 @@ const createOrder = asyncHandler(async (req, res) => {
     statusHistory: [
       {
         status: 'pending',
-        note: 'Order placed',
+        note: useRazorpay ? 'Order created, awaiting payment' : 'Order placed',
         updatedBy: req.user._id,
         at: new Date(),
       },
@@ -136,30 +161,56 @@ const createOrder = asyncHandler(async (req, res) => {
         }
       : undefined,
     notes: notes || '',
-  });
+  };
 
-  for (const item of orderItems) {
-    const product = productMap.get(String(item.product));
-    product.stock -= item.quantity;
-    if (product.stock <= 0) {
-      product.status = 'out_of_stock';
+  if (useRazorpay) {
+    const order = await Order.create(orderPayload);
+    successResponse(res, {
+      message: 'Order created. Complete payment to confirm.',
+      statusCode: 201,
+      data: {
+        order,
+        payment: {
+          method: 'razorpay',
+          keyId: process.env.RAZORPAY_KEY_ID,
+          razorpayOrderId: razorpayOrder.id,
+          amount: razorpayOrder.amount,
+          currency: razorpayOrder.currency,
+        },
+      },
+    });
+    return;
+  }
+
+  const decremented = [];
+  try {
+    for (const item of orderItems) {
+      const updated = await decrementStock(item.product, item.quantity);
+      if (!updated) {
+        throw new AppError(`Insufficient stock for ${item.name}.`, 409);
+      }
+      decremented.push(item);
     }
-    await product.save();
+
+    const order = await Order.create(orderPayload);
+
+    if (coupon) {
+      coupon.usedCount += 1;
+      await coupon.save();
+    }
+
+    cart.items = [];
+    await cart.save();
+
+    successResponse(res, {
+      message: 'Order created successfully',
+      statusCode: 201,
+      data: { order, payment: { method: 'cod' } },
+    });
+  } catch (error) {
+    await restoreStockItems(decremented);
+    throw error;
   }
-
-  if (coupon) {
-    coupon.usedCount += 1;
-    await coupon.save();
-  }
-
-  cart.items = [];
-  await cart.save();
-
-  successResponse(res, {
-    message: 'Order created successfully',
-    statusCode: 201,
-    data: { order },
-  });
 });
 
 const getMyOrders = asyncHandler(async (req, res) => {
@@ -258,6 +309,9 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new AppError('Order not found.', 404);
   }
 
+  const previousStatus = order.orderStatus;
+  const alreadyClosed = previousStatus === 'cancelled' || previousStatus === 'refunded';
+
   order.orderStatus = status;
   order.statusHistory.push({
     status,
@@ -266,19 +320,18 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     at: new Date(),
   });
 
-  if (status === 'cancelled' && order.payment.paymentStatus === 'pending') {
+  const shouldRestoreStock =
+    ['cancelled', 'refunded'].includes(status) &&
+    !alreadyClosed &&
+    ((order.payment.method === 'cod' && ['pending', 'paid'].includes(order.payment.paymentStatus)) ||
+      (order.payment.method === 'razorpay' && order.payment.paymentStatus === 'paid'));
+
+  if (shouldRestoreStock) {
     for (const item of order.items) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        product.stock += item.quantity;
-        if (product.status === 'out_of_stock' && product.stock > 0) {
-          product.status = 'active';
-        }
-        await product.save();
-      }
+      await restoreStock(item.product, item.quantity);
     }
 
-    if (order.coupon && order.coupon.code) {
+    if (order.coupon && order.coupon.code && order.payment.method === 'cod' && order.payment.paymentStatus === 'pending') {
       await Coupon.updateOne(
         { code: order.coupon.code, usedCount: { $gt: 0 } },
         { $inc: { usedCount: -1 } }

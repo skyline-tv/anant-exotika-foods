@@ -8,7 +8,9 @@ import { useWishlist } from '../../context/WishlistContext';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import {
+  formatWeight,
   getCategoryName,
+  getDiscountPercent,
   getMrp,
   getPrimaryImage,
   getProductBadge,
@@ -24,16 +26,19 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
   const { isSaved, toggle } = useWishlist();
   const [adding, setAdding] = useState(false);
   const resolved = product || { name, slug, price, category, image, badge };
-  const title = resolved.name || 'Signature Piece';
-  const productSlug = resolved.slug || 'signature-piece';
+  const title = resolved.name || 'Signature selection';
+  const productSlug = resolved.slug || 'signature-selection';
   const imageSrc = product ? getPrimaryImage(product) : image;
   const categoryLabel = product ? getCategoryName(product.category) : category || 'Collection';
   const sellingValue = product ? getSellingRate(product) : 0;
   const sellingRate = product ? formatCurrency(sellingValue) : price;
   const mrp = product ? getMrp(product) : 0;
+  const discount = product ? getDiscountPercent(product) : 0;
   const displayBadge = product ? getProductBadge(product) : badge;
   const saved = product?._id ? isSaved(product._id) : false;
   const outOfStock = product ? isOutOfStock(product) : false;
+  const weight = product ? formatWeight(product.weight) : '';
+  const descriptor = product?.shortDescription || categoryLabel;
 
   const handleWishlist = async (event) => {
     event.preventDefault();
@@ -47,7 +52,7 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
     event.stopPropagation();
     if (!product?._id || adding) return;
     if (outOfStock) {
-      toast.error('This piece is currently out of stock.');
+      toast.error('This product is currently out of stock.');
       return;
     }
     setAdding(true);
@@ -82,22 +87,24 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
         >
           <Heart size={16} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} />
         </button>
-        {product?._id ? (
-          <button type="button" className="product-card__quick" onClick={handleAdd} disabled={outOfStock || adding}>
-            {outOfStock ? 'Out of stock' : adding ? 'Adding' : 'Add to bag'}
-          </button>
-        ) : null}
       </Link>
 
       <div className="product-card__body">
-        <span className="product-card__category">{categoryLabel}</span>
         <h3 className="product-card__name">
           <Link to={`/product/${productSlug}`}>{title}</Link>
         </h3>
+        <p className="product-card__descriptor">{descriptor}</p>
+        {weight ? <p className="product-card__meta">{weight}</p> : null}
         <p className="product-card__price">
           <span>{sellingRate}</span>
           {mrp > sellingValue ? <s>{formatCurrency(mrp)}</s> : null}
+          {discount ? <em>{discount}% off</em> : null}
         </p>
+        {product?._id ? (
+          <button type="button" className="product-card__cart" onClick={handleAdd} disabled={outOfStock || adding}>
+            {outOfStock ? 'Out of stock' : adding ? 'Adding' : 'Add to cart'}
+          </button>
+        ) : null}
       </div>
     </article>
   );

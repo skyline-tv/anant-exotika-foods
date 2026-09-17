@@ -16,8 +16,8 @@ const Wishlist = () => {
       <section className="page-shell">
         <div className="container">
           <EmptyState
-            title="Save the pieces you love."
-            message="Log in to keep a wishlist of Anant Exotika creations."
+            title="Save what you love."
+            message="Log in to keep a wishlist of dry fruits and hampers."
             actionLabel="Login"
             actionTo="/login"
           />
@@ -33,9 +33,9 @@ const Wishlist = () => {
       <section className="page-shell">
         <div className="container">
           <EmptyState
-            title="Save the pieces you love."
-            message="Tap the heart on any creation to return to it later."
-            actionLabel="Explore Collection"
+            title="Save what you love."
+            message="Tap the heart on any product to return to it later."
+            actionLabel="Explore the collection"
             actionTo="/shop"
           />
         </div>
@@ -46,7 +46,7 @@ const Wishlist = () => {
   return (
     <section className="page-shell">
       <div className="container">
-        <PageHeader eyebrow="Wishlist" title="Saved Pieces" />
+        <PageHeader eyebrow="Wishlist" title="Saved for later" />
         <div className="product-grid">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />

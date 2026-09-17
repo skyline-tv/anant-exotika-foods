@@ -1,33 +1,54 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
-import logo from '../../assets/logo/anant-exotika-logo.jpg';
+import { resolveAssetUrl } from '../../utils/assetUrl';
+import { useStoreContent } from '../../context/ContentContext';
+import { usePageMeta } from '../../hooks/usePageMeta';
 
-const About = () => (
-  <section className="page-shell">
-    <div className="container">
-      <div className="editorial-page">
-        <div className="editorial-page__visual">
-          <img src={logo} alt="ANANT EXOTIKA" />
-        </div>
-        <div>
-          <span className="eyebrow">Our Story</span>
-          <h1>Beyond Time, Beyond Luxury</h1>
-          <p>
-            Anant Exotika is a modern Indian luxury house devoted to pieces that feel inevitable —
-            chosen with care, presented with grace, and remembered long after the occasion has passed.
-          </p>
-          <p>
-            We believe luxury is not excess. It is attention: to material, to proportion, to the quiet
-            ceremony of giving well. Each creation is curated for those who value elegance, exclusivity
-            and the beauty of a well-considered moment.
-          </p>
-          <Button as={Link} to="/shop" variant="primary">
-            Shop Collection
-          </Button>
+const About = () => {
+  const location = useLocation();
+  const { content } = useStoreContent();
+  const story = content?.brandStory || null;
+  const image = resolveAssetUrl(story?.image);
+
+  useEffect(() => {
+    if (location.hash !== '#our-story') return undefined;
+    const timer = window.setTimeout(() => {
+      document.getElementById('our-story')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [location.hash]);
+
+  usePageMeta({
+    title: 'Our story | Anant Exotika Foods',
+    description: story?.body,
+    image,
+  });
+
+  return (
+    <section className="page-shell" id="our-story">
+      <div className="container">
+        <div className="editorial-page">
+          {image ? (
+            <div className="editorial-page__visual">
+              <img src={image} alt="" />
+            </div>
+          ) : null}
+          <div>
+            <span className="eyebrow">{story?.eyebrow || 'Our story'}</span>
+            <h1>{story?.heading || 'Quality, elegance and thoughtful gifting'}</h1>
+            <p>
+              {story?.body ||
+                'Anant Exotika Foods is a premium Indian house for dry fruits, mukhwas and gifting. We select for flavour and freshness, then present each piece so it feels worthy of the occasion.'}
+            </p>
+            <Button as={Link} to={story?.cta?.to || '/shop'} variant="primary">
+              {story?.cta?.label || 'Shop the collection'}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default About;

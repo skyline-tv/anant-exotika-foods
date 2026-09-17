@@ -5,7 +5,7 @@ import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 
 const SHORTCUTS = [
-  { to: '/account/orders', num: '01', title: 'Orders', text: 'Track purchases and past pieces.' },
+  { to: '/account/orders', num: '01', title: 'Orders', text: 'Track purchases and past gifts.' },
   { to: '/account/addresses', num: '02', title: 'Addresses', text: 'Keep delivery details ready.' },
   { to: '/account/profile', num: '03', title: 'Profile', text: 'Your details, kept quietly.' },
 ];

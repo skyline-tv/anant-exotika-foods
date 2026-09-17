@@ -1,9 +1,14 @@
 import { CONTACT } from '../../utils/constants';
+import { useStoreContent } from '../../context/ContentContext';
 
-const Contact = () => (
+const Contact = () => {
+  const { contact } = useStoreContent();
+  const emails = contact.emails?.length ? contact.emails : CONTACT.emails;
+
+  return (
   <section className="page-shell">
     <div className="container container--narrow">
-      <span className="eyebrow">Concierge</span>
+      <span className="eyebrow">Customer care</span>
       <h1>Contact Us</h1>
       <p className="page-header__subtitle">
         For orders, gifting and bulk enquiries — including weddings, birthdays, Diwali and Ganesh
@@ -12,7 +17,7 @@ const Contact = () => (
       <div className="info-stack">
         <div>
           <span className="eyebrow">Email</span>
-          {CONTACT.emails.map((email) => (
+          {emails.map((email) => (
             <p key={email}>
               <a className="link-quiet" href={`mailto:${email}`}>
                 {email}
@@ -23,12 +28,12 @@ const Contact = () => (
         <div>
           <span className="eyebrow">Bulk enquiry</span>
           <p>
-            <a className="link-quiet" href={`tel:${CONTACT.phoneTel}`}>
-              {CONTACT.phoneDisplay}
+            <a className="link-quiet" href={`tel:${contact.phoneTel}`}>
+              {contact.phoneDisplay}
             </a>
           </p>
           <p>
-            <a className="link-quiet" href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <a className="link-quiet" href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
               WhatsApp the same number
             </a>
           </p>
@@ -64,9 +69,16 @@ const Contact = () => (
           <span className="eyebrow">Hours</span>
           <p>Monday to Saturday, 10:00 – 18:00 IST</p>
         </div>
+        {contact.address ? (
+          <div>
+            <span className="eyebrow">Address</span>
+            <p>{contact.address}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default Contact;

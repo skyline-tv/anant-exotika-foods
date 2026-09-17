@@ -39,9 +39,9 @@ const Register = () => {
 
   return (
     <AuthShell
-      eyebrow="Join the house"
+      eyebrow="Welcome"
       title="Create account"
-      subtitle="A personalised Anant Exotika experience begins with a considered account."
+      subtitle="Save addresses, track orders and keep your favourite hampers close at hand."
     >
       <form className="form-grid" onSubmit={handleSubmit}>
         {error ? <div className="alert alert-error">{error}</div> : null}

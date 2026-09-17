@@ -10,10 +10,9 @@ const HIDE_BOTTOM_NAV = ['/checkout', '/login', '/register', '/forgot-password']
 const Layout = () => {
   const { pathname } = useLocation();
   const hideBottomNav = HIDE_BOTTOM_NAV.includes(pathname);
-  const isHome = pathname === '/';
 
   return (
-    <div className={`app-layout${hideBottomNav ? ' app-layout--bare' : ''}${isHome ? ' app-layout--home' : ''}`}>
+    <div className={`app-layout${hideBottomNav ? ' app-layout--bare' : ''}`}>
       <AnnouncementBar />
       <Header />
       <main className="app-main" id="main-content">

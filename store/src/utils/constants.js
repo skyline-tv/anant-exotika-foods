@@ -1,5 +1,5 @@
-export const BRAND_NAME = 'ANANT EXOTIKA';
-export const BRAND_TAGLINE = 'Beyond Time, Beyond Luxury';
+export const BRAND_NAME = 'Anant Exotika Foods';
+export const BRAND_TAGLINE = 'Thoughtfully Curated. Elegantly Gifted.';
 
 export const CONTACT = {
   emails: ['info@anantexotika.in', 'anantexotika.in@gmail.com'],
@@ -11,7 +11,7 @@ export const CONTACT = {
   facebookHandle: 'anantexotika.in',
   facebookUrl: 'https://www.facebook.com/anantexotika.in',
   whatsappUrl: 'https://wa.me/919623079356',
-  occasions: ['Weddings', 'Birthdays', 'Diwali', 'Ganesh Chaturthi', 'Custom orders'],
+  occasions: ['Weddings', 'Birthdays', 'Diwali', 'Raksha Bandhan', 'Ganesh Chaturthi', 'Corporate gifting'],
 };
 
 export const CUSTOMER_TOKEN_KEY = 'anant_customer_token';
@@ -47,5 +47,13 @@ export const ORDER_STATUS_LABELS = {
   delivered: 'Delivered',
   cancelled: 'Cancelled',
   returned: 'Returned',
+  refunded: 'Refunded',
+  failed: 'Failed',
+};
+
+export const PAYMENT_STATUS_LABELS = {
+  pending: 'Payment pending',
+  paid: 'Paid',
+  failed: 'Payment failed',
   refunded: 'Refunded',
 };

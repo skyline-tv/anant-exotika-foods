@@ -12,6 +12,7 @@ const emptyCart = {
   items: [],
   subtotal: 0,
   itemCount: 0,
+  warnings: [],
 };
 
 const toGuestCartState = (items) => {
@@ -57,6 +58,7 @@ export function CartProvider({ children }) {
       items: nextCart?.items || [],
       subtotal: nextCart?.subtotal || 0,
       itemCount: nextCart?.itemCount || 0,
+      warnings: nextCart?.warnings || [],
     });
   };
 
@@ -72,9 +74,34 @@ export function CartProvider({ children }) {
           ...item,
           product: productMap.get(String(item.productId)) || item.product,
         }))
-        .filter((item) => item.product);
+        .filter((item) => item.product && item.product.status !== 'draft' && item.product.status !== 'inactive')
+        .map((item) => {
+          const stock = Number(item.product.stock);
+          if (!Number.isFinite(stock)) return item;
+          if (stock <= 0 || item.product.status === 'out_of_stock') return null;
+          if (item.quantity > stock) {
+            return { ...item, quantity: stock };
+          }
+          return item;
+        })
+        .filter(Boolean);
       persistGuest(hydrated);
-      return toGuestCartState(hydrated);
+      const warnings = [];
+      guestItems.forEach((item) => {
+        const product = productMap.get(String(item.productId));
+        if (!product) {
+          warnings.push('Your cart has been updated because an item is no longer available.');
+          return;
+        }
+        const stock = Number(product.stock);
+        if (!Number.isFinite(stock) || stock <= 0 || product.status === 'out_of_stock') {
+          warnings.push(`${product.name} is currently unavailable.`);
+        } else if (item.quantity > stock) {
+          warnings.push(`Quantity for ${product.name} was updated because stock availability changed.`);
+        }
+      });
+      const next = toGuestCartState(hydrated);
+      return { ...next, warnings: [...new Set(warnings)] };
     } catch {
       return toGuestCartState(guestItems);
     }
@@ -105,12 +132,18 @@ export function CartProvider({ children }) {
         } else {
           const next = await cartService.getCart();
           applyServerCart(next);
+          if (next?.warnings?.length) {
+            toast.warning(next.warnings[0]);
+          }
         }
       } else {
         mergedRef.current = false;
         const guestItems = getGuestCart();
         const next = await refreshGuestProducts(guestItems);
         setCart(next);
+        if (next?.warnings?.length) {
+          toast.warning(next.warnings[0]);
+        }
       }
     } catch (error) {
       if (!isAuthenticated) {
@@ -135,13 +168,26 @@ export function CartProvider({ children }) {
       if (isAuthenticated) {
         const next = await cartService.addToCart({ productId, quantity });
         applyServerCart(next);
-        toast.success('Added to cart.');
+        if (next?.warnings?.length) {
+          toast.warning(next.warnings[0]);
+        } else {
+          toast.success('Added to cart.');
+        }
         return next;
       }
 
       const guestItems = getGuestCart();
       const existing = guestItems.find((item) => String(item.productId) === String(productId));
       const nextQty = (existing?.quantity || 0) + quantity;
+      const available = Number(product?.stock);
+      if (product?.status === 'out_of_stock' || (Number.isFinite(available) && available <= 0)) {
+        toast.error('Product is currently unavailable.');
+        throw new Error('out of stock');
+      }
+      if (Number.isFinite(available) && nextQty > available) {
+        toast.error('Product is currently unavailable in that quantity.');
+        throw new Error('insufficient stock');
+      }
       const nextItems = existing
         ? guestItems.map((item) =>
             String(item.productId) === String(productId) ? { ...item, quantity: nextQty, product } : item
@@ -165,6 +211,18 @@ export function CartProvider({ children }) {
       }
 
       const guestItems = getGuestCart();
+      const current = guestItems.find((item) => String(item.productId) === String(productId));
+      if (quantity > 0) {
+        const available = Number(current?.product?.stock);
+        if (current?.product?.status === 'out_of_stock' || (Number.isFinite(available) && available <= 0)) {
+          toast.error('Product is currently unavailable.');
+          throw new Error('out of stock');
+        }
+        if (Number.isFinite(available) && quantity > available) {
+          toast.error('Product is currently unavailable in that quantity.');
+          throw new Error('insufficient stock');
+        }
+      }
       const nextItems =
         quantity <= 0
           ? guestItems.filter((item) => String(item.productId) !== String(productId))
@@ -176,7 +234,7 @@ export function CartProvider({ children }) {
       setCart(next);
       return next;
     },
-    [isAuthenticated]
+    [isAuthenticated, toast]
   );
 
   const removeItem = useCallback(

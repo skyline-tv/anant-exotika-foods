@@ -1,18 +1,14 @@
 .mobile-bottom-nav {
   position: fixed;
-  left: var(--header-inset);
-  right: var(--header-inset);
-  bottom: var(--header-inset);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--z-bottom-nav);
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   min-height: var(--bottom-nav-height);
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-glass);
+  background: var(--white);
+  border-top: 1px solid var(--border-subtle);
   padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
 }
 
@@ -23,6 +19,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
+  min-height: 44px;
   font-size: 0.6rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -31,7 +28,7 @@
 
 .mobile-bottom-nav a.is-active,
 .mobile-bottom-nav button:hover {
-  color: var(--primary-green);
+  color: var(--luxury-gold);
 }
 
 .mobile-bottom-nav__icon {
@@ -48,7 +45,7 @@
   padding: 0 3px;
   border-radius: 999px;
   background: var(--luxury-gold);
-  color: var(--dark-green);
+  color: var(--dark-text);
   font-style: normal;
   font-size: 0.55rem;
   display: flex;

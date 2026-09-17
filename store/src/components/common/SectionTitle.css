@@ -1,5 +1,5 @@
 .section-title {
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 
 .section-title--center {
@@ -13,7 +13,7 @@
 .section-title__eyebrow {
   display: block;
   font-family: var(--font-body);
-  font-size: var(--fs-xs);
+  font-size: 0.7rem;
   font-weight: var(--fw-medium);
   letter-spacing: var(--ls-wider);
   text-transform: uppercase;
@@ -22,16 +22,15 @@
 }
 
 .section-title__heading {
-  font-size: clamp(2.2rem, 4.6vw, 3.5rem);
+  font-size: clamp(2rem, 4.2vw, 3.1rem);
   font-weight: var(--fw-medium);
-  color: var(--primary-green);
+  color: var(--dark-text);
   margin-bottom: var(--space-md);
-  letter-spacing: -0.02em;
 }
 
 .section-title__subtitle {
   font-size: var(--fs-base);
-  max-width: 44ch;
+  max-width: 46ch;
   margin-inline: auto;
   color: var(--muted-text);
   line-height: var(--lh-normal);
@@ -42,7 +41,15 @@
 }
 
 .section-title__divider {
-  display: none;
+  display: block;
+  width: 42px;
+  height: 1px;
+  margin: 1.1rem auto 0;
+  background: var(--luxury-gold);
+}
+
+.section-title--left .section-title__divider {
+  margin-inline: 0;
 }
 
 .section-title--light .section-title__heading {
@@ -50,9 +57,13 @@
 }
 
 .section-title--light .section-title__subtitle {
-  color: rgba(247, 245, 240, 0.7);
+  color: rgba(248, 245, 240, 0.7);
 }
 
 .section-title--light .section-title__eyebrow {
   color: var(--soft-gold);
+}
+
+.section-title--light .section-title__divider {
+  background: var(--soft-gold);
 }

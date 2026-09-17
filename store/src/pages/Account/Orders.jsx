@@ -5,7 +5,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Loader from '../../components/common/Loader';
 import PageHeader from '../../components/common/PageHeader';
 import { getMyOrders, getOrderById } from '../../services/orderService';
-import { ORDER_STATUS_LABELS } from '../../utils/constants';
+import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { getErrorMessage } from '../../utils/getErrorMessage';
@@ -58,6 +58,10 @@ const Orders = () => {
                 <p className="eyebrow">{order.orderNumber}</p>
                 <h2>{ORDER_STATUS_LABELS[order.orderStatus] || order.orderStatus}</h2>
                 <p>Placed on {formatDate(order.createdAt)}</p>
+                <p>
+                  {order.payment?.method === 'cod' ? 'Cash on Delivery' : 'Online payment'} ·{' '}
+                  {PAYMENT_STATUS_LABELS[order.payment?.paymentStatus] || order.payment?.paymentStatus}
+                </p>
                 {order.items.map((item) => (
                   <article key={`${item.sku}-${item.name}`} className="order-item">
                     {item.image ? <img src={resolveAssetUrl(item.image)} alt={item.name} /> : <div />}
@@ -70,13 +74,28 @@ const Orders = () => {
                     <span>{formatCurrency(item.total)}</span>
                   </article>
                 ))}
+                {order.pricing?.discount ? (
+                  <div className="summary-row">
+                    <span>{order.coupon?.code ? `Discount (${order.coupon.code})` : 'Discount'}</span>
+                    <span>-{formatCurrency(order.pricing.discount)}</span>
+                  </div>
+                ) : null}
+                {order.pricing?.shipping ? (
+                  <div className="summary-row">
+                    <span>Shipping</span>
+                    <span>{formatCurrency(order.pricing.shipping)}</span>
+                  </div>
+                ) : null}
                 <div className="summary-row total">
                   <span>Total</span>
                   <strong>{formatCurrency(order.pricing?.total)}</strong>
                 </div>
                 <p>
-                  {order.shippingAddress?.fullName}, {order.shippingAddress?.addressLine1}, {order.shippingAddress?.city}
+                  {order.shippingAddress?.fullName}, {order.shippingAddress?.addressLine1}
+                  {order.shippingAddress?.landmark ? `, ${order.shippingAddress.landmark}` : ''},{' '}
+                  {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.postalCode}
                 </p>
+                <p>{order.shippingAddress?.phone}</p>
               </div>
             ) : orders.length === 0 ? (
               <EmptyState title="No orders yet" message="Your purchases will appear here." actionLabel="Shop now" actionTo="/shop" />

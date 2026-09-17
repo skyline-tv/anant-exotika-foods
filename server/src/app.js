@@ -21,6 +21,8 @@ const addressRoutes = require('./routes/addressRoutes');
 const { router: orderRoutes, adminRouter: adminOrderRoutes } = require('./routes/orderRoutes');
 const { router: couponRoutes, adminRouter: adminCouponRoutes } = require('./routes/couponRoutes');
 const { router: reviewRoutes, adminRouter: adminReviewRoutes } = require('./routes/reviewRoutes');
+const { router: contentRoutes, adminRouter: adminContentRoutes } = require('./routes/contentRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
 
@@ -40,6 +42,9 @@ app.use(
   cors({
     origin(origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      if (process.env.NODE_ENV !== 'production' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
         return callback(null, true);
       }
       return callback(new AppError('Not allowed by CORS', 403));
@@ -108,6 +113,9 @@ app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/admin/coupons', adminCouponRoutes);
 app.use('/api/v1/reviews', reviewRoutes);
 app.use('/api/v1/admin/reviews', adminReviewRoutes);
+app.use('/api/v1/content', contentRoutes);
+app.use('/api/v1/admin/content', adminContentRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 
 app.use(notFoundMiddleware);

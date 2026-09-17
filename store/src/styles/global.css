@@ -21,7 +21,7 @@ body {
   font-weight: var(--fw-regular);
   line-height: var(--lh-normal);
   color: var(--dark-text);
-  background-color: var(--ivory);
+  background-color: var(--white);
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -70,8 +70,8 @@ h6 {
   font-family: var(--font-heading);
   font-weight: var(--fw-medium);
   line-height: var(--lh-tight);
-  color: var(--primary-green);
-  letter-spacing: 0.01em;
+  color: var(--dark-text);
+  letter-spacing: -0.02em;
 }
 
 p {
@@ -95,7 +95,7 @@ p {
   top: -100px;
   z-index: 1000;
   padding: 0.7rem 1rem;
-  background: var(--primary-green);
+  background: var(--dark-green);
   color: var(--ivory);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
@@ -126,31 +126,14 @@ p {
 
 .app-main {
   flex: 1;
-  padding-top: calc(var(--announcement-height) + var(--header-inset) + var(--header-height) + 12px);
-}
-
-.app-layout--home .app-main {
-  padding-top: 0;
-}
-
-.app-layout--bare .app-main {
-  padding-bottom: 0;
-}
-
-.glass {
-  background: var(--glass);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-glass);
 }
 
 .reveal {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(16px);
   transition:
-    opacity var(--transition-slow),
-    transform var(--transition-slow);
+    opacity 700ms var(--ease-out),
+    transform 700ms var(--ease-out);
 }
 
 .reveal.is-visible {
@@ -162,7 +145,7 @@ p {
 .page-placeholder__eyebrow {
   display: inline-block;
   font-family: var(--font-body);
-  font-size: var(--fs-xs);
+  font-size: 0.7rem;
   font-weight: var(--fw-medium);
   letter-spacing: var(--ls-wider);
   text-transform: uppercase;
@@ -171,7 +154,7 @@ p {
 }
 
 .page-placeholder {
-  padding: var(--space-7) 0;
+  padding: var(--space-8) 0;
   min-height: 0;
 }
 
@@ -193,16 +176,16 @@ p {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-6) var(--space-5);
+  gap: var(--space-5);
 }
 
 .section {
-  padding: var(--space-7) 0;
+  padding: var(--space-8) 0;
 }
 
 @media (min-width: 1024px) {
   .section {
-    padding: var(--space-8) 0;
+    padding: var(--space-9) 0;
   }
 }
 
@@ -229,11 +212,11 @@ p {
 }
 
 .section--green p {
-  color: rgba(247, 245, 240, 0.72);
+  color: rgba(248, 245, 240, 0.72);
 }
 
 :focus-visible {
-  outline: 2px solid rgba(11, 61, 46, 0.28);
+  outline: 2px solid rgba(201, 162, 39, 0.55);
   outline-offset: 3px;
 }
 
@@ -254,8 +237,20 @@ p {
   }
 }
 
+@keyframes cartPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .animate-in {
-  animation: fadeInUp 0.7s var(--transition-slow) both;
+  animation: fadeInUp 0.7s var(--ease-out) both;
 }
 
 .field {
@@ -268,7 +263,7 @@ p {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
-  color: var(--primary-green);
+  color: var(--muted-text);
 }
 
 .field input,
@@ -278,22 +273,20 @@ p {
   min-height: 48px;
   padding: 0.8rem 0.95rem;
   border: 1px solid var(--border-subtle);
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--white);
   border-radius: var(--radius-sm);
   outline: none;
   transition:
     border-color var(--transition-fast),
-    box-shadow var(--transition-fast),
-    background-color var(--transition-fast);
+    box-shadow var(--transition-fast);
 }
 
 .field input:focus,
 .field textarea:focus,
 .field select:focus,
 .form-control:focus {
-  border-color: rgba(11, 61, 46, 0.28);
-  box-shadow: 0 0 0 4px rgba(11, 61, 46, 0.08);
-  background: var(--white);
+  border-color: var(--luxury-gold);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.12);
 }
 
 .field textarea {
@@ -322,11 +315,11 @@ p {
 
 .checkbox-row input {
   margin-top: 0.2rem;
-  accent-color: var(--primary-green);
+  accent-color: var(--dark-green);
 }
 
 .link-quiet {
-  color: var(--primary-green);
+  color: var(--dark-text);
   border-bottom: 1px solid transparent;
   transition: border-color var(--transition-fast), color var(--transition-fast);
 }
@@ -340,7 +333,7 @@ p {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
-  color: var(--primary-green);
+  color: var(--muted-text);
 }
 
 .text-link:hover {
@@ -350,7 +343,7 @@ p {
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: #e7e3da;
+  background: #efeae1;
 }
 
 .skeleton::after {
@@ -358,7 +351,7 @@ p {
   position: absolute;
   inset: 0;
   transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
   animation: shimmer 1.4s infinite;
 }
 

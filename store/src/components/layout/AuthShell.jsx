@@ -1,11 +1,11 @@
-import logo from '../../assets/logo/anant-exotika-logo.jpg';
+import BrandMark from '../brand/BrandMark';
 import './AuthShell.css';
 
 const AuthShell = ({ eyebrow, title, subtitle, children }) => (
   <section className="auth-split">
     <div className="auth-split__visual">
-      <img src={logo} alt="ANANT EXOTIKA" />
-      <p>Beyond Time, Beyond Luxury</p>
+      <BrandMark inverted to="/" />
+      <p>Thoughtfully curated. Elegantly gifted.</p>
     </div>
     <div className="auth-split__panel">
       <div className="auth-split__content">

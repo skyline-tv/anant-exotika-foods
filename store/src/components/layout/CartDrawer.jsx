@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import Button from '../common/Button';
 import QuantitySelector from '../common/QuantitySelector';
 import { useAuth } from '../../context/AuthContext';
@@ -60,7 +60,7 @@ const CartDrawer = () => {
       >
         <div className="cart-drawer__header">
           <div>
-            <p className="eyebrow">Shopping</p>
+            <p className="eyebrow">Your selection</p>
             <h2>Bag</h2>
           </div>
           <button type="button" className="site-header__icon-btn" aria-label="Close bag" onClick={closeCart}>
@@ -71,9 +71,9 @@ const CartDrawer = () => {
         <div className="cart-drawer__body">
           {!cart.items.length ? (
             <div className="cart-drawer__empty">
-              <h3>Your bag is waiting for something extraordinary.</h3>
+              <h3>Your bag is waiting for something special.</h3>
               <Button as={Link} to="/shop" variant="primary" onClick={closeCart}>
-                Continue Shopping
+                Continue shopping
               </Button>
             </div>
           ) : (
@@ -130,6 +130,9 @@ const CartDrawer = () => {
             <Button as={Link} to="/cart" variant="ghost" className="btn--full" onClick={closeCart}>
               View bag
             </Button>
+            <p className="checkout-secure">
+              <Lock size={13} strokeWidth={1.6} /> Secure checkout
+            </p>
           </div>
         ) : null}
       </aside>

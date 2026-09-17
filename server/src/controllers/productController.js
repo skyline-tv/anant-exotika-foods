@@ -103,7 +103,9 @@ const getSort = (sort) => {
     case 'name-asc':
       return { name: 1 };
     case 'featured':
-      return { isFeatured: -1, createdAt: -1 };
+      return { isFeatured: -1, displayOrder: 1, createdAt: -1 };
+    case 'manual':
+      return { displayOrder: 1, createdAt: -1 };
     case 'newest':
     default:
       return { createdAt: -1 };
@@ -266,6 +268,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     'isFeatured',
     'isNewArrival',
     'isBestSeller',
+    'displayOrder',
     'status',
     'seoTitle',
     'seoDescription',

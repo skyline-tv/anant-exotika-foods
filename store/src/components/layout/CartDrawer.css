@@ -2,9 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  background: rgba(6, 42, 30, 0.28);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(23, 23, 23, 0.32);
   opacity: 0;
   visibility: hidden;
   transition: opacity var(--transition-base), visibility var(--transition-base);
@@ -17,20 +15,15 @@
 
 .cart-drawer {
   position: fixed;
-  top: var(--header-inset);
-  right: var(--header-inset);
-  bottom: var(--header-inset);
+  top: 0;
+  right: 0;
+  bottom: 0;
   z-index: var(--z-drawer);
   width: min(92vw, 420px);
-  height: auto;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-float);
+  background: var(--white);
+  border-left: 1px solid var(--border-subtle);
   overflow: hidden;
-  transform: translateX(calc(100% + 24px));
+  transform: translateX(100%);
   transition: transform var(--transition-slow);
   display: flex;
   flex-direction: column;
@@ -45,6 +38,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--space-lg) var(--space-xl) var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .cart-drawer__header h2 {
@@ -80,10 +74,10 @@
 .cart-drawer__item img,
 .cart-drawer__thumb {
   width: 72px;
-  height: 90px;
-  object-fit: cover;
-  background: var(--cream);
-  border-radius: 10px;
+  height: 72px;
+  object-fit: contain;
+  background: var(--ivory);
+  border-radius: var(--radius-sm);
 }
 
 .cart-drawer__item h3 {
@@ -94,9 +88,11 @@
 .cart-drawer__item p,
 .cart-drawer__item strong {
   font-size: var(--fs-sm);
-  color: var(--primary-green);
+  color: var(--dark-text);
 }
 
 .cart-drawer__footer {
   padding: var(--space-lg) var(--space-xl) var(--space-xl);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--ivory);
 }

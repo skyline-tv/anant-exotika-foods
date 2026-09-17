@@ -26,6 +26,8 @@ const EMPTY = {
   parentCategory: '',
   isActive: true,
   displayOrder: 0,
+  seoTitle: '',
+  seoDescription: '',
 };
 
 function Categories() {
@@ -78,6 +80,8 @@ function Categories() {
       parentCategory: category.parentCategory?._id || category.parentCategory || '',
       isActive: category.isActive !== false,
       displayOrder: category.displayOrder || 0,
+      seoTitle: category.seoTitle || '',
+      seoDescription: category.seoDescription || '',
     });
     setModalOpen(true);
   };
@@ -114,6 +118,8 @@ function Categories() {
         parentCategory: values.parentCategory || null,
         isActive: values.isActive,
         displayOrder: Number(values.displayOrder) || 0,
+        seoTitle: values.seoTitle.trim(),
+        seoDescription: values.seoDescription.trim(),
       };
 
       if (editing) {
@@ -317,6 +323,28 @@ function Categories() {
                 value={values.displayOrder}
                 onChange={(event) =>
                   setValues((current) => ({ ...current, displayOrder: event.target.value }))
+                }
+              />
+            </div>
+            <div className="field span-2">
+              <label htmlFor="categorySeoTitle">SEO title</label>
+              <input
+                id="categorySeoTitle"
+                className="input"
+                value={values.seoTitle}
+                onChange={(event) =>
+                  setValues((current) => ({ ...current, seoTitle: event.target.value }))
+                }
+              />
+            </div>
+            <div className="field span-2">
+              <label htmlFor="categorySeoDescription">SEO description</label>
+              <textarea
+                id="categorySeoDescription"
+                className="textarea"
+                value={values.seoDescription}
+                onChange={(event) =>
+                  setValues((current) => ({ ...current, seoDescription: event.target.value }))
                 }
               />
             </div>

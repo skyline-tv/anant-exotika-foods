@@ -13,19 +13,14 @@
   padding: var(--space-7);
 }
 
-.auth-split__visual img {
-  width: min(220px, 58%);
-  height: auto;
-  border-radius: 12px;
-}
-
 .auth-split__visual p {
   font-family: var(--font-heading);
   font-style: italic;
   font-size: var(--fs-xl);
   color: var(--soft-gold);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   margin: 0;
+  text-align: center;
 }
 
 .auth-split__panel {
@@ -39,12 +34,9 @@
 .auth-split__content {
   width: min(460px, 100%);
   padding: var(--space-7);
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-glass);
+  background: var(--white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
 }
 
 .auth-split__content h1 {
@@ -71,7 +63,7 @@
 @media (min-width: 900px) {
   .auth-split {
     grid-template-columns: 1fr 1fr;
-    min-height: calc(100svh - var(--chrome-top) - var(--header-height) - 24px);
+    min-height: calc(100svh - var(--announcement-height) - var(--header-height));
   }
 
   .auth-split__visual {

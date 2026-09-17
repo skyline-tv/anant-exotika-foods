@@ -141,6 +141,10 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    displayOrder: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: PRODUCT_STATUS,
@@ -170,6 +174,7 @@ productSchema.index({ isNewArrival: 1 });
 productSchema.index({ isBestSeller: 1 });
 productSchema.index({ tags: 1 });
 productSchema.index({ status: 1, createdAt: -1 });
+productSchema.index({ displayOrder: 1, createdAt: -1 });
 productSchema.index({ name: 'text', shortDescription: 'text', tags: 'text', sku: 'text' });
 
 productSchema.pre('save', async function generateSlug() {

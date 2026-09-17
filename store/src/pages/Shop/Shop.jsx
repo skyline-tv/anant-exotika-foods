@@ -12,6 +12,7 @@ import { PRODUCT_SORT_OPTIONS } from '../../utils/constants';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { getParentCategories } from '../../utils/categories';
 import { isOutOfStock } from '../../utils/productHelpers';
+import { usePageMeta } from '../../hooks/usePageMeta';
 
 const SPECIAL_SLUGS = {
   'new-arrivals': { title: 'New Arrivals', newArrival: true },
@@ -39,13 +40,13 @@ const Shop = () => {
   const special = SPECIAL_SLUGS[category];
 
   const parentCategories = getParentCategories(categories);
-  const activeCategory = parentCategories.find((item) => item.slug === category);
+  const activeCategory = categories.find((item) => item.slug === category);
 
   const title = useMemo(() => {
     if (special) return special.title;
     if (activeCategory) return activeCategory.name;
     if (category) return category.replace(/-/g, ' ');
-    return 'The Collection';
+    return 'Shop';
   }, [activeCategory, category, special]);
 
   useEffect(() => {
@@ -173,6 +174,15 @@ const Shop = () => {
     </>
   );
 
+  usePageMeta({
+    title: `${activeCategory?.seoTitle || title} | Anant Exotika Foods`,
+    description:
+      activeCategory?.seoDescription ||
+      activeCategory?.description ||
+      'Premium dry fruits, hampers and gifting from Anant Exotika Foods.',
+    image: activeCategory?.image,
+  });
+
   return (
     <section className="page-shell">
       <div className="container">
@@ -180,7 +190,7 @@ const Shop = () => {
           title={title}
           subtitle={
             activeCategory?.description ||
-            'Discover exceptional pieces curated for elegance, beauty and exclusivity.'
+            'Premium dry fruits, hampers and gifting — selected for flavour, freshness and presentation.'
           }
           crumbs={crumbs}
         />
@@ -188,7 +198,7 @@ const Shop = () => {
         <div className="shop-layout">
           <div>
             <div className="shop-toolbar">
-              <p>{pagination.total || 0} pieces</p>
+              <p>{pagination.total || 0} products</p>
               <div className="shop-toolbar__actions">
                 <button type="button" className="filter-trigger" onClick={() => setFiltersOpen(true)}>
                   <SlidersHorizontal size={16} strokeWidth={1.5} />

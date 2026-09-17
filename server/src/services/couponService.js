@@ -45,7 +45,8 @@ const getValidCoupon = async ({ code, userId, subtotal }) => {
     const usedByUser = await Order.countDocuments({
       user: userId,
       'coupon.code': coupon.code,
-      orderStatus: { $nin: ['cancelled'] },
+      orderStatus: { $nin: ['cancelled', 'failed'] },
+      $or: [{ 'payment.method': 'cod' }, { 'payment.paymentStatus': 'paid' }],
     });
 
     if (usedByUser >= coupon.perUserLimit) {

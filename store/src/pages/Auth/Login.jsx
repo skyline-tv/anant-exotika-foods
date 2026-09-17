@@ -37,7 +37,7 @@ const Login = () => {
     <AuthShell
       eyebrow="Welcome back"
       title="Sign in"
-      subtitle="Access your Anant Exotika account, orders and saved pieces."
+      subtitle="Access your Anant Exotika account, orders and saved gifts."
     >
       <form className="form-grid" onSubmit={handleSubmit}>
         {error ? <div className="alert alert-error">{error}</div> : null}

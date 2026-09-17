@@ -7,7 +7,7 @@ const { roundMoney } = require('../services/pricingService');
 
 const CART_POPULATE = {
   path: 'items.product',
-  select: 'name slug images price stock status sku',
+  select: 'name slug images price compareAtPrice stock status sku weight shortDescription',
   populate: { path: 'category', select: 'name slug image' },
 };
 
@@ -20,17 +20,32 @@ const getOrCreateCart = async (userId) => {
 };
 
 const formatCart = (cart) => {
-  const items = cart.items
-    .filter((item) => item.product)
-    .map((item) => {
-      const currentPrice = item.product.price;
-      return {
-        product: item.product,
-        quantity: item.quantity,
-        price: currentPrice,
-        lineTotal: roundMoney(currentPrice * item.quantity),
-      };
+  const warnings = [];
+  const items = [];
+
+  for (const item of cart.items) {
+    const product = item.product;
+    if (!product) {
+      warnings.push('Your cart has been updated because an item is no longer available.');
+      continue;
+    }
+    if (product.status === 'out_of_stock' || Number(product.stock) <= 0) {
+      warnings.push(`${product.name} is currently unavailable.`);
+      continue;
+    }
+    let quantity = item.quantity;
+    if (quantity > product.stock) {
+      quantity = product.stock;
+      warnings.push(`Quantity for ${product.name} was updated because stock availability changed.`);
+    }
+    const currentPrice = product.price;
+    items.push({
+      product,
+      quantity,
+      price: currentPrice,
+      lineTotal: roundMoney(currentPrice * quantity),
     });
+  }
 
   const subtotal = roundMoney(items.reduce((sum, item) => sum + item.lineTotal, 0));
 
@@ -40,18 +55,46 @@ const formatCart = (cart) => {
     items,
     subtotal,
     itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+    warnings: [...new Set(warnings)],
     updatedAt: cart.updatedAt,
     createdAt: cart.createdAt,
   };
 };
 
+const respondWithCart = async (cart) => {
+  await cart.populate(CART_POPULATE);
+  const formatted = formatCart(cart);
+  const nextIds = formatted.items.map((item) => String(item.product._id));
+  const currentIds = cart.items
+    .filter((item) => item.product)
+    .map((item) => String(item.product._id || item.product));
+  const quantityChanged = formatted.items.some((item) => {
+    const current = cart.items.find(
+      (entry) => String(entry.product?._id || entry.product) === String(item.product._id)
+    );
+    return !current || current.quantity !== item.quantity;
+  });
+
+  if (quantityChanged || nextIds.length !== currentIds.length) {
+    cart.items = formatted.items.map((item) => ({
+      product: item.product._id,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+    await cart.save();
+    await cart.populate(CART_POPULATE);
+    return formatCart(cart);
+  }
+
+  return formatted;
+};
+
 const getCart = asyncHandler(async (req, res) => {
   const cart = await getOrCreateCart(req.user._id);
-  await cart.populate(CART_POPULATE);
 
   successResponse(res, {
     message: 'Cart retrieved successfully',
-    data: { cart: formatCart(cart) },
+    data: { cart: await respondWithCart(cart) },
   });
 });
 
@@ -103,11 +146,10 @@ const addToCart = asyncHandler(async (req, res) => {
   const cart = await getOrCreateCart(req.user._id);
   await addToCartItem(cart, productId, quantity);
   await cart.save();
-  await cart.populate(CART_POPULATE);
 
   successResponse(res, {
     message: 'Item added to cart',
-    data: { cart: formatCart(cart) },
+    data: { cart: await respondWithCart(cart) },
   });
 });
 
@@ -127,11 +169,10 @@ const mergeCart = asyncHandler(async (req, res) => {
   }
 
   await cart.save();
-  await cart.populate(CART_POPULATE);
 
   successResponse(res, {
     message: 'Cart merged successfully',
-    data: { cart: formatCart(cart) },
+    data: { cart: await respondWithCart(cart) },
   });
 });
 
@@ -169,11 +210,10 @@ const updateCartItem = asyncHandler(async (req, res) => {
   }
 
   await cart.save();
-  await cart.populate(CART_POPULATE);
 
   successResponse(res, {
     message: 'Cart updated successfully',
-    data: { cart: formatCart(cart) },
+    data: { cart: await respondWithCart(cart) },
   });
 });
 
@@ -190,11 +230,10 @@ const removeCartItem = asyncHandler(async (req, res) => {
   }
 
   await cart.save();
-  await cart.populate(CART_POPULATE);
 
   successResponse(res, {
     message: 'Item removed from cart',
-    data: { cart: formatCart(cart) },
+    data: { cart: await respondWithCart(cart) },
   });
 });
 

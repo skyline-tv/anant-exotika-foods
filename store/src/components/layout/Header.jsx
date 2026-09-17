@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
-import logo from '../../assets/logo/anant-exotika-logo.jpg';
+import BrandMark from '../brand/BrandMark';
 import SearchOverlay from '../common/SearchOverlay';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { matchCategoryPath } from '../../data/brandContent';
 import { getCategories } from '../../services/categoryService';
 import { getChildCategories, getParentCategories } from '../../utils/categories';
 import './Header.css';
@@ -18,7 +19,9 @@ const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [openMobileShop, setOpenMobileShop] = useState(false);
+  const [pulse, setPulse] = useState(false);
   const shopTimer = useRef(null);
+  const prevCount = useRef(0);
   const [categories, setCategories] = useState([]);
   const { isAuthenticated } = useAuth();
   const { itemCount } = useCart();
@@ -26,7 +29,7 @@ const Header = () => {
   const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -51,158 +54,190 @@ const Header = () => {
       .catch(() => setCategories([]));
   }, []);
 
+  useEffect(() => {
+    if (itemCount > prevCount.current) {
+      setPulse(true);
+      const timer = window.setTimeout(() => setPulse(false), 520);
+      prevCount.current = itemCount;
+      return () => window.clearTimeout(timer);
+    }
+    prevCount.current = itemCount;
+    return undefined;
+  }, [itemCount]);
+
   const parents = getParentCategories(categories);
   const closeDrawer = () => setDrawerOpen(false);
-
+  const dryFruitsTo = matchCategoryPath(parents, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
+  const hampersTo = matchCategoryPath(parents, ['hamper', 'box', 'combo', 'gift']);
   const navClass = ({ isActive }) => `site-header__nav-link${isActive ? ' is-active' : ''}`;
 
   return (
     <>
-      <div className={`site-chrome ${scrolled ? 'is-scrolled' : ''}`}>
-      <header className="site-header">
-        <div className="site-header__inner">
+      <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+        <div className="container site-header__inner">
+          <button
+            type="button"
+            className="site-header__icon-btn show-mobile-only"
+            aria-label="Open menu"
+            aria-expanded={drawerOpen}
+            aria-controls="mobile-nav-drawer"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <Menu size={20} strokeWidth={1.4} />
+          </button>
+
+          <div className="site-header__logo">
+            <BrandMark compact />
+          </div>
+
+          <nav className="site-header__nav hide-mobile" aria-label="Primary">
+            <ul className="site-header__nav-list">
+              <li>
+                <NavLink to="/" end className={navClass}>
+                  Home
+                </NavLink>
+              </li>
+              <li
+                className={`site-header__shop ${shopOpen ? 'is-open' : ''}`}
+                onMouseEnter={() => {
+                  window.clearTimeout(shopTimer.current);
+                  setShopOpen(true);
+                }}
+                onMouseLeave={() => {
+                  shopTimer.current = window.setTimeout(() => setShopOpen(false), 160);
+                }}
+              >
+                <NavLink
+                  to="/shop"
+                  className={navClass}
+                  onFocus={() => setShopOpen(true)}
+                  aria-expanded={shopOpen}
+                  aria-haspopup="true"
+                >
+                  Shop
+                </NavLink>
+                <div className="mega-menu" hidden={!shopOpen}>
+                  <div className="mega-menu__inner container">
+                    <div>
+                      <p className="mega-menu__label">Categories</p>
+                      <ul>
+                        <li>
+                          <Link to="/shop" onClick={() => setShopOpen(false)}>
+                            All products
+                          </Link>
+                        </li>
+                        {parents.map((category) => (
+                          <li key={category._id}>
+                            <Link to={`/shop/${category.slug}`} onClick={() => setShopOpen(false)}>
+                              {category.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="mega-menu__label">Collections</p>
+                      <ul>
+                        <li>
+                          <Link to={dryFruitsTo} onClick={() => setShopOpen(false)}>
+                            Premium Dry Fruits
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to={hampersTo} onClick={() => setShopOpen(false)}>
+                            Gift Hampers
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to="/shop/featured" onClick={() => setShopOpen(false)}>
+                            Featured
+                          </Link>
+                        </li>
+                        <li>
+                          <Link to="/shop/new-arrivals" onClick={() => setShopOpen(false)}>
+                            New arrivals
+                          </Link>
+                        </li>
+                      </ul>
+                    </div>
+                    <Link to={{ pathname: '/', hash: 'gifting' }} className="mega-menu__promo" onClick={() => setShopOpen(false)}>
+                      <span>
+                        <em>Gifting</em>
+                        Hampers for festivals, weddings and the boardroom.
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <NavLink
+                  to="/about"
+                  className={({ isActive }) =>
+                    `site-header__nav-link${isActive && location.hash !== '#our-story' ? ' is-active' : ''}`
+                  }
+                >
+                  About Us
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to={{ pathname: '/about', hash: 'our-story' }}
+                  className={() =>
+                    `site-header__nav-link${location.pathname === '/about' && location.hash === '#our-story' ? ' is-active' : ''}`
+                  }
+                >
+                  Our Story
+                </NavLink>
+              </li>
+              <li>
+                <NavLink to="/contact" className={navClass}>
+                  Contact Us
+                </NavLink>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="site-header__actions">
             <button
               type="button"
-              className="site-header__icon-btn show-mobile-only"
-              aria-label="Open menu"
-              aria-expanded={drawerOpen}
-              aria-controls="mobile-nav-drawer"
-              onClick={() => setDrawerOpen(true)}
+              className="site-header__icon-btn"
+              aria-label="Search"
+              onClick={() => setSearchOpen(true)}
             >
-              <Menu size={20} strokeWidth={1.4} />
+              <Search size={18} strokeWidth={1.4} />
             </button>
 
-            <Link to="/" className="site-header__logo" aria-label="ANANT EXOTIKA Home">
-              <img src={logo} alt="ANANT EXOTIKA" className="site-header__logo-img" />
+            <Link
+              to="/wishlist"
+              className="site-header__icon-btn site-header__icon-btn--badge hide-mobile"
+              aria-label={`Wishlist${wishlistCount ? `, ${wishlistCount} items` : ''}`}
+            >
+              <Heart size={18} strokeWidth={1.4} />
+              {wishlistCount > 0 ? <span className="site-header__badge">{wishlistCount}</span> : null}
             </Link>
 
-            <nav className="site-header__nav hide-mobile" aria-label="Primary">
-                <ul className="site-header__nav-list">
-                  <li>
-                    <NavLink to="/" end className={navClass}>
-                      Home
-                    </NavLink>
-                  </li>
-                  <li
-                    className={`site-header__shop ${shopOpen ? 'is-open' : ''}`}
-                    onMouseEnter={() => {
-                      window.clearTimeout(shopTimer.current);
-                      setShopOpen(true);
-                    }}
-                    onMouseLeave={() => {
-                      shopTimer.current = window.setTimeout(() => setShopOpen(false), 160);
-                    }}
-                  >
-                    <NavLink
-                      to="/shop"
-                      className={navClass}
-                      onFocus={() => setShopOpen(true)}
-                      aria-expanded={shopOpen}
-                      aria-haspopup="true"
-                    >
-                      Shop
-                    </NavLink>
-                    <div className="mega-menu" hidden={!shopOpen}>
-                      <div className="mega-menu__inner container">
-                        <div>
-                          <p className="mega-menu__label">Categories</p>
-                          <ul>
-                            <li>
-                              <Link to="/shop" onClick={() => setShopOpen(false)}>
-                                All Products
-                              </Link>
-                            </li>
-                            {parents.map((category) => (
-                              <li key={category._id}>
-                                <Link to={`/shop/${category.slug}`} onClick={() => setShopOpen(false)}>
-                                  {category.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="mega-menu__label">Collections</p>
-                          <ul>
-                            <li>
-                              <Link to="/shop/featured" onClick={() => setShopOpen(false)}>
-                                Featured Collection
-                              </Link>
-                            </li>
-                            <li>
-                              <Link to="/shop/new-arrivals" onClick={() => setShopOpen(false)}>
-                                New Arrivals
-                              </Link>
-                            </li>
-                          </ul>
-                        </div>
-                        <Link to="/shop/featured" className="mega-menu__promo" onClick={() => setShopOpen(false)}>
-                          <span>
-                            <em>The Atelier</em>
-                            Discover pieces curated for quiet luxury.
-                          </span>
-                        </Link>
-                      </div>
-                    </div>
-                  </li>
-                  <li>
-                    <NavLink to="/shop/featured" className={navClass}>
-                      Collections
-                    </NavLink>
-                  </li>
-                  <li>
-                    <Link to="/shop" className="site-header__nav-link">
-                      Gifts
-                    </Link>
-                  </li>
-                  <li>
-                    <NavLink to="/about" className={navClass}>
-                      About
-                    </NavLink>
-                  </li>
-                </ul>
-              </nav>
+            <Link
+              to={isAuthenticated ? '/account' : '/login'}
+              className="site-header__icon-btn hide-mobile"
+              aria-label="Account"
+            >
+              <User size={18} strokeWidth={1.4} />
+            </Link>
 
-            <div className="site-header__actions">
-              <button
-                type="button"
-                className="site-header__icon-btn"
-                aria-label="Search"
-                onClick={() => setSearchOpen(true)}
-              >
-                <Search size={18} strokeWidth={1.4} />
-              </button>
-
-              <Link
-                to="/wishlist"
-                className="site-header__icon-btn site-header__icon-btn--badge hide-mobile"
-                aria-label={`Wishlist${wishlistCount ? `, ${wishlistCount} items` : ''}`}
-              >
-                <Heart size={18} strokeWidth={1.4} />
-                {wishlistCount > 0 ? <span className="site-header__badge">{wishlistCount}</span> : null}
-              </Link>
-
-              <Link
-                to={isAuthenticated ? '/account' : '/login'}
-                className="site-header__icon-btn hide-mobile"
-                aria-label="Account"
-              >
-                <User size={18} strokeWidth={1.4} />
-              </Link>
-
-              <button
-                type="button"
-                className="site-header__icon-btn site-header__icon-btn--badge"
-                aria-label={`Shopping bag${itemCount ? `, ${itemCount} items` : ''}`}
-                onClick={openCart}
-              >
-                <ShoppingBag size={18} strokeWidth={1.4} />
-                {itemCount > 0 ? <span className="site-header__badge">{itemCount}</span> : null}
-              </button>
-            </div>
+            <button
+              type="button"
+              className="site-header__icon-btn site-header__icon-btn--badge"
+              aria-label={`Shopping bag${itemCount ? `, ${itemCount} items` : ''}`}
+              onClick={openCart}
+            >
+              <ShoppingBag size={18} strokeWidth={1.4} />
+              {itemCount > 0 ? (
+                <span className={`site-header__badge${pulse ? ' is-pulse' : ''}`}>{itemCount}</span>
+              ) : null}
+            </button>
+          </div>
         </div>
       </header>
-      </div>
 
       <div
         className={`nav-overlay ${drawerOpen ? 'is-open' : ''}`}
@@ -244,7 +279,7 @@ const Header = () => {
                 <ul className="nav-drawer__sub">
                   <li>
                     <Link to="/shop" onClick={closeDrawer}>
-                      All Products
+                      All products
                     </Link>
                   </li>
                   {parents.map((category) => {
@@ -272,23 +307,30 @@ const Header = () => {
               ) : null}
             </li>
             <li>
-              <NavLink to="/shop/featured" className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`} onClick={closeDrawer}>
-                Collections
+              <NavLink
+                to="/about"
+                className={({ isActive }) =>
+                  `nav-drawer__link${isActive && location.hash !== '#our-story' ? ' is-active' : ''}`
+                }
+                onClick={closeDrawer}
+              >
+                About Us
               </NavLink>
             </li>
             <li>
-              <Link to="/shop" className="nav-drawer__link" onClick={closeDrawer}>
-                Gifts
-              </Link>
-            </li>
-            <li>
-              <NavLink to="/about" className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`} onClick={closeDrawer}>
-                About
+              <NavLink
+                to={{ pathname: '/about', hash: 'our-story' }}
+                className={() =>
+                  `nav-drawer__link${location.pathname === '/about' && location.hash === '#our-story' ? ' is-active' : ''}`
+                }
+                onClick={closeDrawer}
+              >
+                Our Story
               </NavLink>
             </li>
             <li>
               <NavLink to="/contact" className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`} onClick={closeDrawer}>
-                Contact
+                Contact Us
               </NavLink>
             </li>
           </ul>

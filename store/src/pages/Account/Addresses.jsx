@@ -24,6 +24,7 @@ const EMPTY_FORM = {
   state: '',
   postalCode: '',
   country: 'India',
+  landmark: '',
   addressType: 'home',
   isDefault: false,
 };
@@ -36,6 +37,7 @@ const FIELD_LABELS = {
   city: 'City',
   state: 'State',
   postalCode: 'Postal code',
+  landmark: 'Landmark',
 };
 
 const Addresses = () => {
@@ -97,6 +99,7 @@ const Addresses = () => {
       state: address.state || '',
       postalCode: address.postalCode || '',
       country: address.country || 'India',
+      landmark: address.landmark || '',
       addressType: address.addressType || 'home',
       isDefault: Boolean(address.isDefault),
     });
@@ -171,14 +174,14 @@ const Addresses = () => {
 
             <form className="account-card form-grid" onSubmit={handleSubmit}>
               <h2>{editingId ? 'Edit address' : 'Add address'}</h2>
-              {['fullName', 'phone', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode'].map((field) => (
+              {['fullName', 'phone', 'addressLine1', 'addressLine2', 'landmark', 'city', 'state', 'postalCode'].map((field) => (
                 <div className="field" key={field}>
                   <label htmlFor={field}>{FIELD_LABELS[field]}</label>
                   <input
                     id={field}
                     value={form[field]}
                     onChange={(event) => updateField(field, event.target.value)}
-                    required={field !== 'addressLine2'}
+                    required={field !== 'addressLine2' && field !== 'landmark'}
                   />
                 </div>
               ))}

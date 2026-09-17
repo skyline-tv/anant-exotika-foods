@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import logo from '../../assets/logo/anant-exotika-logo.jpg';
+import BrandMark from '../brand/BrandMark';
 import { CONTACT } from '../../utils/constants';
+import { useStoreContent } from '../../context/ContentContext';
 import './Footer.css';
 
 const SocialIcon = ({ children, size = 16 }) => (
@@ -8,7 +9,6 @@ const SocialIcon = ({ children, size = 16 }) => (
     {children}
   </svg>
 );
-
 
 const InstagramIcon = () => (
   <SocialIcon>
@@ -31,28 +31,31 @@ const WhatsAppIcon = () => (
   </SocialIcon>
 );
 
-const Footer = () => (
+const Footer = () => {
+  const { content, contact } = useStoreContent();
+  const emails = contact.emails?.length ? contact.emails : CONTACT.emails;
+
+  return (
   <footer className="site-footer">
     <div className="container">
       <div className="footer__grid">
         <div className="footer__brand">
-          <Link to="/" aria-label="ANANT EXOTIKA Home">
-            <img src={logo} alt="ANANT EXOTIKA" className="footer__logo" />
-          </Link>
+          <BrandMark inverted />
           <p className="footer__tagline">
-            Beyond Time
+            Thoughtfully curated dry fruits
             <br />
-            Beyond Luxury
+            and gifting, presented with care.
           </p>
           <ul className="footer__links">
             <li>
-              <a href={`tel:${CONTACT.phoneTel}`}>{CONTACT.phoneDisplay}</a>
+              <a href={`tel:${contact.phoneTel}`}>{contact.phoneDisplay}</a>
             </li>
-            {CONTACT.emails.map((email) => (
+            {emails.map((email) => (
               <li key={email}>
                 <a href={`mailto:${email}`}>{email}</a>
               </li>
             ))}
+            {contact.address ? <li>{contact.address}</li> : null}
           </ul>
         </div>
 
@@ -60,28 +63,37 @@ const Footer = () => (
           <h3 className="footer__heading">Shop</h3>
           <ul className="footer__links">
             <li>
-              <Link to="/shop">All Products</Link>
+              <Link to="/shop">All products</Link>
             </li>
             <li>
-              <Link to="/shop/new-arrivals">New Arrivals</Link>
+              <Link to="/shop/new-arrivals">New arrivals</Link>
             </li>
             <li>
-              <Link to="/shop/featured">Featured Collection</Link>
+              <Link to="/shop/featured">Featured collection</Link>
+            </li>
+            <li>
+              <Link to={{ pathname: '/', hash: 'gifting' }}>Gifting</Link>
             </li>
           </ul>
         </div>
 
         <div className="footer__col">
-          <h3 className="footer__heading">Customer Care</h3>
+          <h3 className="footer__heading">Customer care</h3>
           <ul className="footer__links">
             <li>
-              <Link to="/contact">Contact Us</Link>
+              <Link to="/contact">Contact us</Link>
             </li>
             <li>
-              <Link to="/shipping-policy">Shipping Policy</Link>
+              <Link to="/shipping-policy">Shipping policy</Link>
             </li>
             <li>
-              <Link to="/returns-policy">Returns &amp; Refund Policy</Link>
+              <Link to="/returns-policy">Returns &amp; refunds</Link>
+            </li>
+            <li>
+              <Link to="/privacy-policy">Privacy policy</Link>
+            </li>
+            <li>
+              <Link to="/terms">Terms &amp; conditions</Link>
             </li>
           </ul>
         </div>
@@ -90,13 +102,19 @@ const Footer = () => (
           <h3 className="footer__heading">About</h3>
           <ul className="footer__links">
             <li>
-              <Link to="/about">Our Story</Link>
+              <Link to="/">Home</Link>
             </li>
             <li>
-              <Link to="/privacy-policy">Privacy Policy</Link>
+              <Link to="/shop">Shop</Link>
             </li>
             <li>
-              <Link to="/terms">Terms &amp; Conditions</Link>
+              <Link to="/about">About us</Link>
+            </li>
+            <li>
+              <Link to="/about#our-story">Our story</Link>
+            </li>
+            <li>
+              <Link to="/contact">Contact us</Link>
             </li>
           </ul>
         </div>
@@ -104,28 +122,13 @@ const Footer = () => (
         <div className="footer__col">
           <h3 className="footer__heading">Socials</h3>
           <div className="footer__social" aria-label="Social media">
-            <a
-              href={CONTACT.instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram"
-            >
+            <a href={CONTACT.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <InstagramIcon />
             </a>
-            <a
-              href={CONTACT.facebookUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Facebook"
-            >
+            <a href={CONTACT.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
               <FacebookIcon />
             </a>
-            <a
-              href={CONTACT.whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp"
-            >
+            <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
               <WhatsAppIcon />
             </a>
           </div>
@@ -133,10 +136,11 @@ const Footer = () => (
       </div>
 
       <div className="footer__bottom">
-        <p className="footer__copyright">© 2026 Anant Exotika. All Rights Reserved.</p>
+        <p className="footer__copyright">© {new Date().getFullYear()} {content?.storeName || 'Anant Exotika Foods'}. All rights reserved.</p>
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

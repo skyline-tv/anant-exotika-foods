@@ -39,3 +39,20 @@ export function getSellingRate(product) {
 export function isOutOfStock(product) {
   return !product || product.status === 'out_of_stock' || Number(product.stock) <= 0;
 }
+
+export function getDiscountPercent(product) {
+  const mrp = getMrp(product);
+  const price = getSellingRate(product);
+  if (mrp > price && mrp > 0) {
+    return Math.round(((mrp - price) / mrp) * 100);
+  }
+  return 0;
+}
+
+export function formatWeight(grams) {
+  const value = Number(grams) || 0;
+  if (!value) return '';
+  if (value >= 1000 && value % 1000 === 0) return `${value / 1000} kg`;
+  if (value >= 1000) return `${(value / 1000).toFixed(1).replace(/\.0$/, '')} kg`;
+  return `${value} g`;
+}

@@ -20,6 +20,7 @@ export const ORDER_STATUSES = [
   'cancelled',
   'returned',
   'refunded',
+  'failed',
 ];
 
 export const SENSITIVE_ORDER_STATUSES = ['cancelled', 'refunded'];
@@ -87,6 +88,7 @@ export const STATUS_LABELS = {
   cancelled: 'Cancelled',
   returned: 'Returned',
   refunded: 'Refunded',
+  failed: 'Failed',
   paid: 'Paid',
   failed: 'Failed',
   low_stock: 'Low Stock',
