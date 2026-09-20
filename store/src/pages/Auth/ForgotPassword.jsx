@@ -18,7 +18,7 @@ const ForgotPassword = () => {
     setSubmitting(true);
     try {
       const response = await forgotPassword(email.trim());
-      setMessage(response.message || 'If an account exists for this email, reset instructions have been generated.');
+      setMessage(response.message || 'If an account exists for this email, password reset instructions have been sent.');
     } catch (err) {
       setError(getErrorMessage(err, 'Unable to start password recovery.'));
     } finally {

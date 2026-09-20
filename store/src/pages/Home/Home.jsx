@@ -67,7 +67,9 @@ const HeroShowcase = ({ slides }) => {
               tabIndex={slideIndex === index ? 0 : -1}
               aria-hidden={slideIndex !== index}
             >
-              <img src={slide.src} alt={slide.name} />
+              <span className="hero__float">
+                <img src={slide.src} alt={slide.name} />
+              </span>
             </Link>
           ))}
         </div>

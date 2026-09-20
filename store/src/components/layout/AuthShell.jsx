@@ -4,7 +4,7 @@ import './AuthShell.css';
 const AuthShell = ({ eyebrow, title, subtitle, children }) => (
   <section className="auth-split">
     <div className="auth-split__visual">
-      <BrandMark inverted to="/" />
+      <BrandMark inverted large to="/" />
       <p>Thoughtfully curated. Elegantly gifted.</p>
     </div>
     <div className="auth-split__panel">

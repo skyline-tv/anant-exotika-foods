@@ -6,7 +6,10 @@ const {
   getAdminOrders,
   getAdminOrderById,
   updateOrderStatus,
+  retryOrderShipment,
+  syncOrderTracking,
 } = require('../controllers/orderController');
+const { refundOrderPayment } = require('../controllers/paymentController');
 const { authenticateUser } = require('../middleware/authMiddleware');
 const { authenticateAdmin } = require('../middleware/adminMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
@@ -25,6 +28,24 @@ adminRouter.put(
   authenticateAdmin,
   validateObjectId('id'),
   updateOrderStatus
+);
+adminRouter.post(
+  '/:id/shipment/retry',
+  authenticateAdmin,
+  validateObjectId('id'),
+  retryOrderShipment
+);
+adminRouter.post(
+  '/:id/shipment/sync',
+  authenticateAdmin,
+  validateObjectId('id'),
+  syncOrderTracking
+);
+adminRouter.post(
+  '/:id/refund',
+  authenticateAdmin,
+  validateObjectId('id'),
+  refundOrderPayment
 );
 
 module.exports = {

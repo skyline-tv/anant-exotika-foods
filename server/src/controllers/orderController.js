@@ -22,6 +22,14 @@ const {
   createRazorpayOrder,
 } = require('../services/paymentService');
 const SiteContent = require('../models/SiteContent');
+const User = require('../models/User');
+const {
+  sendOrderConfirmationEmail,
+  sendOrderStatusEmail,
+  safeSend,
+} = require('../services/emailService');
+const { quoteShipping, isCodEnabledGlobally, estimatePackageWeightGrams } = require('../services/shippingService');
+const { createOrderShipment, refreshOrderTracking } = require('../services/shipmentService');
 
 const getPrimaryImage = (product) => {
   if (!product.images || product.images.length === 0) {
@@ -78,6 +86,7 @@ const createOrder = asyncHandler(async (req, res) => {
   const productMap = new Map(products.map((product) => [String(product._id), product]));
 
   const orderItems = [];
+  const weightedItems = [];
 
   for (const item of cart.items) {
     const product = productMap.get(String(item.product));
@@ -98,6 +107,11 @@ const createOrder = asyncHandler(async (req, res) => {
       quantity: item.quantity,
       total: calculateItemTotal(price, item.quantity),
     });
+    weightedItems.push({
+      quantity: item.quantity,
+      weight: product.weight,
+      product,
+    });
   }
 
   const subtotal = orderItems.reduce((sum, item) => sum + item.total, 0);
@@ -110,7 +124,30 @@ const createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  const pricing = calculateOrderPricing({ items: orderItems, coupon });
+  const provisional = calculateOrderPricing({ items: orderItems, coupon, shipping: 0 });
+  const shippingQuote = await quoteShipping({
+    postalCode: shippingAddress.postalCode,
+    subtotal: provisional.subtotal,
+    discount: provisional.discount,
+    paymentMethod,
+    items: weightedItems,
+  });
+
+  if (paymentMethod === 'cod') {
+    if (!isCodEnabledGlobally()) {
+      throw new AppError('Cash on Delivery is currently unavailable.', 400);
+    }
+    if (!shippingQuote.codAvailable) {
+      throw new AppError('Cash on Delivery is not available for this delivery pincode.', 400);
+    }
+  }
+
+  const pricing = calculateOrderPricing({
+    items: orderItems,
+    coupon,
+    shipping: shippingQuote.shipping,
+  });
+  const packageWeightGrams = shippingQuote.weightGrams || estimatePackageWeightGrams(weightedItems);
   const orderNumber = await generateOrderNumber();
   const useRazorpay = paymentMethod === 'razorpay';
 
@@ -123,6 +160,10 @@ const createOrder = asyncHandler(async (req, res) => {
     razorpayOrder = await createRazorpayOrder({
       amount: pricing.total,
       receipt: orderNumber,
+      notes: {
+        orderNumber,
+        userId: String(req.user._id),
+      },
     });
   }
 
@@ -143,6 +184,12 @@ const createOrder = asyncHandler(async (req, res) => {
     billingAddress: snapshotAddress(billingAddress),
     pricing,
     payment,
+    shipment: {
+      partner: shippingQuote.partner || 'delhivery',
+      shippingStatus: 'pending',
+      deliveryStatus: 'pending',
+      pickupStatus: 'pending',
+    },
     orderStatus: 'pending',
     statusHistory: [
       {
@@ -177,6 +224,7 @@ const createOrder = asyncHandler(async (req, res) => {
           amount: razorpayOrder.amount,
           currency: razorpayOrder.currency,
         },
+        shipping: shippingQuote,
       },
     });
     return;
@@ -192,7 +240,15 @@ const createOrder = asyncHandler(async (req, res) => {
       decremented.push(item);
     }
 
-    const order = await Order.create(orderPayload);
+    orderPayload.orderStatus = 'confirmed';
+    orderPayload.statusHistory.push({
+      status: 'confirmed',
+      note: 'COD order confirmed',
+      updatedBy: req.user._id,
+      at: new Date(),
+    });
+
+    let order = await Order.create(orderPayload);
 
     if (coupon) {
       coupon.usedCount += 1;
@@ -202,10 +258,18 @@ const createOrder = asyncHandler(async (req, res) => {
     cart.items = [];
     await cart.save();
 
+    order = await createOrderShipment(order, { weightGrams: packageWeightGrams });
+
+    safeSend(sendOrderConfirmationEmail, {
+      to: req.user.email,
+      name: req.user.name,
+      order,
+    });
+
     successResponse(res, {
       message: 'Order created successfully',
       statusCode: 201,
-      data: { order, payment: { method: 'cod' } },
+      data: { order, payment: { method: 'cod' }, shipping: shippingQuote },
     });
   } catch (error) {
     await restoreStockItems(decremented);
@@ -232,13 +296,17 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 const getMyOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findOne({
+  let order = await Order.findOne({
     _id: req.params.id,
     user: req.user._id,
   });
 
   if (!order) {
     throw new AppError('Order not found.', 404);
+  }
+
+  if (req.query.refreshTracking === '1' || req.query.refreshTracking === 'true') {
+    order = await refreshOrderTracking(order);
   }
 
   successResponse(res, {
@@ -282,7 +350,7 @@ const getAdminOrders = asyncHandler(async (req, res) => {
 });
 
 const getAdminOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
+  let order = await Order.findById(req.params.id).populate(
     'user',
     'name email phone'
   );
@@ -291,8 +359,47 @@ const getAdminOrderById = asyncHandler(async (req, res) => {
     throw new AppError('Order not found.', 404);
   }
 
+  if (req.query.refreshTracking === '1' || req.query.refreshTracking === 'true') {
+    order = await refreshOrderTracking(order);
+    order = await Order.findById(req.params.id).populate('user', 'name email phone');
+  }
+
   successResponse(res, {
     message: 'Order retrieved successfully',
+    data: { order },
+  });
+});
+
+const retryOrderShipment = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    throw new AppError('Order not found.', 404);
+  }
+  if (['cancelled', 'refunded', 'failed'].includes(order.orderStatus)) {
+    throw new AppError('Order is not eligible for shipment creation.', 400);
+  }
+  if (order.payment.method === 'razorpay' && order.payment.paymentStatus !== 'paid') {
+    throw new AppError('Online payment must be completed before creating a shipment.', 400);
+  }
+  if (order.shipment?.awbNumber) {
+    throw new AppError('Shipment already exists for this order.', 400);
+  }
+
+  const updated = await createOrderShipment(order);
+  successResponse(res, {
+    message: 'Shipment creation attempted',
+    data: { order: updated },
+  });
+});
+
+const syncOrderTracking = asyncHandler(async (req, res) => {
+  let order = await Order.findById(req.params.id);
+  if (!order) {
+    throw new AppError('Order not found.', 404);
+  }
+  order = await refreshOrderTracking(order);
+  successResponse(res, {
+    message: 'Tracking refreshed',
     data: { order },
   });
 });
@@ -345,6 +452,16 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   await order.save();
 
+  const customer = await User.findById(order.user).select('name email');
+  if (customer?.email && previousStatus !== status) {
+    safeSend(sendOrderStatusEmail, {
+      to: customer.email,
+      name: customer.name,
+      order,
+      status,
+    });
+  }
+
   successResponse(res, {
     message: 'Order status updated successfully',
     data: { order },
@@ -358,4 +475,6 @@ module.exports = {
   getAdminOrders,
   getAdminOrderById,
   updateOrderStatus,
+  retryOrderShipment,
+  syncOrderTracking,
 };

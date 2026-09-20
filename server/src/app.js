@@ -23,6 +23,7 @@ const { router: couponRoutes, adminRouter: adminCouponRoutes } = require('./rout
 const { router: reviewRoutes, adminRouter: adminReviewRoutes } = require('./routes/reviewRoutes');
 const { router: contentRoutes, adminRouter: adminContentRoutes } = require('./routes/contentRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const shippingRoutes = require('./routes/shippingRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
 
@@ -51,11 +52,20 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Razorpay-Signature'],
   })
 );
 
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  express.json({
+    limit: '10mb',
+    verify: (req, res, buf) => {
+      if (req.originalUrl?.includes('/payments/webhook')) {
+        req.rawBody = buf;
+      }
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
@@ -116,6 +126,7 @@ app.use('/api/v1/admin/reviews', adminReviewRoutes);
 app.use('/api/v1/content', contentRoutes);
 app.use('/api/v1/admin/content', adminContentRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/shipping', shippingRoutes);
 app.use('/api/v1/upload', uploadRoutes);
 
 app.use(notFoundMiddleware);

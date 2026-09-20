@@ -33,20 +33,20 @@ const applyCouponDiscount = (subtotal, coupon) => {
   return roundMoney(discount);
 };
 
-const calculateOrderPricing = ({ items, coupon = null }) => {
+const calculateOrderPricing = ({ items, coupon = null, shipping = 0, tax = 0 }) => {
   const subtotal = roundMoney(
     items.reduce((sum, item) => sum + item.total, 0)
   );
   const discount = applyCouponDiscount(subtotal, coupon);
-  const shipping = calculateShipping();
-  const tax = calculateTax();
-  const total = roundMoney(Math.max(0, subtotal - discount + shipping + tax));
+  const shippingAmount = roundMoney(Math.max(0, Number(shipping) || 0));
+  const taxAmount = roundMoney(Math.max(0, Number(tax) || calculateTax()));
+  const total = roundMoney(Math.max(0, subtotal - discount + shippingAmount + taxAmount));
 
   return {
     subtotal,
     discount,
-    shipping,
-    tax,
+    shipping: shippingAmount,
+    tax: taxAmount,
     total,
   };
 };

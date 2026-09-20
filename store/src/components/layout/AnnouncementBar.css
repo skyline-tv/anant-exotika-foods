@@ -4,7 +4,8 @@
   justify-content: center;
   min-height: var(--announcement-height);
   padding: 0.4rem var(--container-padding);
-  background: var(--dark-green);
+  background: #034a2a;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.18);
 }
 
 .announcement-bar__text {

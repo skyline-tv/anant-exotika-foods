@@ -13,6 +13,7 @@ import {
   updateAddress,
 } from '../../services/addressService';
 import { ADDRESS_TYPES } from '../../utils/constants';
+import { validateAddressForm } from '../../utils/addressValidation';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 
 const EMPTY_FORM = {
@@ -31,12 +32,12 @@ const EMPTY_FORM = {
 
 const FIELD_LABELS = {
   fullName: 'Full name',
-  phone: 'Phone',
+  phone: 'Mobile number',
   addressLine1: 'Address line 1',
   addressLine2: 'Address line 2',
   city: 'City',
   state: 'State',
-  postalCode: 'Postal code',
+  postalCode: 'Pincode',
   landmark: 'Landmark',
 };
 
@@ -69,13 +70,18 @@ const Addresses = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const validated = validateAddressForm(form);
+    if (!validated.valid) {
+      toast.error(validated.message);
+      return;
+    }
     setSaving(true);
     try {
       if (editingId) {
-        await updateAddress(editingId, form);
+        await updateAddress(editingId, validated.value);
         toast.success('Address updated.');
       } else {
-        await createAddress(form);
+        await createAddress(validated.value);
         toast.success('Address saved.');
       }
       setForm(EMPTY_FORM);

@@ -21,7 +21,7 @@
   display: block;
   overflow: hidden;
   background: var(--ivory);
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 3 / 4;
 }
 
 .product-card__image,

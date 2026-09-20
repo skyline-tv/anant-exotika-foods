@@ -10,7 +10,9 @@ export async function getMyOrders(params = {}) {
   return data.data;
 }
 
-export async function getOrderById(id) {
-  const { data } = await api.get(`/orders/${id}`);
+export async function getOrderById(id, { refreshTracking = false } = {}) {
+  const { data } = await api.get(`/orders/${id}`, {
+    params: refreshTracking ? { refreshTracking: true } : undefined,
+  });
   return data.data.order;
 }

@@ -3,6 +3,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
 const { ADDRESS_TYPE } = require('../utils/constants');
+const { validateAddressPayload } = require('../utils/addressValidation');
 
 const unsetOtherDefaults = async (userId, keepId) => {
   await Address.updateMany(
@@ -24,13 +25,9 @@ const getAddresses = asyncHandler(async (req, res) => {
 });
 
 const createAddress = asyncHandler(async (req, res) => {
-  const { fullName, phone, addressLine1, city, state, postalCode } = req.body;
-
-  if (!fullName || !phone || !addressLine1 || !city || !state || !postalCode) {
-    throw new AppError(
-      'Full name, phone, address line 1, city, state and postal code are required.',
-      400
-    );
+  const validated = validateAddressPayload(req.body);
+  if (!validated.valid) {
+    throw new AppError(validated.message, 400);
   }
 
   if (req.body.addressType && !ADDRESS_TYPE.includes(req.body.addressType)) {
@@ -39,18 +36,19 @@ const createAddress = asyncHandler(async (req, res) => {
 
   const count = await Address.countDocuments({ user: req.user._id });
   const isDefault = count === 0 ? true : Boolean(req.body.isDefault);
+  const payload = validated.value;
 
   const address = await Address.create({
     user: req.user._id,
-    fullName,
-    phone,
-    addressLine1,
-    addressLine2: req.body.addressLine2 || '',
-    landmark: req.body.landmark || '',
-    city,
-    state,
-    country: req.body.country || 'India',
-    postalCode,
+    fullName: payload.fullName,
+    phone: payload.phone,
+    addressLine1: payload.addressLine1,
+    addressLine2: payload.addressLine2,
+    landmark: payload.landmark,
+    city: payload.city,
+    state: payload.state,
+    country: payload.country,
+    postalCode: payload.postalCode,
     addressType: req.body.addressType || 'home',
     isDefault,
   });
@@ -76,24 +74,33 @@ const updateAddress = asyncHandler(async (req, res) => {
     throw new AppError('Address not found.', 404);
   }
 
-  const allowed = [
-    'fullName',
-    'phone',
-    'addressLine1',
-    'addressLine2',
-    'landmark',
-    'city',
-    'state',
-    'country',
-    'postalCode',
-    'addressType',
-    'isDefault',
-  ];
+  const merged = {
+    fullName: req.body.fullName ?? address.fullName,
+    phone: req.body.phone ?? address.phone,
+    addressLine1: req.body.addressLine1 ?? address.addressLine1,
+    addressLine2: req.body.addressLine2 ?? address.addressLine2,
+    landmark: req.body.landmark ?? address.landmark,
+    city: req.body.city ?? address.city,
+    state: req.body.state ?? address.state,
+    country: req.body.country ?? address.country,
+    postalCode: req.body.postalCode ?? address.postalCode,
+    addressType: req.body.addressType ?? address.addressType,
+    isDefault: req.body.isDefault ?? address.isDefault,
+  };
 
-  allowed.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      address[field] = req.body[field];
-    }
+  const validated = validateAddressPayload(merged);
+  if (!validated.valid) {
+    throw new AppError(validated.message, 400);
+  }
+
+  if (merged.addressType && !ADDRESS_TYPE.includes(merged.addressType)) {
+    throw new AppError('Invalid address type.', 400);
+  }
+
+  Object.assign(address, {
+    ...validated.value,
+    addressType: merged.addressType || address.addressType,
+    isDefault: Boolean(merged.isDefault),
   });
 
   await address.save();

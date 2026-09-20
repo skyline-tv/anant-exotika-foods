@@ -109,6 +109,78 @@ const paymentSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    refundId: {
+      type: String,
+      default: '',
+    },
+    refundAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    refundStatus: {
+      type: String,
+      default: '',
+    },
+    refundedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
+const shipmentSchema = new mongoose.Schema(
+  {
+    partner: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    awbNumber: {
+      type: String,
+      default: '',
+      trim: true,
+      index: true,
+    },
+    shipmentId: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    trackingUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    pickupStatus: {
+      type: String,
+      default: 'pending',
+      trim: true,
+    },
+    shippingStatus: {
+      type: String,
+      default: 'pending',
+      trim: true,
+    },
+    deliveryStatus: {
+      type: String,
+      default: 'pending',
+      trim: true,
+    },
+    lastSyncedAt: {
+      type: Date,
+      default: null,
+    },
+    lastError: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    meta: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   { _id: false }
 );
@@ -169,6 +241,10 @@ const orderSchema = new mongoose.Schema(
     payment: {
       type: paymentSchema,
       required: true,
+    },
+    shipment: {
+      type: shipmentSchema,
+      default: () => ({}),
     },
     orderStatus: {
       type: String,

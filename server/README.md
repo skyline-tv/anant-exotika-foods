@@ -16,7 +16,7 @@ Provide a production-oriented REST API for:
 - Admin authentication and catalogue / order management
 - Local image uploads for product media
 
-Payment gateways, shipping, email/SMS, GST, invoices, and cloud storage are intentionally not implemented yet. The architecture is structured so those integrations can be added later.
+Payment gateways (optional Razorpay), Delhivery shipping, shipping, GST, invoices, and cloud storage can be expanded later. Transactional email uses **Resend** (password reset, welcome, order confirmation, and order status updates). Shipping uses **Delhivery** when configured.
 
 ## 2. Tech stack
 
@@ -63,8 +63,22 @@ The default database name is `anant_exotika`.
 | `ADMIN_NAME` | Optional first-admin name |
 | `ADMIN_EMAIL` | Optional first-admin email (created if no admin exists) |
 | `ADMIN_PASSWORD` | Optional first-admin password |
+| `RAZORPAY_KEY_ID` | Optional Razorpay key id |
+| `RAZORPAY_KEY_SECRET` | Optional Razorpay secret (server only) |
+| `RAZORPAY_WEBHOOK_SECRET` | Razorpay webhook signature secret |
+| `COD_ENABLED` | `true`/`false` — global Cash on Delivery switch |
+| `DELHIVERY_API_KEY` | Delhivery API token (server only) |
+| `DELHIVERY_MODE` | `staging` or `production` |
+| `DELHIVERY_PICKUP_NAME` | Registered Delhivery pickup / warehouse name |
+| `DELHIVERY_PICKUP_PIN` | Origin pincode for rate calculation |
+| `SHIPPING_FREE_THRESHOLD` | Free shipping when goods total ≥ this amount (0 disables) |
+| `SHIPPING_FALLBACK_RATE` | Fallback shipping ₹ if Delhivery rate API is unavailable |
+| `RESEND_API_KEY` | Resend API key for transactional email (server only) |
+| `EMAIL_FROM` | Verified Resend from address, e.g. `Anant Exotika Foods <orders@yourdomain.com>` |
 
 Never commit the real `.env` file.
+
+Webhook endpoint: `POST /api/v1/payments/webhook` (configure in Razorpay dashboard).
 
 ## 5. How to run the development server
 

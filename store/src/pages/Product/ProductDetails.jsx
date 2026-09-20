@@ -213,7 +213,7 @@ const ProductDetails = () => {
               {activeImage ? (
                 <img src={activeImage} alt={product.name} />
               ) : (
-                <div className="product-card__placeholder" style={{ aspectRatio: '1' }}>
+                <div className="product-card__placeholder" style={{ aspectRatio: '3 / 4' }}>
                   <span>ANANT</span>
                 </div>
               )}

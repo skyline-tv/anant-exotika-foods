@@ -5,7 +5,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loader from '../../components/common/Loader';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../context/ToastContext';
-import { getOrderById, updateOrderStatus } from '../../services/orderService';
+import { getOrderById, updateOrderStatus, retryShipment, syncShipment, refundOrder } from '../../services/orderService';
 import {
   ORDER_STATUSES,
   PAYMENT_METHODS,
@@ -41,6 +41,8 @@ function OrderDetails() {
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [shipmentBusy, setShipmentBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -88,6 +90,48 @@ function OrderDetails() {
       return;
     }
     applyStatus();
+  };
+
+  const handleRetryShipment = async () => {
+    setShipmentBusy(true);
+    try {
+      const next = await retryShipment(id);
+      setOrder(next);
+      toast.success('Shipment creation attempted.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Unable to create shipment.'));
+    } finally {
+      setShipmentBusy(false);
+    }
+  };
+
+  const handleSyncShipment = async () => {
+    setShipmentBusy(true);
+    try {
+      const next = await syncShipment(id);
+      setOrder(next);
+      setStatus(next.orderStatus);
+      toast.success('Tracking refreshed from Delhivery.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Unable to refresh tracking.'));
+    } finally {
+      setShipmentBusy(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    setSaving(true);
+    try {
+      const next = await refundOrder(id, { reason: note || 'Admin initiated refund' });
+      setOrder(next);
+      setStatus(next.orderStatus);
+      setRefundOpen(false);
+      toast.success('Refund processed with Razorpay.');
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Unable to refund payment.'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <Loader label="Loading order..." />;
@@ -257,9 +301,93 @@ function OrderDetails() {
               <span>Payment Status</span>
               <StatusBadge status={order.payment?.paymentStatus} />
             </div>
+            {order.payment?.refundId ? (
+              <>
+                <div>
+                  <span>Refund ID</span>
+                  <strong>{order.payment.refundId}</strong>
+                </div>
+                <div>
+                  <span>Refund Amount</span>
+                  <strong>{formatCurrency(order.payment.refundAmount)}</strong>
+                </div>
+                <div>
+                  <span>Refund Status</span>
+                  <strong>{order.payment.refundStatus || '—'}</strong>
+                </div>
+              </>
+            ) : null}
           </div>
+          {order.payment?.method === 'razorpay' && order.payment?.paymentStatus === 'paid' ? (
+            <div className="card-body" style={{ paddingTop: 0 }}>
+              <Button type="button" variant="secondary" onClick={() => setRefundOpen(true)}>
+                Refund via Razorpay
+              </Button>
+            </div>
+          ) : null}
         </section>
       </div>
+
+      <section className="card">
+        <div className="card-header">
+          <h2>Shipment / Delhivery</h2>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            {!order.shipment?.awbNumber ? (
+              <Button type="button" variant="secondary" loading={shipmentBusy} onClick={handleRetryShipment}>
+                Create shipment
+              </Button>
+            ) : (
+              <Button type="button" variant="secondary" loading={shipmentBusy} onClick={handleSyncShipment}>
+                Sync tracking
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="card-body dl-grid">
+          <div>
+            <span>Courier</span>
+            <strong>{order.shipment?.partner || '—'}</strong>
+          </div>
+          <div>
+            <span>AWB</span>
+            <strong>{order.shipment?.awbNumber || '—'}</strong>
+          </div>
+          <div>
+            <span>Shipment ID</span>
+            <strong>{order.shipment?.shipmentId || '—'}</strong>
+          </div>
+          <div>
+            <span>Pickup status</span>
+            <strong>{order.shipment?.pickupStatus || '—'}</strong>
+          </div>
+          <div>
+            <span>Shipping status</span>
+            <strong>{order.shipment?.shippingStatus || '—'}</strong>
+          </div>
+          <div>
+            <span>Delivery status</span>
+            <strong>{order.shipment?.deliveryStatus || '—'}</strong>
+          </div>
+          <div>
+            <span>Tracking</span>
+            <strong>
+              {order.shipment?.trackingUrl ? (
+                <a href={order.shipment.trackingUrl} target="_blank" rel="noreferrer">
+                  Open tracking
+                </a>
+              ) : (
+                '—'
+              )}
+            </strong>
+          </div>
+          {order.shipment?.lastError ? (
+            <div>
+              <span>Last error</span>
+              <strong>{order.shipment.lastError}</strong>
+            </div>
+          ) : null}
+        </div>
+      </section>
 
       <section className="card">
         <div className="card-header">
@@ -332,6 +460,16 @@ function OrderDetails() {
         loading={saving}
         onConfirm={applyStatus}
         onClose={() => setConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={refundOpen}
+        title="Refund payment"
+        message="Initiate a Razorpay refund for this paid order? Inventory will be restored when the refund is processed."
+        confirmLabel="Refund"
+        danger
+        loading={saving}
+        onConfirm={handleRefund}
+        onClose={() => setRefundOpen(false)}
       />
     </div>
   );

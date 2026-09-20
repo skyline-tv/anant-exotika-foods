@@ -1,37 +1,64 @@
 .brand-mark {
   display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1;
-  color: var(--dark-text);
+  align-items: center;
+  line-height: 0;
+  color: inherit;
 }
 
-.brand-mark__name {
-  font-family: var(--font-heading);
-  font-size: 1.35rem;
-  font-weight: var(--fw-medium);
-  letter-spacing: 0.04em;
+.brand-mark__plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #034a2a;
+  border-radius: 2px;
+  overflow: hidden;
+  padding: 0.2rem 0.35rem;
 }
 
-.brand-mark__sub {
-  margin-top: 0.22rem;
-  font-size: 0.58rem;
-  font-weight: var(--fw-medium);
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: var(--luxury-gold);
+.brand-mark__logo {
+  display: block;
+  width: auto;
+  height: 40px;
+  object-fit: contain;
+  object-position: center;
 }
 
-.brand-mark--inverted {
-  color: var(--ivory);
+.brand-mark--compact .brand-mark__logo {
+  height: 36px;
 }
 
-.brand-mark--compact .brand-mark__name {
-  font-size: 1.2rem;
+.brand-mark--inverted .brand-mark__plate {
+  background: #034a2a;
+}
+
+.brand-mark--large .brand-mark__logo {
+  height: 72px;
+}
+
+.brand-mark--large .brand-mark__plate {
+  padding: 0.55rem 0.75rem;
 }
 
 @media (min-width: 768px) {
-  .brand-mark__name {
-    font-size: 1.55rem;
+  .brand-mark__logo {
+    height: 46px;
+  }
+
+  .brand-mark--compact .brand-mark__logo {
+    height: 42px;
+  }
+
+  .brand-mark--large .brand-mark__logo {
+    height: 96px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .brand-mark__logo {
+    height: 52px;
+  }
+
+  .brand-mark--large .brand-mark__logo {
+    height: 112px;
   }
 }

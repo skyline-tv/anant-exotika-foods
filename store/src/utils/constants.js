@@ -57,3 +57,12 @@ export const PAYMENT_STATUS_LABELS = {
   failed: 'Payment failed',
   refunded: 'Refunded',
 };
+
+export const SHIPMENT_STEPS = [
+  { key: 'confirmed', label: 'Order Confirmed' },
+  { key: 'processing', label: 'Processing' },
+  { key: 'packed', label: 'Packed' },
+  { key: 'shipped', label: 'Shipped' },
+  { key: 'out_for_delivery', label: 'Out for Delivery' },
+  { key: 'delivered', label: 'Delivered' },
+];

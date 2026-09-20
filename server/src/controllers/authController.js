@@ -5,6 +5,11 @@ const AppError = require('../utils/AppError');
 const generateToken = require('../utils/generateToken');
 const { successResponse } = require('../utils/apiResponse');
 const { TOKEN_TYPE } = require('../utils/constants');
+const {
+  sendPasswordResetEmail,
+  sendWelcomeEmail,
+  safeSend,
+} = require('../services/emailService');
 
 const sendUserAuth = (res, user, message, statusCode = 200) => {
   const token = generateToken(user._id, TOKEN_TYPE.USER);
@@ -47,6 +52,8 @@ const register = asyncHandler(async (req, res) => {
     phone: phone ? String(phone).trim() || null : null,
     password,
   });
+
+  safeSend(sendWelcomeEmail, { to: user.email, name: user.name });
 
   sendUserAuth(res, user, 'Account created successfully', 201);
 });
@@ -104,7 +111,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: email.toLowerCase().trim() });
 
   const genericMessage =
-    'If an account exists for this email, a password reset token has been generated.';
+    'If an account exists for this email, password reset instructions have been sent.';
 
   if (!user) {
     return successResponse(res, { message: genericMessage, data: {} });
@@ -117,6 +124,27 @@ const forgotPassword = asyncHandler(async (req, res) => {
     .digest('hex');
   user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save({ validateBeforeSave: false });
+
+  try {
+    const result = await sendPasswordResetEmail({
+      to: user.email,
+      name: user.name,
+      resetToken,
+    });
+
+    if (result?.skipped && process.env.NODE_ENV === 'production') {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      throw new AppError('Unable to send password reset email. Please try again later.', 500);
+    }
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    throw new AppError('Unable to send password reset email. Please try again later.', 500);
+  }
 
   const data = {};
   if (process.env.NODE_ENV !== 'production') {

@@ -1,8 +1,16 @@
 .site-footer {
-  background: var(--dark-green);
+  background: #034a2a;
   color: var(--ivory);
   padding: var(--space-8) 0 calc(var(--space-6) + var(--bottom-nav-height));
   margin-top: auto;
+}
+
+.footer__brand .brand-mark__plate {
+  padding: 0.35rem 0.5rem;
+}
+
+.footer__brand .brand-mark__logo {
+  height: 48px;
 }
 
 .footer__grid {

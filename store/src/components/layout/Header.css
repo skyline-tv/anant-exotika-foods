@@ -2,12 +2,12 @@
   position: sticky;
   top: 0;
   z-index: var(--z-header);
-  background: var(--white);
-  border-bottom: 1px solid var(--border-subtle);
+  background: #034a2a;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
 }
 
 .site-header.is-scrolled {
-  box-shadow: 0 8px 24px rgba(23, 23, 23, 0.04);
+  box-shadow: 0 10px 28px rgba(3, 74, 42, 0.35);
 }
 
 .site-header__inner {
@@ -20,6 +20,11 @@
 
 .site-header__logo {
   justify-self: center;
+}
+
+.site-header__logo .brand-mark__plate {
+  padding: 0;
+  background: transparent;
 }
 
 .site-header__nav-list {
@@ -36,7 +41,7 @@
   font-weight: var(--fw-medium);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--dark-text);
+  color: rgba(248, 245, 240, 0.88);
   padding: 0.45rem 0;
   white-space: nowrap;
 }
@@ -56,7 +61,7 @@
 
 .site-header__nav-link:hover,
 .site-header__nav-link.is-active {
-  color: var(--luxury-gold);
+  color: var(--soft-gold);
 }
 
 .site-header__nav-link:hover::after,
@@ -78,12 +83,12 @@
   justify-content: center;
   width: 42px;
   height: 42px;
-  color: var(--dark-text);
+  color: rgba(248, 245, 240, 0.92);
   transition: color var(--transition-fast);
 }
 
 .site-header__icon-btn:hover {
-  color: var(--luxury-gold);
+  color: var(--soft-gold);
 }
 
 .site-header__badge {
@@ -98,7 +103,7 @@
   justify-content: center;
   border-radius: 999px;
   background: var(--luxury-gold);
-  color: var(--dark-text);
+  color: #034a2a;
   font-size: 0.55rem;
   font-weight: var(--fw-semibold);
   line-height: 1;
@@ -114,9 +119,9 @@
   right: 0;
   top: 100%;
   width: 100%;
-  background: var(--white);
-  border-bottom: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-md);
+  background: #034a2a;
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
+  box-shadow: 0 16px 32px rgba(3, 74, 42, 0.35);
   padding: var(--space-7) 0;
 }
 
@@ -141,11 +146,11 @@
 
 .mega-menu a {
   font-size: var(--fs-sm);
-  color: var(--dark-text);
+  color: rgba(248, 245, 240, 0.86);
 }
 
 .mega-menu a:hover {
-  color: var(--luxury-gold);
+  color: var(--soft-gold);
 }
 
 .mega-menu__promo {
@@ -153,8 +158,8 @@
   align-items: flex-end;
   min-height: 140px;
   padding: 1.2rem;
-  background: var(--ivory);
-  border: 1px solid var(--border-subtle);
+  background: rgba(248, 245, 240, 0.08);
+  border: 1px solid rgba(201, 162, 39, 0.28);
   border-radius: var(--radius-md);
 }
 
@@ -163,8 +168,13 @@
   font-family: var(--font-heading);
   font-style: italic;
   font-size: var(--fs-xl);
-  color: var(--dark-text);
+  color: var(--ivory);
   margin-bottom: 0.3rem;
+}
+
+.mega-menu__promo span {
+  color: rgba(248, 245, 240, 0.72);
+  font-size: var(--fs-sm);
 }
 
 .site-header__shop {
@@ -175,7 +185,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  background: rgba(23, 23, 23, 0.32);
+  background: rgba(3, 74, 42, 0.45);
   opacity: 0;
   visibility: hidden;
   transition: opacity var(--transition-base), visibility var(--transition-base);
@@ -193,7 +203,8 @@
   bottom: 0;
   z-index: var(--z-drawer);
   width: min(88vw, 360px);
-  background: var(--white);
+  background: #034a2a;
+  color: var(--ivory);
   transform: translateX(-100%);
   transition: transform var(--transition-slow);
   display: flex;
@@ -211,7 +222,16 @@
   justify-content: space-between;
   padding-bottom: var(--space-md);
   margin-bottom: var(--space-md);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(201, 162, 39, 0.28);
+}
+
+.nav-drawer__header .brand-mark__plate {
+  padding: 0;
+  background: transparent;
+}
+
+.nav-drawer__header .site-header__icon-btn {
+  color: rgba(248, 245, 240, 0.92);
 }
 
 .nav-drawer__brand {
@@ -235,12 +255,12 @@
   font-size: 1.02rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--dark-text);
-  border-bottom: 1px solid var(--border-subtle);
+  color: rgba(248, 245, 240, 0.9);
+  border-bottom: 1px solid rgba(248, 245, 240, 0.12);
 }
 
 .nav-drawer__link.is-active {
-  color: var(--luxury-gold);
+  color: var(--soft-gold);
 }
 
 .nav-drawer__sub {
@@ -251,7 +271,11 @@
   display: block;
   padding: 0.55rem 0;
   font-size: var(--fs-sm);
-  color: var(--muted-text);
+  color: rgba(248, 245, 240, 0.68);
+}
+
+.nav-drawer__sub a:hover {
+  color: var(--soft-gold);
 }
 
 .nav-drawer__sub ul {
@@ -269,8 +293,12 @@
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
-  color: var(--muted-text);
+  color: rgba(248, 245, 240, 0.7);
   text-align: left;
+}
+
+.nav-drawer__meta-link:hover {
+  color: var(--soft-gold);
 }
 
 @media (min-width: 1024px) {

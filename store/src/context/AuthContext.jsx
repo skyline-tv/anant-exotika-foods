@@ -63,6 +63,12 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const applyAuth = useCallback((payload) => {
+    if (!payload?.token || !payload?.user) return;
+    setToken(payload.token);
+    setUser(payload.user);
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -71,8 +77,9 @@ export function AuthProvider({ children }) {
       login,
       register,
       logout,
+      applyAuth,
     }),
-    [user, loading, login, register, logout]
+    [user, loading, login, register, logout, applyAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -5,7 +5,7 @@ import Footer from './Footer';
 import MobileBottomNav from './MobileBottomNav';
 import CartDrawer from './CartDrawer';
 
-const HIDE_BOTTOM_NAV = ['/checkout', '/login', '/register', '/forgot-password'];
+const HIDE_BOTTOM_NAV = ['/checkout', '/login', '/register', '/forgot-password', '/reset-password'];
 
 const Layout = () => {
   const { pathname } = useLocation();

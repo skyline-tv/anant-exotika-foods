@@ -1,14 +1,25 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Coupon = require('../models/Coupon');
+const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
-const { decrementStock, restoreStockItems } = require('../services/inventoryService');
+const { decrementStock, restoreStockItems, restoreStock } = require('../services/inventoryService');
 const {
   getPublicPaymentConfig,
   verifyRazorpaySignature,
+  verifyWebhookSignature,
+  fetchRazorpayPayment,
+  assertPaymentMatchesOrder,
+  createRazorpayRefund,
+  isRazorpayConfigured,
 } = require('../services/paymentService');
+const {
+  sendOrderConfirmationEmail,
+  safeSend,
+} = require('../services/emailService');
+const { createOrderShipment } = require('../services/shipmentService');
 
 const finalizePaidOrder = async (order) => {
   const decremented = [];
@@ -49,6 +60,7 @@ const finalizePaidOrder = async (order) => {
       });
     }
     await order.save();
+    await createOrderShipment(order);
     return order;
   } catch (error) {
     await restoreStockItems(decremented);
@@ -93,6 +105,9 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   verifyRazorpaySignature({ razorpayOrderId, razorpayPaymentId, razorpaySignature });
 
+  const gatewayPayment = await fetchRazorpayPayment(razorpayPaymentId);
+  assertPaymentMatchesOrder(gatewayPayment, order);
+
   const claimed = await Order.findOneAndUpdate(
     {
       _id: order._id,
@@ -131,6 +146,15 @@ const verifyPayment = asyncHandler(async (req, res) => {
     throw error;
   }
 
+  const customer = await User.findById(confirmed.user).select('name email');
+  if (customer?.email) {
+    safeSend(sendOrderConfirmationEmail, {
+      to: customer.email,
+      name: customer.name,
+      order: confirmed,
+    });
+  }
+
   successResponse(res, {
     message: 'Payment verified successfully',
     data: { order: confirmed },
@@ -164,8 +188,195 @@ const failPayment = asyncHandler(async (req, res) => {
   });
 });
 
+const handleRazorpayWebhook = asyncHandler(async (req, res) => {
+  const signature = req.headers['x-razorpay-signature'];
+  const rawBody = req.rawBody || Buffer.from(JSON.stringify(req.body));
+  verifyWebhookSignature(rawBody, signature);
+
+  const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  const eventName = event?.event;
+  const paymentEntity = event?.payload?.payment?.entity;
+  const refundEntity = event?.payload?.refund?.entity;
+
+  if (eventName === 'payment.captured' && paymentEntity?.id) {
+    const order = await Order.findOne({
+      'payment.method': 'razorpay',
+      $or: [
+        { 'payment.gatewayOrderId': paymentEntity.order_id },
+        { 'payment.gatewayPaymentId': paymentEntity.id },
+        { orderNumber: paymentEntity.notes?.orderNumber },
+      ],
+    });
+
+    if (order && order.payment.paymentStatus !== 'paid') {
+      assertPaymentMatchesOrder(paymentEntity, order);
+      const claimed = await Order.findOneAndUpdate(
+        {
+          _id: order._id,
+          'payment.paymentStatus': { $ne: 'paid' },
+        },
+        {
+          $set: {
+            'payment.paymentStatus': 'paid',
+            'payment.paidAt': new Date(),
+            'payment.gatewayPaymentId': paymentEntity.id,
+            'payment.transactionId': paymentEntity.id,
+            'payment.gatewayOrderId': paymentEntity.order_id || order.payment.gatewayOrderId,
+          },
+        },
+        { new: true }
+      );
+
+      if (claimed) {
+        const confirmed = await finalizePaidOrder(claimed);
+        const customer = await User.findById(confirmed.user).select('name email');
+        if (customer?.email) {
+          safeSend(sendOrderConfirmationEmail, {
+            to: customer.email,
+            name: customer.name,
+            order: confirmed,
+          });
+        }
+      }
+    }
+  }
+
+  if (eventName === 'payment.failed' && paymentEntity?.id) {
+    await Order.findOneAndUpdate(
+      {
+        'payment.method': 'razorpay',
+        'payment.paymentStatus': 'pending',
+        $or: [
+          { 'payment.gatewayOrderId': paymentEntity.order_id },
+          { 'payment.gatewayPaymentId': paymentEntity.id },
+        ],
+      },
+      {
+        $set: {
+          'payment.paymentStatus': 'failed',
+          orderStatus: 'failed',
+        },
+        $push: {
+          statusHistory: {
+            status: 'failed',
+            note: 'Payment failed (webhook)',
+            updatedBy: null,
+            at: new Date(),
+          },
+        },
+      }
+    );
+  }
+
+  if ((eventName === 'refund.processed' || eventName === 'refund.created') && refundEntity) {
+    const paymentId = refundEntity.payment_id;
+    const order = await Order.findOne({
+      'payment.method': 'razorpay',
+      $or: [
+        { 'payment.gatewayPaymentId': paymentId },
+        { 'payment.transactionId': paymentId },
+      ],
+    });
+
+    if (order && order.payment.paymentStatus !== 'refunded') {
+      const refundStatus = String(refundEntity.status || '').toLowerCase();
+      order.payment.refundId = refundEntity.id || order.payment.refundId;
+      order.payment.refundAmount = Number(refundEntity.amount || 0) / 100;
+      order.payment.refundStatus = refundStatus;
+      order.payment.refundedAt = new Date();
+
+      if (refundStatus === 'processed') {
+        if (order.payment.paymentStatus === 'paid') {
+          for (const item of order.items) {
+            await restoreStock(item.product, item.quantity);
+          }
+        }
+        order.payment.paymentStatus = 'refunded';
+        order.orderStatus = 'refunded';
+        order.statusHistory.push({
+          status: 'refunded',
+          note: `Refund processed · ${refundEntity.id || ''}`.trim(),
+          updatedBy: null,
+          at: new Date(),
+        });
+      }
+
+      await order.save();
+    }
+  }
+
+  successResponse(res, {
+    message: 'Webhook processed',
+    data: { event: eventName || 'unknown' },
+  });
+});
+
+const refundOrderPayment = asyncHandler(async (req, res) => {
+  if (!isRazorpayConfigured()) {
+    throw new AppError('Online payment is not configured.', 503);
+  }
+
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    throw new AppError('Order not found.', 404);
+  }
+  if (order.payment.method !== 'razorpay') {
+    throw new AppError('Only Razorpay payments can be refunded through the gateway.', 400);
+  }
+  if (order.payment.paymentStatus !== 'paid') {
+    throw new AppError('Only paid orders can be refunded.', 400);
+  }
+  if (!order.payment.gatewayPaymentId && !order.payment.transactionId) {
+    throw new AppError('Missing Razorpay payment ID for this order.', 400);
+  }
+
+  const paymentId = order.payment.gatewayPaymentId || order.payment.transactionId;
+  const amount = req.body.amount !== undefined ? Number(req.body.amount) : order.pricing.total;
+
+  order.payment.refundStatus = 'pending';
+  await order.save();
+
+  const refund = await createRazorpayRefund({
+    paymentId,
+    amount,
+    notes: {
+      orderNumber: order.orderNumber,
+      reason: req.body.reason || 'Admin initiated refund',
+    },
+  });
+
+  order.payment.refundId = refund.id || '';
+  order.payment.refundAmount = Number(refund.amount || 0) / 100;
+  order.payment.refundStatus = refund.status || 'processed';
+  order.payment.refundedAt = new Date();
+
+  if (String(refund.status).toLowerCase() === 'processed') {
+    for (const item of order.items) {
+      await restoreStock(item.product, item.quantity);
+    }
+    order.payment.paymentStatus = 'refunded';
+    order.orderStatus = 'refunded';
+    order.statusHistory.push({
+      status: 'refunded',
+      note: req.body.reason || `Refund ${refund.id}`,
+      updatedBy: req.admin?._id || null,
+      at: new Date(),
+    });
+  }
+
+  await order.save();
+
+  successResponse(res, {
+    message: 'Refund initiated successfully',
+    data: { order, refund },
+  });
+});
+
 module.exports = {
   getPaymentConfig,
   verifyPayment,
   failPayment,
+  handleRazorpayWebhook,
+  refundOrderPayment,
+  finalizePaidOrder,
 };

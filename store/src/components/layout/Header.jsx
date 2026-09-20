@@ -252,7 +252,7 @@ const Header = () => {
         aria-label="Mobile navigation"
       >
         <div className="nav-drawer__header">
-          <span className="nav-drawer__brand">Menu</span>
+          <BrandMark compact to="/" />
           <button type="button" className="site-header__icon-btn" aria-label="Close menu" onClick={closeDrawer}>
             <X size={20} strokeWidth={1.4} />
           </button>
