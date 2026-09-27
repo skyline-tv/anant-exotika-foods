@@ -14,6 +14,7 @@
 
 .mobile-bottom-nav a,
 .mobile-bottom-nav button {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,6 +25,15 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-text);
+}
+
+.mobile-bottom-nav a.is-active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 18px;
+  height: 1px;
+  background: var(--luxury-gold);
 }
 
 .mobile-bottom-nav a.is-active,

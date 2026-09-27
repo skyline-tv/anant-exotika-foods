@@ -48,6 +48,7 @@
 .footer__links a {
   font-size: var(--fs-sm);
   color: rgba(248, 245, 240, 0.72);
+  transition: color var(--transition-fast);
 }
 
 .footer__links a:hover {
@@ -76,7 +77,7 @@
 }
 
 .footer__bottom {
-  padding-top: var(--space-xl);
+  padding-top: var(--space-lg);
 }
 
 .footer__copyright {

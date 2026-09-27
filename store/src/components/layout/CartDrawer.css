@@ -77,7 +77,7 @@
   height: 72px;
   object-fit: cover;
   background: var(--ivory);
-  border: 1px solid var(--border-subtle);
+  border: none;
   border-radius: var(--radius-sm);
 }
 

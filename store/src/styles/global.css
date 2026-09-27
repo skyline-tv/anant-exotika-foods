@@ -241,6 +241,11 @@ p {
   outline-offset: 3px;
 }
 
+::selection {
+  background: rgba(201, 162, 39, 0.28);
+  color: #173f2a;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

@@ -168,10 +168,14 @@
 
 .section-heading-row {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-lg);
   margin-bottom: var(--space-5);
+}
+
+.section-heading-row .btn {
+  margin-top: 1.85rem;
 }
 
 .section-heading-row .section-title {
@@ -279,7 +283,8 @@
 }
 
 .trust-card {
-  padding-top: var(--space-2);
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(201, 162, 39, 0.45);
 }
 
 .trust-card svg {
@@ -374,6 +379,10 @@
   border-color: rgba(201, 162, 39, 0.65);
 }
 
+.newsletter__form .btn {
+  min-height: 48px;
+}
+
 .newsletter__thanks {
   font-family: var(--font-heading);
   font-style: italic;
@@ -442,5 +451,9 @@
   .brand-story {
     grid-template-columns: 0.95fr 1.05fr;
     gap: var(--space-8);
+  }
+
+  .brand-story:not(:has(.brand-story__visual)) {
+    grid-template-columns: minmax(0, 760px);
   }
 }

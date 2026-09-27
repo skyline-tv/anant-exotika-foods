@@ -154,7 +154,7 @@ const Shop = () => {
         <input id={`${prefix}-minPrice`} type="number" min="0" value={draftMin} onChange={(event) => setDraftMin(event.target.value)} />
         <label htmlFor={`${prefix}-maxPrice`}>Maximum</label>
         <input id={`${prefix}-maxPrice`} type="number" min="0" value={draftMax} onChange={(event) => setDraftMax(event.target.value)} />
-        <Button type="button" variant="secondary" size="sm" onClick={applyPrice}>
+        <Button type="button" variant="outline" size="sm" onClick={applyPrice}>
           Apply
         </Button>
       </div>

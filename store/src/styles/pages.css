@@ -219,6 +219,15 @@
   padding: 0.5rem 0.75rem;
 }
 
+.filter-group input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.filter-group input[type='number']::-webkit-outer-spin-button,
+.filter-group input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+}
+
 .shop-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -226,6 +235,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-xl);
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .shop-toolbar p {
@@ -458,6 +469,7 @@
   font-size: clamp(1.5rem, 2vw, 2rem);
   font-weight: var(--fw-medium);
   color: var(--dark-text);
+  font-variant-numeric: tabular-nums;
 }
 
 .price-compare s {
@@ -497,7 +509,7 @@
   color: var(--dark-text);
   background: var(--white);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
@@ -636,7 +648,7 @@
   height: 88px;
   object-fit: cover;
   background: var(--ivory);
-  border: 1px solid var(--border-subtle);
+  border: none;
   border-radius: var(--radius-sm);
 }
 
@@ -1154,20 +1166,21 @@
 }
 
 .product-gallery__main {
-  background: var(--ivory);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
 }
 
 .product-gallery__main img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: auto;
   object-fit: contain;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.9), transparent 62%),
-    var(--ivory);
+  background: none;
 }
 
 .product-thumbs button {
-  background: var(--ivory);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
 }
 
 .checkout-steps {
@@ -1195,6 +1208,11 @@
 
 .summary-row span:first-child {
   color: var(--muted-text);
+}
+
+.summary-row span,
+.summary-row strong {
+  font-variant-numeric: tabular-nums;
 }
 
 .summary-row.total,
@@ -1313,6 +1331,10 @@
 
   .info-stack {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .info-stack > div:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 
   .account-grid {
@@ -1501,4 +1523,17 @@
   .filter-trigger {
     display: none;
   }
+}
+
+.shop-toolbar select {
+  appearance: none;
+  padding-right: 2.1rem;
+  cursor: pointer;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background-image: linear-gradient(45deg, transparent 50%, #c9a227 50%), linear-gradient(135deg, #c9a227 50%, transparent 50%);
+  background-position: calc(100% - 16px) calc(50% - 1px), calc(100% - 11px) calc(50% - 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
