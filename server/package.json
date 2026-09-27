@@ -9,7 +9,7 @@
     "start": "node src/server.js",
     "create-admin": "node src/scripts/createAdmin.js",
     "seed-catalog": "node src/scripts/seedCatalog.js",
-    "test": "node --test src/services/shiprocketService.test.js",
+    "test": "node --test src/services/shiprocketService.test.js src/services/emailService.test.js",
     "load-test": "node src/scripts/loadTest.js"
   },
   "engines": {

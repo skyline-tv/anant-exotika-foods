@@ -2,6 +2,8 @@ const redact = (value) =>
   String(value || '')
     .replace(/mongodb(\+srv)?:\/\/\S+/gi, '[redacted]')
     .replace(/(bearer\s+)[a-z0-9._~+/-]+=*/gi, '$1[redacted]')
+    .replace(/\bre_[A-Za-z0-9_]+/g, '[redacted]')
+    .replace(/([?&]token=)[^&\s]+/gi, '$1[redacted]')
     .slice(0, 500);
 
 const log = (level, message, fields = {}) => {

@@ -27,6 +27,7 @@ const {
   sendOrderConfirmationEmail,
   sendOrderStatusEmail,
   safeSend,
+  shouldNotifyOrderStatus,
 } = require('../services/emailService');
 const { quoteShipping, isCodEnabledGlobally, estimatePackageWeightGrams } = require('../services/shippingService');
 const { isShiprocketConfigured } = require('../services/shiprocketService');
@@ -581,7 +582,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   await order.save();
 
   const customer = await User.findById(order.user).select('name email');
-  if (customer?.email && previousStatus !== status) {
+  if (customer?.email && shouldNotifyOrderStatus(previousStatus, status)) {
     safeSend(sendOrderStatusEmail, {
       to: customer.email,
       name: customer.name,

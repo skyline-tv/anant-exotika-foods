@@ -5,7 +5,7 @@ const SiteContent = require('../models/SiteContent');
 const AppError = require('../utils/AppError');
 const { restoreStock } = require('./inventoryService');
 const { estimatePackageWeightGrams } = require('./shippingService');
-const { sendOrderStatusEmail, safeSend } = require('./emailService');
+const { sendOrderStatusEmail, safeSend, shouldNotifyOrderStatus } = require('./emailService');
 const {
   isShiprocketConfigured,
   createAdhocOrder,
@@ -217,7 +217,7 @@ const applyMappedStatus = async (order, mapped, { note, statusText } = {}) => {
 
   await order.save();
 
-  if (order.orderStatus !== previousStatus) {
+  if (shouldNotifyOrderStatus(previousStatus, order.orderStatus)) {
     const customer = await User.findById(order.user).select('name email');
     if (customer?.email) {
       safeSend(sendOrderStatusEmail, {

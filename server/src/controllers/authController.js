@@ -5,8 +5,10 @@ const AppError = require('../utils/AppError');
 const generateToken = require('../utils/generateToken');
 const { successResponse } = require('../utils/apiResponse');
 const { TOKEN_TYPE } = require('../utils/constants');
+const { log } = require('../utils/logger');
 const {
   sendPasswordResetEmail,
+  sendPasswordChangedEmail,
   sendWelcomeEmail,
   safeSend,
 } = require('../services/emailService');
@@ -125,29 +127,22 @@ const forgotPassword = asyncHandler(async (req, res) => {
   user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
   await user.save({ validateBeforeSave: false });
 
-  try {
-    const result = await sendPasswordResetEmail({
-      to: user.email,
-      name: user.name,
-      resetToken,
-    });
+  const result = await safeSend(sendPasswordResetEmail, {
+    to: user.email,
+    name: user.name,
+    resetToken,
+  });
+  const delivered = Boolean(result) && !result.skipped && !result.error;
 
-    if (result?.skipped && process.env.NODE_ENV === 'production') {
-      user.passwordResetToken = undefined;
-      user.passwordResetExpires = undefined;
-      await user.save({ validateBeforeSave: false });
-      throw new AppError('Unable to send password reset email. Please try again later.', 500);
-    }
-  } catch (error) {
-    if (error instanceof AppError) throw error;
+  if (!delivered && process.env.NODE_ENV === 'production') {
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
-    throw new AppError('Unable to send password reset email. Please try again later.', 500);
+    log('error', 'password reset email was not delivered', {});
   }
 
   const data = {};
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && user.passwordResetToken) {
     data.resetToken = resetToken;
     data.expiresAt = user.passwordResetExpires;
   }
@@ -184,6 +179,12 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
+
+  safeSend(sendPasswordChangedEmail, {
+    to: user.email,
+    name: user.name,
+    changedAt: new Date(),
+  });
 
   sendUserAuth(res, user, 'Password reset successfully');
 });
