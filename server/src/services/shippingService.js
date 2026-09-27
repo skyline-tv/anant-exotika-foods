@@ -83,7 +83,7 @@ const quoteShipping = async ({
   const serviceability = await lookupServiceability({
     destinationPin: pin,
     weightGrams,
-    paymentMode,
+    paymentMode: paymentMethod,
   });
   if (!serviceability.serviceable && serviceability.definitive) {
     throw new AppError(

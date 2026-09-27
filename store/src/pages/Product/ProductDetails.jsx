@@ -14,6 +14,7 @@ import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { PRODUCT_FAQS, PRODUCT_HIGHLIGHTS } from '../../data/brandContent';
 import { getProductBySlug, getProducts } from '../../services/productService';
+import { checkPincode } from '../../services/shippingService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import {
@@ -48,6 +49,7 @@ const ProductDetails = () => {
   const [openPanel, setOpenPanel] = useState('description');
   const [pincode, setPincode] = useState('');
   const [pincodeMessage, setPincodeMessage] = useState('');
+  const [pincodeLoading, setPincodeLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -156,13 +158,34 @@ const ProductDetails = () => {
     }
   };
 
-  const handlePincode = (event) => {
+  const handlePincode = async (event) => {
     event.preventDefault();
-    if (!/^[1-9][0-9]{5}$/.test(pincode.trim())) {
+    const pin = pincode.trim();
+    if (!/^[1-9][0-9]{5}$/.test(pin)) {
       setPincodeMessage('Please enter a valid 6-digit Indian pincode.');
       return;
     }
-    setPincodeMessage(`Delivering to ${pincode.trim()} in 3–6 business days. Cash on Delivery is available.`);
+
+    setPincodeLoading(true);
+    setPincodeMessage('');
+    try {
+      const quote = await checkPincode(pin, {
+        weight: Number(product.weight) > 0 ? Number(product.weight) * quantity : 500,
+        subtotal: getSellingRate(product) * quantity,
+      });
+      const charge =
+        quote.freeShipping || Number(quote.shipping) === 0
+          ? 'Free delivery'
+          : `Shipping ${formatCurrency(quote.shipping)}`;
+      const cod = quote.codAvailable
+        ? ' Cash on Delivery is available.'
+        : ' Cash on Delivery is not available for this pincode.';
+      setPincodeMessage(`Delivery to ${pin}. ${charge}.${cod}`);
+    } catch (err) {
+      setPincodeMessage(getErrorMessage(err, 'Unable to check shipping for this pincode.'));
+    } finally {
+      setPincodeLoading(false);
+    }
   };
 
   const details = [
@@ -318,8 +341,8 @@ const ProductDetails = () => {
                   inputMode="numeric"
                   autoComplete="postal-code"
                 />
-                <Button type="submit" variant="outline" size="sm">
-                  Check
+                <Button type="submit" variant="outline" size="sm" disabled={pincodeLoading}>
+                  {pincodeLoading ? 'Checking...' : 'Check'}
                 </Button>
               </div>
               {pincodeMessage ? <p>{pincodeMessage}</p> : null}

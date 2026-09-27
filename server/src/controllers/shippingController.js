@@ -12,7 +12,7 @@ const Address = require('../models/Address');
 const { getValidCoupon } = require('../services/couponService');
 const { calculateItemTotal, applyCouponDiscount, roundMoney } = require('../services/pricingService');
 const { quoteShipping, getPublicShippingConfig } = require('../services/shippingService');
-const { checkPincodeServiceability, verifyWebhookToken } = require('../services/shiprocketService');
+const { verifyWebhookToken } = require('../services/shiprocketService');
 const { applyShiprocketWebhook } = require('../services/shipmentService');
 
 const getShippingConfig = asyncHandler(async (req, res) => {
@@ -24,15 +24,20 @@ const getShippingConfig = asyncHandler(async (req, res) => {
 
 const checkPincode = asyncHandler(async (req, res) => {
   const pincode = req.query.pincode || req.body.pincode;
-  const result = await checkPincodeServiceability(pincode);
-  if (!result.serviceable && result.definitive) {
-    throw new AppError(result.remarks || 'This pincode is not serviceable.', 400);
-  }
-  const publicResult = { ...result };
-  delete publicResult.raw;
+  const weight = Number(req.query.weight);
+  const subtotal = Number(req.query.subtotal);
+  const quote = await quoteShipping({
+    postalCode: pincode,
+    subtotal: Number.isFinite(subtotal) && subtotal > 0 ? subtotal : 0,
+    discount: 0,
+    paymentMethod: 'razorpay',
+    items: [{ quantity: 1, weight: Number.isFinite(weight) && weight > 0 ? weight : 500 }],
+  });
+  const publicQuote = { ...quote };
+  delete publicQuote.raw;
   successResponse(res, {
-    message: 'Pincode is serviceable',
-    data: publicResult,
+    message: 'Shipping rate calculated',
+    data: publicQuote,
   });
 });
 

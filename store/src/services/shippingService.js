@@ -5,8 +5,10 @@ export async function getShippingConfig() {
   return data.data;
 }
 
-export async function checkPincode(pincode) {
-  const { data } = await api.get('/shipping/pincode', { params: { pincode } });
+export async function checkPincode(pincode, params = {}) {
+  const { data } = await api.get('/shipping/pincode', {
+    params: { pincode, ...params },
+  });
   return data.data;
 }
 
