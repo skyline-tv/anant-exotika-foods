@@ -4,16 +4,22 @@
   justify-content: center;
   min-height: var(--announcement-height);
   padding: 0.4rem var(--container-padding);
+  overflow: hidden;
   background: #034a2a;
   border-bottom: 1px solid rgba(201, 162, 39, 0.18);
 }
 
 .announcement-bar__text {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: var(--fw-medium);
   letter-spacing: 0.16em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
   color: rgba(248, 245, 240, 0.9);
   margin: 0;
 }

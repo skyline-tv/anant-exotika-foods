@@ -1,3 +1,5 @@
+import CareLinks from '../../components/common/CareLinks';
+
 const Terms = () => (
   <section className="page-shell">
     <div className="container container--narrow">
@@ -15,6 +17,7 @@ const Terms = () => (
           carefully before checkout.
         </p>
       </div>
+      <CareLinks />
     </div>
   </section>
 );

@@ -44,6 +44,23 @@ const About = () => {
             <Button as={Link} to={story?.cta?.to || '/shop'} variant="primary">
               {story?.cta?.label || 'Shop the collection'}
             </Button>
+            <ul className="about-points">
+              <li>
+                <span className="eyebrow">01</span>
+                <strong>Selected for flavour</strong>
+                <p>Dry fruits and mukhwas chosen for freshness, then packed so they arrive ready to gift.</p>
+              </li>
+              <li>
+                <span className="eyebrow">02</span>
+                <strong>Presented with care</strong>
+                <p>Complimentary premium packaging on selected orders, for festivals, weddings and courtesy gifts.</p>
+              </li>
+              <li>
+                <span className="eyebrow">03</span>
+                <strong>Delivered across India</strong>
+                <p>Cash on delivery and a simple checkout, with tracking once the shipment is on its way.</p>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

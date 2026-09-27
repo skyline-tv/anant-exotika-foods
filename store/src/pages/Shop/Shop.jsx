@@ -130,7 +130,7 @@ const Shop = () => {
     ...(category ? [{ label: title }] : []),
   ];
 
-  const filters = (
+  const renderFilters = (prefix) => (
     <>
       <div className="filter-group">
         <strong>Category</strong>
@@ -150,10 +150,10 @@ const Shop = () => {
       </div>
       <div className="filter-group">
         <strong>Price range</strong>
-        <label htmlFor="minPrice">Minimum</label>
-        <input id="minPrice" type="number" min="0" value={draftMin} onChange={(event) => setDraftMin(event.target.value)} />
-        <label htmlFor="maxPrice">Maximum</label>
-        <input id="maxPrice" type="number" min="0" value={draftMax} onChange={(event) => setDraftMax(event.target.value)} />
+        <label htmlFor={`${prefix}-minPrice`}>Minimum</label>
+        <input id={`${prefix}-minPrice`} type="number" min="0" value={draftMin} onChange={(event) => setDraftMin(event.target.value)} />
+        <label htmlFor={`${prefix}-maxPrice`}>Maximum</label>
+        <input id={`${prefix}-maxPrice`} type="number" min="0" value={draftMax} onChange={(event) => setDraftMax(event.target.value)} />
         <Button type="button" variant="secondary" size="sm" onClick={applyPrice}>
           Apply
         </Button>
@@ -196,6 +196,9 @@ const Shop = () => {
         />
 
         <div className="shop-layout">
+          <aside className="shop-filters shop-filters--desk" aria-label="Filters">
+            {renderFilters('desk')}
+          </aside>
           <div>
             <div className="shop-toolbar">
               <p>{pagination.total || 0} products</p>
@@ -259,11 +262,11 @@ const Shop = () => {
       <aside className={`filter-drawer ${filtersOpen ? 'is-open' : ''}`} aria-hidden={!filtersOpen} aria-label="Filters">
         <div className="filter-drawer__header">
           <h2>Filters</h2>
-          <button type="button" className="site-header__icon-btn" aria-label="Close filters" onClick={() => setFiltersOpen(false)}>
+          <button type="button" className="filter-drawer__close" aria-label="Close filters" onClick={() => setFiltersOpen(false)}>
             <X size={20} strokeWidth={1.4} />
           </button>
         </div>
-        {filters}
+        {renderFilters('drawer')}
       </aside>
     </section>
   );

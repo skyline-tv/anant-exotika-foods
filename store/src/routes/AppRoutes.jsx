@@ -31,6 +31,9 @@ const NotFound = () => (
     route="404"
     ctaLabel="Return Home"
     ctaTo="/"
+    secondaryLabel="Browse the shop"
+    secondaryTo="/shop"
+    suggestions
   />
 );
 

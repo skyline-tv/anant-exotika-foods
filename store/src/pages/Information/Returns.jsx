@@ -1,3 +1,5 @@
+import CareLinks from '../../components/common/CareLinks';
+
 const Returns = () => (
   <section className="page-shell">
     <div className="container container--narrow">
@@ -21,6 +23,7 @@ const Returns = () => (
           approved, are issued to the original payment method after inspection.
         </p>
       </div>
+      <CareLinks />
     </div>
   </section>
 );

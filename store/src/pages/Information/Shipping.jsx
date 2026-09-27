@@ -1,3 +1,5 @@
+import CareLinks from '../../components/common/CareLinks';
+
 const Shipping = () => (
   <section className="page-shell">
     <div className="container container--narrow">
@@ -15,6 +17,7 @@ const Shipping = () => (
           at checkout.
         </p>
       </div>
+      <CareLinks />
     </div>
   </section>
 );

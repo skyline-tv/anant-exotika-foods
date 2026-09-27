@@ -267,6 +267,10 @@
   font-size: var(--fs-sm);
   color: rgba(248, 245, 240, 0.82);
   max-width: 28ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .trust-grid {

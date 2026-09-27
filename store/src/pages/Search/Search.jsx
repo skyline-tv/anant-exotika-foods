@@ -5,6 +5,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Loader from '../../components/common/Loader';
 import PageHeader from '../../components/common/PageHeader';
 import ProductCard from '../../components/product/ProductCard';
+import SuggestedProducts from '../../components/product/SuggestedProducts';
 import { searchProducts } from '../../services/productService';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 
@@ -62,13 +63,19 @@ const Search = () => {
           <Button type="submit">Search</Button>
         </form>
         {!query ? (
-          <EmptyState title="Begin with a word" message="Enter a product name or category." />
+          <>
+            <EmptyState title="Begin with a word" message="Enter a product name or category." />
+            <SuggestedProducts title="Popular right now" />
+          </>
         ) : loading ? (
           <Loader label="Searching" />
         ) : error ? (
           <EmptyState title="Search unavailable" message={error} />
         ) : products.length === 0 ? (
-          <EmptyState title="No matches" message={`Nothing found for “${query}”.`} actionLabel="Explore collection" actionTo="/shop" />
+          <>
+            <EmptyState title="No matches" message={`Nothing found for “${query}”.`} actionLabel="Explore collection" actionTo="/shop" />
+            <SuggestedProducts title="You might like these instead" />
+          </>
         ) : (
           <div className="product-grid" style={{ marginTop: '2rem' }}>
             {products.map((product) => (

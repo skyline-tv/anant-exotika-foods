@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import Button from '../../components/common/Button';
 import EmptyState from '../../components/common/EmptyState';
+import SuggestedProducts from '../../components/product/SuggestedProducts';
 import Loader from '../../components/common/Loader';
 import PageHeader from '../../components/common/PageHeader';
 import QuantitySelector from '../../components/common/QuantitySelector';
@@ -63,6 +64,7 @@ const Cart = () => {
             actionLabel="Continue shopping"
             actionTo="/shop"
           />
+          <SuggestedProducts title="A few pieces to begin with" />
         </div>
       </section>
     );
@@ -89,9 +91,7 @@ const Cart = () => {
                   {image ? (
                     <img src={image} alt={product?.name} />
                   ) : (
-                    <div className="product-card__placeholder" style={{ width: 88, height: 88 }}>
-                      <span>AE</span>
-                    </div>
+                    <div className="cart-item__media" aria-hidden="true">AE</div>
                   )}
                   <div>
                     <h2>

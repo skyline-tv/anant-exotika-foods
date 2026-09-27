@@ -15,6 +15,7 @@
   grid-template-columns: 40px minmax(0, 1fr) auto;
   align-items: center;
   min-height: var(--header-height);
+  min-width: 0;
   gap: 0.5rem;
 }
 

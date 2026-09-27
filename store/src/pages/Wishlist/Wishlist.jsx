@@ -4,6 +4,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Loader from '../../components/common/Loader';
 import PageHeader from '../../components/common/PageHeader';
 import ProductCard from '../../components/product/ProductCard';
+import SuggestedProducts from '../../components/product/SuggestedProducts';
 import { useAuth } from '../../context/AuthContext';
 import { useWishlist } from '../../context/WishlistContext';
 
@@ -21,6 +22,7 @@ const Wishlist = () => {
             actionLabel="Login"
             actionTo="/login"
           />
+          <SuggestedProducts title="Pieces worth saving" />
         </div>
       </section>
     );
@@ -38,6 +40,7 @@ const Wishlist = () => {
             actionLabel="Explore the collection"
             actionTo="/shop"
           />
+          <SuggestedProducts title="Pieces worth saving" />
         </div>
       </section>
     );
@@ -52,7 +55,7 @@ const Wishlist = () => {
             <ProductCard key={product._id} product={product} />
           ))}
         </div>
-        <div style={{ marginTop: '2rem' }}>
+        <div className="page-actions">
           <Button as={Link} to="/shop" variant="secondary">
             Continue shopping
           </Button>

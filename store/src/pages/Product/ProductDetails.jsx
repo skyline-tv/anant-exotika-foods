@@ -378,7 +378,7 @@ const ProductDetails = () => {
         {related.length ? (
           <div className="pdp-related">
             <h2>You may also like</h2>
-            <div className="product-grid" style={{ marginTop: '1.5rem' }}>
+            <div className="product-grid suggested__grid">
               {related.map((item) => (
                 <ProductCard key={item._id} product={item} />
               ))}

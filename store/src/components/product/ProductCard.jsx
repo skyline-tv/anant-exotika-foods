@@ -102,7 +102,8 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
         </p>
         {product?._id ? (
           <button type="button" className="product-card__cart" onClick={handleAdd} disabled={outOfStock || adding}>
-            {outOfStock ? 'Out of stock' : adding ? 'Adding' : 'Add to cart'}
+            <span className="product-card__cart-short">{outOfStock ? 'Sold out' : adding ? '…' : 'Add'}</span>
+            <span className="product-card__cart-full">{outOfStock ? 'Out of stock' : adding ? 'Adding' : 'Add to cart'}</span>
           </button>
         ) : null}
       </div>

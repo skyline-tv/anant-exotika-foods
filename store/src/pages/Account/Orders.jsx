@@ -84,9 +84,9 @@ const Orders = () => {
                   {PAYMENT_STATUS_LABELS[order.payment?.paymentStatus] || order.payment?.paymentStatus}
                 </p>
 
-                <div className="checkout-block" style={{ marginTop: '1.25rem', padding: '1.1rem' }}>
+                <div className="checkout-block shipment-block">
                   <div className="checkout-block__head">
-                    <h3 style={{ margin: 0 }}>Shipment status</h3>
+                    <h3>Shipment status</h3>
                     {order.shipment?.awbNumber ? (
                       <button type="button" className="link-quiet" onClick={handleRefreshTracking} disabled={refreshing}>
                         {refreshing ? 'Refreshing…' : 'Refresh tracking'}

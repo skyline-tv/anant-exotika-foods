@@ -1,3 +1,5 @@
+import CareLinks from '../../components/common/CareLinks';
+
 const Privacy = () => (
   <section className="page-shell">
     <div className="container container--narrow">
@@ -19,6 +21,7 @@ const Privacy = () => (
           .
         </p>
       </div>
+      <CareLinks />
     </div>
   </section>
 );

@@ -1,3 +1,4 @@
+import CareLinks from '../../components/common/CareLinks';
 import { CONTACT } from '../../utils/constants';
 import { useStoreContent } from '../../context/ContentContext';
 
@@ -76,6 +77,7 @@ const Contact = () => {
           </div>
         ) : null}
       </div>
+      <CareLinks />
     </div>
   </section>
   );
