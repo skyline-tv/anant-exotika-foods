@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Award,
-  ChevronLeft,
-  ChevronRight,
   Leaf,
   Lock,
   PackageCheck,
@@ -21,7 +19,6 @@ import { getProducts } from '../../services/productService';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { getParentCategories } from '../../utils/categories';
-import { getPrimaryImage } from '../../utils/productHelpers';
 import { TRUST_POINTS, matchCategoryPath } from '../../data/brandContent';
 import { useStoreContent } from '../../context/ContentContext';
 import { usePageMeta } from '../../hooks/usePageMeta';
@@ -98,42 +95,11 @@ const HeroShowcase = ({ slides }) => {
   );
 };
 
-const CategoryScroller = ({ children }) => {
-  const scrollerRef = useRef(null);
-
-  const scrollByCard = (direction) => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    const card = scroller.querySelector('.category-card');
-    const gap = 16;
-    const amount = (card?.getBoundingClientRect().width || 240) + gap;
-    scroller.scrollBy({ left: direction * amount, behavior: 'smooth' });
-  };
-
-  return (
-    <div className="category-scroller-wrap">
-      <button
-        type="button"
-        className="category-scroller__nav category-scroller__nav--prev"
-        aria-label="Scroll categories left"
-        onClick={() => scrollByCard(-1)}
-      >
-        <ChevronLeft size={20} strokeWidth={1.6} />
-      </button>
-      <div className="category-scroller" ref={scrollerRef} tabIndex={0} aria-label="Shop by category">
-        {children}
-      </div>
-      <button
-        type="button"
-        className="category-scroller__nav category-scroller__nav--next"
-        aria-label="Scroll categories right"
-        onClick={() => scrollByCard(1)}
-      >
-        <ChevronRight size={20} strokeWidth={1.6} />
-      </button>
-    </div>
-  );
-};
+const CategoryScroller = ({ children }) => (
+  <div className="category-scroller" tabIndex={0} aria-label="Shop by category">
+    {children}
+  </div>
+);
 
 const Home = () => {
   const location = useLocation();
@@ -234,15 +200,6 @@ const Home = () => {
       name: category.name,
       src: resolveAssetUrl(category.image),
       to: `/shop/${category.slug}`,
-    });
-  });
-  products.forEach((product) => {
-    if (heroSlides.length >= 6) return;
-    addSlide({
-      id: product._id,
-      name: product.name,
-      src: getPrimaryImage(product),
-      to: `/product/${product.slug}`,
     });
   });
 

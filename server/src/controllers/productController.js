@@ -300,6 +300,184 @@ const updateProduct = asyncHandler(async (req, res) => {
   });
 });
 
+const BULK_PRODUCT_LIMIT = 200;
+
+const parseBulkNumber = (value, fallback = 0) => {
+  if (value === undefined || value === null || String(value).trim() === '') return fallback;
+  const amount = Number(String(value).replace(/,/g, ''));
+  return Number.isFinite(amount) ? amount : NaN;
+};
+
+const parseBulkBoolean = (value) => {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return ['1', 'true', 'yes', 'y'].includes(normalized);
+};
+
+const resolveCategoryRef = (value, categories) => {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+  if (mongoose.isValidObjectId(raw)) {
+    return categories.find((category) => String(category._id) === raw) || null;
+  }
+  const slug = slugify(raw);
+  const lower = raw.toLowerCase();
+  return (
+    categories.find((category) => category.slug === slug || category.slug === raw.toLowerCase()) ||
+    categories.find((category) => category.name.trim().toLowerCase() === lower) ||
+    null
+  );
+};
+
+const buildBulkProduct = (row, categories) => {
+  const name = String(row.name || '').trim();
+  const sku = String(row.sku || '').trim().toUpperCase();
+  const price = parseBulkNumber(row.sellingRate ?? row.price, NaN);
+  const compareAtPrice = parseBulkNumber(row.mrp ?? row.compareAtPrice, NaN);
+
+  if (!name) throw new AppError('Product name is required.', 400);
+  if (!sku || sku === 'EXAMPLE-SKU') throw new AppError('SKU is required.', 400);
+  if (!Number.isFinite(price) || price <= 0) throw new AppError('A valid selling rate is required.', 400);
+  if (!Number.isFinite(compareAtPrice) || compareAtPrice <= 0) throw new AppError('A valid MRP is required.', 400);
+  if (price > compareAtPrice) throw new AppError('Selling rate cannot be higher than MRP.', 400);
+
+  const category = resolveCategoryRef(row.category, categories);
+  if (!category) throw new AppError('Category was not found. Use an existing category name or slug.', 400);
+
+  let subCategory = null;
+  if (String(row.subCategory || '').trim()) {
+    subCategory = resolveCategoryRef(row.subCategory, categories);
+    if (!subCategory) throw new AppError('Sub-category was not found.', 400);
+    const parentId = subCategory.parentCategory ? String(subCategory.parentCategory) : '';
+    if (parentId && parentId !== String(category._id)) {
+      throw new AppError('Sub-category does not belong to the selected category.', 400);
+    }
+  }
+
+  const status = String(row.status || 'draft').trim().toLowerCase() || 'draft';
+  if (!PRODUCT_STATUS.includes(status)) {
+    throw new AppError(`Status must be one of: ${PRODUCT_STATUS.join(', ')}.`, 400);
+  }
+
+  const numericFields = {
+    costPrice: parseBulkNumber(row.costPrice, 0),
+    discount: parseBulkNumber(row.discount, 0),
+    stock: parseBulkNumber(row.stock, 0),
+    lowStockThreshold: parseBulkNumber(row.lowStockThreshold, 5),
+    weight: parseBulkNumber(row.weight, 0),
+    displayOrder: parseBulkNumber(row.displayOrder, 0),
+    length: parseBulkNumber(row.length, 0),
+    width: parseBulkNumber(row.width, 0),
+    height: parseBulkNumber(row.height, 0),
+  };
+  for (const [field, value] of Object.entries(numericFields)) {
+    if (!Number.isFinite(value) || value < 0) {
+      throw new AppError(`${field} must be a number that is zero or greater.`, 400);
+    }
+  }
+
+  const imageUrl = String(row.imageUrl || '').trim();
+  const tags = String(row.tags || '')
+    .split(/[|,]/)
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+
+  return {
+    name,
+    sku,
+    price,
+    compareAtPrice,
+    costPrice: numericFields.costPrice,
+    discount: numericFields.discount,
+    category: category._id,
+    subCategory: subCategory?._id || null,
+    shortDescription: String(row.shortDescription || '').trim(),
+    description: String(row.description || '').trim(),
+    brand: String(row.brand || 'ANANT EXOTIKA').trim() || 'ANANT EXOTIKA',
+    tags,
+    stock: numericFields.stock,
+    lowStockThreshold: numericFields.lowStockThreshold,
+    weight: numericFields.weight,
+    dimensions: {
+      length: numericFields.length,
+      width: numericFields.width,
+      height: numericFields.height,
+      unit: String(row.dimensionUnit || 'cm').trim() || 'cm',
+    },
+    status,
+    isFeatured: parseBulkBoolean(row.isFeatured),
+    isNewArrival: parseBulkBoolean(row.isNewArrival),
+    isBestSeller: parseBulkBoolean(row.isBestSeller),
+    displayOrder: numericFields.displayOrder,
+    seoTitle: String(row.seoTitle || '').trim(),
+    seoDescription: String(row.seoDescription || '').trim(),
+    images: imageUrl ? [{ url: imageUrl, altText: name, isPrimary: true }] : [],
+  };
+};
+
+const bulkCreateProducts = asyncHandler(async (req, res) => {
+  const rows = req.body.products;
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new AppError('Add at least one product row.', 400);
+  }
+  if (rows.length > BULK_PRODUCT_LIMIT) {
+    throw new AppError(`Import up to ${BULK_PRODUCT_LIMIT} products at a time.`, 400);
+  }
+
+  const categories = await Category.find().select('name slug parentCategory');
+  const requestedSkus = rows
+    .map((row) => String(row.sku || '').trim().toUpperCase())
+    .filter((sku) => sku && sku !== 'EXAMPLE-SKU');
+  const existing = await Product.find({ sku: { $in: requestedSkus } }).select('sku');
+  const existingSkus = new Set(existing.map((product) => product.sku));
+  const seenSkus = new Set();
+  const created = [];
+  const errors = [];
+
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index] || {};
+    const rowNumber = Number(row.row) || index + 2;
+    const sku = String(row.sku || '').trim().toUpperCase();
+    if (sku === 'EXAMPLE-SKU') continue;
+
+    try {
+      const payload = buildBulkProduct(row, categories);
+      if (seenSkus.has(payload.sku)) {
+        throw new AppError(`SKU ${payload.sku} is repeated in this file.`, 400);
+      }
+      if (existingSkus.has(payload.sku)) {
+        throw new AppError(`SKU ${payload.sku} already exists.`, 400);
+      }
+      seenSkus.add(payload.sku);
+      if (Array.isArray(payload.images)) {
+        payload.images = normalizeProductImages(payload.images);
+      }
+      const product = await Product.create(payload);
+      existingSkus.add(product.sku);
+      created.push({ row: rowNumber, sku: product.sku, name: product.name, id: product._id });
+    } catch (error) {
+      const duplicate = error?.code === 11000;
+      errors.push({
+        row: rowNumber,
+        sku,
+        message: duplicate ? `SKU ${sku || 'in this row'} already exists.` : error.message || 'Could not create this product.',
+      });
+    }
+  }
+
+  successResponse(res, {
+    message: created.length
+      ? `${created.length} product${created.length === 1 ? '' : 's'} created.`
+      : 'No products were created.',
+    statusCode: created.length ? 201 : 200,
+    data: {
+      createdCount: created.length,
+      errorCount: errors.length,
+      created,
+      errors,
+    },
+  });
+});
+
 const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
@@ -326,6 +504,7 @@ module.exports = {
   getProductBySlug,
   getProductById,
   createProduct,
+  bulkCreateProducts,
   updateProduct,
   deleteProduct,
 };

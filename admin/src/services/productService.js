@@ -20,6 +20,11 @@ export async function createProduct(payload) {
   return data.data.product;
 }
 
+export async function bulkCreateProducts(products) {
+  const { data } = await api.post('/products/bulk', { products });
+  return data.data;
+}
+
 export async function updateProduct(id, payload) {
   const { data } = await api.put(`/products/${id}`, payload);
   return data.data.product;

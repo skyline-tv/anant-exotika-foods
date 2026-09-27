@@ -5,6 +5,7 @@ const {
   getProductBySlug,
   getProductById,
   createProduct,
+  bulkCreateProducts,
   updateProduct,
   deleteProduct,
 } = require('../controllers/productController');
@@ -18,6 +19,7 @@ router.get('/search', optionalAuthenticateAdmin, searchProducts);
 router.get('/id/:id', authenticateAdmin, validateObjectId('id'), getProductById);
 router.get('/:slug', getProductBySlug);
 
+router.post('/bulk', authenticateAdmin, bulkCreateProducts);
 router.post('/', authenticateAdmin, createProduct);
 router.put('/:id', authenticateAdmin, validateObjectId('id'), updateProduct);
 router.delete('/:id', authenticateAdmin, validateObjectId('id'), deleteProduct);

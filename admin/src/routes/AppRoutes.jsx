@@ -9,6 +9,7 @@ import ProtectedRoute from './ProtectedRoute';
 const Dashboard = lazy(() => import('../pages/Dashboard/Dashboard'));
 const Products = lazy(() => import('../pages/Products/Products'));
 const AddProduct = lazy(() => import('../pages/Products/AddProduct'));
+const BulkProducts = lazy(() => import('../pages/Products/BulkProducts'));
 const EditProduct = lazy(() => import('../pages/Products/EditProduct'));
 const Categories = lazy(() => import('../pages/Categories/Categories'));
 const Orders = lazy(() => import('../pages/Orders/Orders'));
@@ -38,6 +39,7 @@ function AppRoutes() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/add" element={<AddProduct />} />
+            <Route path="/products/bulk" element={<BulkProducts />} />
             <Route path="/products/:id/edit" element={<EditProduct />} />
             <Route path="/categories" element={<Categories />} />
             <Route path="/orders" element={<Orders />} />

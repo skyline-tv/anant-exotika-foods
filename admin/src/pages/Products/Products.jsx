@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ImageOff, Package, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ImageOff, Package, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import EmptyState from '../../components/common/EmptyState';
@@ -96,6 +96,10 @@ function Products() {
           <p>Manage catalogue, pricing, and visibility.</p>
         </div>
         <div className="page-actions">
+          <Button variant="secondary" onClick={() => navigate('/products/bulk')}>
+            <Upload size={16} />
+            Bulk add
+          </Button>
           <Button onClick={() => navigate('/products/add')}>
             <Plus size={16} />
             Add Product
