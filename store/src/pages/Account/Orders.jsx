@@ -95,8 +95,15 @@ const Orders = () => {
                   </div>
                   {order.shipment?.awbNumber ? (
                     <p>
-                      {order.shipment.partner === 'delhivery' ? 'Delhivery' : order.shipment.partner || 'Courier'} · AWB{' '}
-                      <strong>{order.shipment.awbNumber}</strong>
+                      {order.shipment.partner === 'shiprocket'
+                        ? 'Shiprocket'
+                        : order.shipment.partner === 'delhivery'
+                          ? 'Delhivery'
+                          : order.shipment.courierName || order.shipment.partner || 'Courier'}
+                      {order.shipment.courierName && order.shipment.partner === 'shiprocket'
+                        ? ` · ${order.shipment.courierName}`
+                        : ''}{' '}
+                      · AWB <strong>{order.shipment.awbNumber}</strong>
                       {order.shipment.trackingUrl ? (
                         <>
                           {' '}
@@ -108,7 +115,7 @@ const Orders = () => {
                       ) : null}
                     </p>
                   ) : (
-                    <p>Tracking details will appear once the shipment is created with Delhivery.</p>
+                    <p>Tracking details will appear once the shipment is created.</p>
                   )}
                   <ol className="shipment-timeline">
                     {SHIPMENT_STEPS.map((step, index) => {

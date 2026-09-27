@@ -152,10 +152,30 @@ const shipmentSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    shiprocketOrderId: {
+      type: String,
+      default: '',
+      trim: true,
+      index: true,
+    },
+    courierName: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     trackingUrl: {
       type: String,
       default: '',
       trim: true,
+    },
+    labelUrl: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    shippingDate: {
+      type: Date,
+      default: null,
     },
     pickupStatus: {
       type: String,
@@ -180,6 +200,15 @@ const shipmentSchema = new mongoose.Schema(
       type: String,
       default: '',
       trim: true,
+    },
+    operationLock: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    operationLockedAt: {
+      type: Date,
+      default: null,
     },
     meta: {
       type: mongoose.Schema.Types.Mixed,
@@ -289,6 +318,10 @@ orderSchema.methods.toJSON = function toJSON() {
       ...item,
       image: item.image ? toPublicAssetUrl(item.image) : item.image,
     }));
+  }
+  if (obj.shipment) {
+    delete obj.shipment.operationLock;
+    delete obj.shipment.operationLockedAt;
   }
   return obj;
 };

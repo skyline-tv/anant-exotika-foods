@@ -2,13 +2,12 @@ const AppError = require('../utils/AppError');
 const SiteContent = require('../models/SiteContent');
 const { roundMoney } = require('./pricingService');
 const {
-  isDelhiveryConfigured,
-  checkPincodeServiceability,
-  calculateShippingCharge,
-} = require('./delhiveryService');
+  isShiprocketConfigured,
+  getPickupPin,
+  lookupServiceability,
+} = require('./shiprocketService');
 
-const getOriginPin = () =>
-  String(process.env.DELHIVERY_PICKUP_PIN || process.env.SHIPPING_ORIGIN_PIN || '').trim();
+const getOriginPin = () => getPickupPin();
 
 const nonNegative = (value, fallback) => {
   const amount = Number(value);
@@ -31,7 +30,7 @@ const getCommerceSettings = async () => {
   const hasSavedCommerce = Boolean(content?.commerce);
 
   return {
-    shippingMode: stored.shippingMode === 'delhivery' ? 'delhivery' : 'flat',
+    shippingMode: stored.shippingMode === 'shiprocket' || stored.shippingMode === 'delhivery' ? 'shiprocket' : 'flat',
     shippingCharge: nonNegative(
       stored.shippingCharge,
       hasSavedCommerce ? 0 : envFallbackRate()
@@ -75,20 +74,24 @@ const quoteShipping = async ({
     throw new AppError('Enter a valid 6-digit pincode.', 400);
   }
 
-  const serviceability = await checkPincodeServiceability(pin);
-  if (!serviceability.serviceable) {
-    throw new AppError(
-      serviceability.remarks || 'Sorry, we do not deliver to this pincode yet.',
-      400
-    );
-  }
-
   const settings = await getCommerceSettings();
   const payableGoods = Math.max(0, Number(subtotal) - Number(discount));
   const freeThreshold = settings.freeShippingThreshold;
   const freeShipping = freeThreshold > 0 && payableGoods >= freeThreshold;
   const weightGrams = estimatePackageWeightGrams(items);
   const wantsCod = paymentMethod === 'cod';
+  const serviceability = await lookupServiceability({
+    destinationPin: pin,
+    weightGrams,
+    paymentMode,
+  });
+  if (!serviceability.serviceable && serviceability.definitive) {
+    throw new AppError(
+      serviceability.remarks || 'Sorry, we do not deliver to this pincode yet.',
+      400
+    );
+  }
+
   const codAvailable = settings.codEnabled && serviceability.cod !== false;
 
   if (wantsCod && !settings.codEnabled) {
@@ -103,27 +106,12 @@ const quoteShipping = async ({
   let raw = null;
 
   if (!freeShipping) {
-    const originPin = getOriginPin();
-    const useLiveRate = settings.shippingMode === 'delhivery' && isDelhiveryConfigured() && originPin;
-    if (useLiveRate) {
-      try {
-        const quote = await calculateShippingCharge({
-          destinationPin: pin,
-          originPin,
-          weightGrams,
-          paymentMode: wantsCod ? 'COD' : 'Prepaid',
-        });
-        if (quote) {
-          amount = quote.amount;
-          source = 'delhivery';
-          raw = quote.raw;
-        }
-      } catch (error) {
-        console.warn('[shipping] Delhivery rate lookup failed:', error.message || error);
-      }
-    }
-
-    if (source !== 'delhivery') {
+    const useLiveRate = settings.shippingMode === 'shiprocket' && serviceability.source === 'shiprocket';
+    if (useLiveRate && serviceability.amount !== null) {
+      amount = serviceability.amount;
+      source = 'shiprocket';
+      raw = serviceability.raw;
+    } else {
       amount = settings.shippingCharge;
       source = 'configured';
     }
@@ -153,7 +141,7 @@ const quoteShipping = async ({
     weightGrams,
     source,
     shippingMode: settings.shippingMode,
-    partner: settings.shippingMode === 'delhivery' && isDelhiveryConfigured() ? 'delhivery' : 'manual',
+    partner: settings.shippingMode === 'shiprocket' && isShiprocketConfigured() ? 'shiprocket' : 'manual',
     city: serviceability.city || '',
     state: serviceability.state || '',
     remarks: freeShipping
@@ -166,7 +154,7 @@ const quoteShipping = async ({
 const getPublicShippingConfig = async () => {
   const settings = await getCommerceSettings();
   return {
-    partner: settings.shippingMode === 'delhivery' && isDelhiveryConfigured() ? 'delhivery' : 'manual',
+    partner: settings.shippingMode === 'shiprocket' && isShiprocketConfigured() ? 'shiprocket' : 'manual',
     shippingMode: settings.shippingMode,
     shippingCharge: settings.shippingCharge,
     freeShippingThreshold: settings.freeShippingThreshold,
@@ -175,7 +163,7 @@ const getPublicShippingConfig = async () => {
     taxPercent: settings.taxPercent,
     codFee: settings.codFee,
     codEnabled: settings.codEnabled,
-    configured: isDelhiveryConfigured(),
+    configured: isShiprocketConfigured(),
   };
 };
 

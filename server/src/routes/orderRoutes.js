@@ -7,6 +7,10 @@ const {
   getAdminOrderById,
   updateOrderStatus,
   retryOrderShipment,
+  generateShipmentAwb,
+  requestShipmentPickup,
+  generateShipmentLabel,
+  cancelShipment,
   syncOrderTracking,
 } = require('../controllers/orderController');
 const { refundOrderPayment } = require('../controllers/paymentController');
@@ -34,6 +38,30 @@ adminRouter.post(
   authenticateAdmin,
   validateObjectId('id'),
   retryOrderShipment
+);
+adminRouter.post(
+  '/:id/shipment/awb',
+  authenticateAdmin,
+  validateObjectId('id'),
+  generateShipmentAwb
+);
+adminRouter.post(
+  '/:id/shipment/pickup',
+  authenticateAdmin,
+  validateObjectId('id'),
+  requestShipmentPickup
+);
+adminRouter.post(
+  '/:id/shipment/label',
+  authenticateAdmin,
+  validateObjectId('id'),
+  generateShipmentLabel
+);
+adminRouter.post(
+  '/:id/shipment/cancel',
+  authenticateAdmin,
+  validateObjectId('id'),
+  cancelShipment
 );
 adminRouter.post(
   '/:id/shipment/sync',

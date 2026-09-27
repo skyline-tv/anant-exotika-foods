@@ -7,7 +7,8 @@ const Address = require('../models/Address');
 const { getValidCoupon } = require('../services/couponService');
 const { calculateItemTotal, applyCouponDiscount, roundMoney } = require('../services/pricingService');
 const { quoteShipping, getPublicShippingConfig } = require('../services/shippingService');
-const { checkPincodeServiceability } = require('../services/delhiveryService');
+const { checkPincodeServiceability, verifyWebhookToken } = require('../services/shiprocketService');
+const { applyShiprocketWebhook } = require('../services/shipmentService');
 
 const getShippingConfig = asyncHandler(async (req, res) => {
   successResponse(res, {
@@ -19,12 +20,14 @@ const getShippingConfig = asyncHandler(async (req, res) => {
 const checkPincode = asyncHandler(async (req, res) => {
   const pincode = req.query.pincode || req.body.pincode;
   const result = await checkPincodeServiceability(pincode);
-  if (!result.serviceable) {
+  if (!result.serviceable && result.definitive) {
     throw new AppError(result.remarks || 'This pincode is not serviceable.', 400);
   }
+  const publicResult = { ...result };
+  delete publicResult.raw;
   successResponse(res, {
     message: 'Pincode is serviceable',
-    data: result,
+    data: publicResult,
   });
 });
 
@@ -81,11 +84,13 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
     paymentMethod,
     items: weightedItems,
   });
+  const publicQuote = { ...quote };
+  delete publicQuote.raw;
 
   successResponse(res, {
     message: 'Shipping quote calculated successfully',
     data: {
-      ...quote,
+      ...publicQuote,
       subtotal,
       discount,
       estimatedTotal: quote.estimatedTotal,
@@ -99,8 +104,27 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
   });
 });
 
+const handleShiprocketWebhook = asyncHandler(async (req, res) => {
+  const provided = req.get('x-api-key') || req.get('x-shiprocket-token') || '';
+  if (!verifyWebhookToken(provided)) {
+    throw new AppError('Invalid Shiprocket webhook token.', 401);
+  }
+
+  const payload = req.body;
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    throw new AppError('Invalid Shiprocket webhook payload.', 400);
+  }
+
+  const result = await applyShiprocketWebhook(payload);
+  successResponse(res, {
+    message: result.ignored ? 'Webhook ignored' : 'Webhook processed',
+    data: { ignored: Boolean(result.ignored) },
+  });
+});
+
 module.exports = {
   getShippingConfig,
   checkPincode,
   quoteCheckoutShipping,
+  handleShiprocketWebhook,
 };

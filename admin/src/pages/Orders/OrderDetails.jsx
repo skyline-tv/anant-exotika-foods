@@ -5,7 +5,17 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Loader from '../../components/common/Loader';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useToast } from '../../context/ToastContext';
-import { getOrderById, updateOrderStatus, retryShipment, syncShipment, refundOrder } from '../../services/orderService';
+import {
+  getOrderById,
+  updateOrderStatus,
+  retryShipment,
+  generateAwb,
+  requestPickup,
+  generateLabel,
+  cancelShipment,
+  syncShipment,
+  refundOrder,
+} from '../../services/orderService';
 import {
   ORDER_STATUSES,
   PAYMENT_METHODS,
@@ -15,6 +25,18 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDateTime } from '../../utils/formatDate';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { getUserName } from '../../utils/productHelpers';
+
+function readable(value) {
+  if (!value) return '—';
+  return String(value).replace(/_/g, ' ');
+}
+
+function partnerLabel(partner) {
+  if (partner === 'shiprocket') return 'Shiprocket';
+  if (partner === 'delhivery') return 'Delhivery';
+  if (partner === 'manual') return 'Not booked';
+  return partner || '—';
+}
 
 function formatAddress(address) {
   if (!address) return '—';
@@ -42,7 +64,8 @@ function OrderDetails() {
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
-  const [shipmentBusy, setShipmentBusy] = useState(false);
+  const [shipmentAction, setShipmentAction] = useState('');
+  const [cancelShipmentOpen, setCancelShipmentOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -92,31 +115,78 @@ function OrderDetails() {
     applyStatus();
   };
 
-  const handleRetryShipment = async () => {
-    setShipmentBusy(true);
+  const runShipmentAction = async (action, request, { success, failure }) => {
+    setShipmentAction(action);
     try {
-      const next = await retryShipment(id);
-      setOrder(next);
-      toast.success('Shipment creation attempted.');
+      const next = await request();
+      const updated = next?.order || next;
+      setOrder(updated);
+      if (updated?.orderStatus) setStatus(updated.orderStatus);
+      if (updated?.shipment?.lastError && action !== 'label') {
+        toast.error(updated.shipment.lastError);
+      } else {
+        toast.success(success);
+      }
+      return updated;
     } catch (err) {
-      toast.error(getErrorMessage(err, 'Unable to create shipment.'));
+      toast.error(getErrorMessage(err, failure));
+      try {
+        const refreshed = await getOrderById(id);
+        setOrder(refreshed);
+        setStatus(refreshed.orderStatus);
+      } catch {
+        // Keep the order already on screen if the refresh fails.
+      }
+      return null;
     } finally {
-      setShipmentBusy(false);
+      setShipmentAction('');
     }
   };
 
-  const handleSyncShipment = async () => {
-    setShipmentBusy(true);
-    try {
-      const next = await syncShipment(id);
-      setOrder(next);
-      setStatus(next.orderStatus);
-      toast.success('Tracking refreshed from Delhivery.');
-    } catch (err) {
-      toast.error(getErrorMessage(err, 'Unable to refresh tracking.'));
-    } finally {
-      setShipmentBusy(false);
+  const handleRetryShipment = () =>
+    runShipmentAction('create', () => retryShipment(id), {
+      success: 'Shipment created with Shiprocket.',
+      failure: 'Unable to create shipment.',
+    });
+
+  const handleGenerateAwb = () =>
+    runShipmentAction('awb', () => generateAwb(id), {
+      success: 'AWB generated.',
+      failure: 'Unable to generate an AWB.',
+    });
+
+  const handleRequestPickup = () =>
+    runShipmentAction('pickup', () => requestPickup(id), {
+      success: 'Pickup requested.',
+      failure: 'Unable to request pickup.',
+    });
+
+  const handleSyncShipment = () =>
+    runShipmentAction('track', () => syncShipment(id), {
+      success: 'Tracking refreshed from Shiprocket.',
+      failure: 'Unable to refresh tracking.',
+    });
+
+  const handleGenerateLabel = async () => {
+    const popup = window.open('', '_blank');
+    const result = await runShipmentAction('label', () => generateLabel(id), {
+      success: 'Shipping label is ready.',
+      failure: 'Unable to generate the shipping label.',
+    });
+    const labelUrl = result?.shipment?.labelUrl;
+    if (labelUrl && popup) {
+      popup.location.href = labelUrl;
+    } else if (popup) {
+      popup.close();
     }
+  };
+
+  const handleCancelShipment = async () => {
+    const updated = await runShipmentAction('cancel', () => cancelShipment(id), {
+      success: 'Shipment cancelled.',
+      failure: 'Unable to cancel the shipment.',
+    });
+    if (updated) setCancelShipmentOpen(false);
   };
 
   const handleRefund = async () => {
@@ -348,62 +418,135 @@ function OrderDetails() {
 
       <section className="card">
         <div className="card-header">
-          <h2>Shipment / Delhivery</h2>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {!order.shipment?.awbNumber ? (
-              <Button type="button" variant="secondary" loading={shipmentBusy} onClick={handleRetryShipment}>
-                Create shipment
-              </Button>
-            ) : (
-              <Button type="button" variant="secondary" loading={shipmentBusy} onClick={handleSyncShipment}>
-                Sync tracking
-              </Button>
-            )}
-          </div>
+          <h2>Shipment / Shiprocket</h2>
         </div>
-        <div className="card-body dl-grid">
-          <div>
-            <span>Courier</span>
-            <strong>{order.shipment?.partner || '—'}</strong>
-          </div>
-          <div>
-            <span>AWB</span>
-            <strong>{order.shipment?.awbNumber || '—'}</strong>
-          </div>
-          <div>
-            <span>Shipment ID</span>
-            <strong>{order.shipment?.shipmentId || '—'}</strong>
-          </div>
-          <div>
-            <span>Pickup status</span>
-            <strong>{order.shipment?.pickupStatus || '—'}</strong>
-          </div>
-          <div>
-            <span>Shipping status</span>
-            <strong>{order.shipment?.shippingStatus || '—'}</strong>
-          </div>
-          <div>
-            <span>Delivery status</span>
-            <strong>{order.shipment?.deliveryStatus || '—'}</strong>
-          </div>
-          <div>
-            <span>Tracking</span>
-            <strong>
-              {order.shipment?.trackingUrl ? (
-                <a href={order.shipment.trackingUrl} target="_blank" rel="noreferrer">
-                  Open tracking
-                </a>
-              ) : (
-                '—'
-              )}
-            </strong>
-          </div>
-          {order.shipment?.lastError ? (
-            <div>
-              <span>Last error</span>
-              <strong>{order.shipment.lastError}</strong>
-            </div>
-          ) : null}
+        <div className="card-body">
+          {(() => {
+            const shipment = order.shipment || {};
+            const legacyBooking =
+              shipment.partner === 'delhivery' &&
+              !shipment.shiprocketOrderId &&
+              Boolean(shipment.awbNumber || shipment.shipmentId);
+            const pickupDone = ['scheduled', 'requested', 'picked', 'out_for_pickup', 'cancelled'].includes(shipment.pickupStatus);
+            const cancelled = shipment.shippingStatus === 'cancelled' || shipment.pickupStatus === 'cancelled';
+            const delivered = order.orderStatus === 'delivered' || shipment.deliveryStatus === 'delivered';
+            const closedOrder = ['cancelled', 'refunded', 'failed'].includes(order.orderStatus);
+            const awaitingPayment = order.payment?.method === 'razorpay' && order.payment?.paymentStatus !== 'paid';
+            const canBook = !legacyBooking && !closedOrder && !awaitingPayment;
+            const busy = Boolean(shipmentAction);
+            return (
+              <>
+                {legacyBooking ? (
+                  <p className="muted" style={{ marginTop: 0 }}>
+                    This shipment was booked with Delhivery before the Shiprocket migration. Its history is unchanged.
+                  </p>
+                ) : (
+                  <div className="toolbar" style={{ marginBottom: '1rem' }}>
+                    {canBook && !shipment.shiprocketOrderId && !shipment.awbNumber ? (
+                      <Button type="button" variant="secondary" loading={shipmentAction === 'create'} disabled={busy} onClick={handleRetryShipment}>
+                        Create shipment
+                      </Button>
+                    ) : null}
+                    {canBook && shipment.shiprocketOrderId && !shipment.awbNumber && !cancelled ? (
+                      <Button type="button" variant="secondary" loading={shipmentAction === 'awb'} disabled={busy} onClick={handleGenerateAwb}>
+                        Generate AWB
+                      </Button>
+                    ) : null}
+                    {canBook && shipment.awbNumber && !pickupDone && !cancelled && !delivered ? (
+                      <Button type="button" variant="secondary" loading={shipmentAction === 'pickup'} disabled={busy} onClick={handleRequestPickup}>
+                        Request pickup
+                      </Button>
+                    ) : null}
+                    {shipment.awbNumber && !legacyBooking ? (
+                      <Button type="button" variant="secondary" loading={shipmentAction === 'track'} disabled={busy} onClick={handleSyncShipment}>
+                        Track shipment
+                      </Button>
+                    ) : null}
+                    {canBook && shipment.awbNumber && !cancelled ? (
+                      <Button type="button" variant="secondary" loading={shipmentAction === 'label'} disabled={busy} onClick={handleGenerateLabel}>
+                        Print label
+                      </Button>
+                    ) : null}
+                    {canBook && (shipment.shiprocketOrderId || shipment.awbNumber) && !cancelled && !delivered && !legacyBooking ? (
+                      <Button type="button" variant="danger" loading={shipmentAction === 'cancel'} disabled={busy} onClick={() => setCancelShipmentOpen(true)}>
+                        Cancel shipment
+                      </Button>
+                    ) : null}
+                  </div>
+                )}
+                <div className="dl-grid">
+                  <div>
+                    <span>Courier partner</span>
+                    <strong>{partnerLabel(shipment.partner)}</strong>
+                  </div>
+                  <div>
+                    <span>Courier name</span>
+                    <strong>{shipment.courierName || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>AWB number</span>
+                    <strong>{shipment.awbNumber || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Shipment ID</span>
+                    <strong>{shipment.shipmentId || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Shiprocket order ID</span>
+                    <strong>{shipment.shiprocketOrderId || '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Tracking status</span>
+                    <strong>{readable(shipment.shippingStatus)}</strong>
+                  </div>
+                  <div>
+                    <span>Pickup status</span>
+                    <strong>{readable(shipment.pickupStatus)}</strong>
+                  </div>
+                  <div>
+                    <span>Delivery status</span>
+                    <strong>{readable(shipment.deliveryStatus)}</strong>
+                  </div>
+                  <div>
+                    <span>Shipping date</span>
+                    <strong>{shipment.shippingDate ? formatDateTime(shipment.shippingDate) : '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Last tracking update</span>
+                    <strong>{shipment.lastSyncedAt ? formatDateTime(shipment.lastSyncedAt) : '—'}</strong>
+                  </div>
+                  <div>
+                    <span>Tracking URL</span>
+                    <strong>
+                      {shipment.trackingUrl ? (
+                        <a href={shipment.trackingUrl} target="_blank" rel="noreferrer">
+                          Open tracking
+                        </a>
+                      ) : (
+                        '—'
+                      )}
+                    </strong>
+                  </div>
+                  {shipment.labelUrl ? (
+                    <div>
+                      <span>Label</span>
+                      <strong>
+                        <a href={shipment.labelUrl} target="_blank" rel="noreferrer">
+                          Download label
+                        </a>
+                      </strong>
+                    </div>
+                  ) : null}
+                  {shipment.lastError ? (
+                    <div>
+                      <span>Last error</span>
+                      <strong>{shipment.lastError}</strong>
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            );
+          })()}
         </div>
       </section>
 
@@ -478,6 +621,16 @@ function OrderDetails() {
         loading={saving}
         onConfirm={applyStatus}
         onClose={() => setConfirmOpen(false)}
+      />
+      <ConfirmDialog
+        open={cancelShipmentOpen}
+        title="Cancel shipment"
+        message="Cancel this Shiprocket shipment? The order will be marked cancelled when Shiprocket accepts it, and stock is restored the same way as an admin cancellation. Razorpay payments are not refunded automatically."
+        confirmLabel="Cancel shipment"
+        danger
+        loading={shipmentAction === 'cancel'}
+        onConfirm={handleCancelShipment}
+        onClose={() => setCancelShipmentOpen(false)}
       />
       <ConfirmDialog
         open={refundOpen}

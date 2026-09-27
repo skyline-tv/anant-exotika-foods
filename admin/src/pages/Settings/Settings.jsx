@@ -19,7 +19,10 @@ const toForm = (content) => ({
   seoDescription: content?.seoDescription || '',
   storeStatus: content?.storeStatus || 'open',
   commerce: {
-    shippingMode: content?.commerce?.shippingMode === 'delhivery' ? 'delhivery' : 'flat',
+    shippingMode:
+      content?.commerce?.shippingMode === 'shiprocket' || content?.commerce?.shippingMode === 'delhivery'
+        ? 'shiprocket'
+        : 'flat',
     shippingCharge: Number(content?.commerce?.shippingCharge ?? 79),
     freeShippingThreshold: Number(content?.commerce?.freeShippingThreshold ?? 0),
     packagingCharge: Number(content?.commerce?.packagingCharge ?? 0),
@@ -238,7 +241,7 @@ function Settings() {
                   onChange={(event) => updateNested('commerce', 'shippingMode', event.target.value)}
                 >
                   <option value="flat">Flat charge set below</option>
-                  <option value="delhivery">Live Delhivery rate, with flat charge as fallback</option>
+                  <option value="shiprocket">Live Shiprocket rate, with flat charge as fallback</option>
                 </select>
               </div>
               <div className="field">

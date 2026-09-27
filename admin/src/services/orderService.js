@@ -22,6 +22,26 @@ export async function retryShipment(id) {
   return data.data.order;
 }
 
+export async function generateAwb(id) {
+  const { data } = await api.post(`/admin/orders/${id}/shipment/awb`);
+  return data.data.order;
+}
+
+export async function requestPickup(id) {
+  const { data } = await api.post(`/admin/orders/${id}/shipment/pickup`);
+  return data.data.order;
+}
+
+export async function generateLabel(id) {
+  const { data } = await api.post(`/admin/orders/${id}/shipment/label`);
+  return data.data;
+}
+
+export async function cancelShipment(id) {
+  const { data } = await api.post(`/admin/orders/${id}/shipment/cancel`);
+  return data.data.order;
+}
+
 export async function syncShipment(id) {
   const { data } = await api.post(`/admin/orders/${id}/shipment/sync`);
   return data.data.order;

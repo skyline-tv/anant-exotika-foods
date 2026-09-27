@@ -29,7 +29,15 @@ const {
   safeSend,
 } = require('../services/emailService');
 const { quoteShipping, isCodEnabledGlobally, estimatePackageWeightGrams } = require('../services/shippingService');
-const { createOrderShipment, refreshOrderTracking } = require('../services/shipmentService');
+const {
+  createOrderShipment,
+  refreshOrderTracking,
+  assignOrderAwb,
+  requestOrderPickup,
+  generateOrderLabel,
+  cancelOrderShipment,
+  isLegacyDelhiveryBooking,
+} = require('../services/shipmentService');
 
 const getPrimaryImage = (product) => {
   if (!product.images || product.images.length === 0) {
@@ -190,7 +198,7 @@ const createOrder = asyncHandler(async (req, res) => {
     pricing,
     payment,
     shipment: {
-      partner: shippingQuote.partner || 'delhivery',
+      partner: shippingQuote.partner || 'shiprocket',
       shippingStatus: 'pending',
       deliveryStatus: 'pending',
       pickupStatus: 'pending',
@@ -375,8 +383,8 @@ const getAdminOrderById = asyncHandler(async (req, res) => {
   });
 });
 
-const retryOrderShipment = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+const loadShippableOrder = async (id) => {
+  const order = await Order.findById(id);
   if (!order) {
     throw new AppError('Order not found.', 404);
   }
@@ -386,13 +394,60 @@ const retryOrderShipment = asyncHandler(async (req, res) => {
   if (order.payment.method === 'razorpay' && order.payment.paymentStatus !== 'paid') {
     throw new AppError('Online payment must be completed before creating a shipment.', 400);
   }
-  if (order.shipment?.awbNumber) {
-    throw new AppError('Shipment already exists for this order.', 400);
+  if (isLegacyDelhiveryBooking(order)) {
+    throw new AppError('This order was booked with the previous courier and was left unchanged.', 400);
+  }
+  return order;
+};
+
+const retryOrderShipment = asyncHandler(async (req, res) => {
+  const order = await loadShippableOrder(req.params.id);
+  if (order.shipment?.shiprocketOrderId) {
+    throw new AppError('A Shiprocket shipment already exists for this order.', 400);
   }
 
   const updated = await createOrderShipment(order);
   successResponse(res, {
-    message: 'Shipment creation attempted',
+    message: updated?.shipment?.lastError ? 'Shipment creation needs attention' : 'Shipment created',
+    data: { order: updated },
+  });
+});
+
+const generateShipmentAwb = asyncHandler(async (req, res) => {
+  const order = await loadShippableOrder(req.params.id);
+  const updated = await assignOrderAwb(order);
+  successResponse(res, {
+    message: 'AWB generated',
+    data: { order: updated },
+  });
+});
+
+const requestShipmentPickup = asyncHandler(async (req, res) => {
+  const order = await loadShippableOrder(req.params.id);
+  const updated = await requestOrderPickup(order);
+  successResponse(res, {
+    message: 'Pickup requested',
+    data: { order: updated },
+  });
+});
+
+const generateShipmentLabel = asyncHandler(async (req, res) => {
+  const order = await loadShippableOrder(req.params.id);
+  const updated = await generateOrderLabel(order);
+  successResponse(res, {
+    message: updated?.shipment?.labelUrl ? 'Shipping label ready' : 'Shipping label could not be generated',
+    data: { order: updated, labelUrl: updated?.shipment?.labelUrl || '' },
+  });
+});
+
+const cancelShipment = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) {
+    throw new AppError('Order not found.', 404);
+  }
+  const updated = await cancelOrderShipment(order);
+  successResponse(res, {
+    message: 'Shipment cancelled',
     data: { order: updated },
   });
 });
@@ -402,9 +457,15 @@ const syncOrderTracking = asyncHandler(async (req, res) => {
   if (!order) {
     throw new AppError('Order not found.', 404);
   }
+  if (isLegacyDelhiveryBooking(order)) {
+    throw new AppError('Tracking for this previous-courier shipment cannot be refreshed.', 400);
+  }
+  if (!order.shipment?.awbNumber) {
+    throw new AppError('Generate an AWB before tracking this shipment.', 400);
+  }
   order = await refreshOrderTracking(order);
   successResponse(res, {
-    message: 'Tracking refreshed',
+    message: order?.shipment?.lastError ? 'Tracking could not be refreshed' : 'Tracking refreshed',
     data: { order },
   });
 });
@@ -481,5 +542,9 @@ module.exports = {
   getAdminOrderById,
   updateOrderStatus,
   retryOrderShipment,
+  generateShipmentAwb,
+  requestShipmentPickup,
+  generateShipmentLabel,
+  cancelShipment,
   syncOrderTracking,
 };

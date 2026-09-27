@@ -68,7 +68,7 @@ const tileSchema = new mongoose.Schema(
 
 const commerceSchema = new mongoose.Schema(
   {
-    shippingMode: { type: String, enum: ['flat', 'delhivery'], default: 'flat' },
+    shippingMode: { type: String, enum: ['flat', 'shiprocket', 'delhivery'], default: 'flat' },
     shippingCharge: { type: Number, min: 0, default: 79 },
     freeShippingThreshold: { type: Number, min: 0, default: 0 },
     packagingCharge: { type: Number, min: 0, default: 0 },
@@ -157,6 +157,9 @@ siteContentSchema.statics.normalizeIncoming = function normalizeIncoming(body = 
       ...tile,
       image: tile.image ? toStoredAssetPath(tile.image) : '',
     }));
+  }
+  if (next.commerce?.shippingMode === 'delhivery') {
+    next.commerce = { ...next.commerce, shippingMode: 'shiprocket' };
   }
   return next;
 };

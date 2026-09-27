@@ -74,6 +74,7 @@ const apiLimiter = rateLimit({
   max: process.env.NODE_ENV === 'production' ? 100 : 1000,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => String(req.originalUrl || '').includes('/shipping/webhook'),
   message: {
     success: false,
     message: 'Too many requests, please try again later.',

@@ -16,7 +16,7 @@ Provide a production-oriented REST API for:
 - Admin authentication and catalogue / order management
 - Local image uploads for product media
 
-Payment gateways (optional Razorpay), Delhivery shipping, shipping, GST, invoices, and cloud storage can be expanded later. Transactional email uses **Resend** (password reset, welcome, order confirmation, and order status updates). Shipping uses **Delhivery** when configured.
+Payment gateways (optional Razorpay), Shiprocket shipping, GST, invoices, and cloud storage can be expanded later. Transactional email uses **Resend** (password reset, welcome, order confirmation, and order status updates). Shipping uses **Shiprocket** when `SHIPROCKET_EMAIL` and `SHIPROCKET_PASSWORD` are set.
 
 ## 2. Tech stack
 
@@ -67,18 +67,25 @@ The default database name is `anant_exotika`.
 | `RAZORPAY_KEY_SECRET` | Optional Razorpay secret (server only) |
 | `RAZORPAY_WEBHOOK_SECRET` | Razorpay webhook signature secret |
 | `COD_ENABLED` | `true`/`false` — global Cash on Delivery switch |
-| `DELHIVERY_API_KEY` | Delhivery API token (server only) |
-| `DELHIVERY_MODE` | `staging` or `production` |
-| `DELHIVERY_PICKUP_NAME` | Registered Delhivery pickup / warehouse name |
-| `DELHIVERY_PICKUP_PIN` | Origin pincode for rate calculation |
+| `SHIPROCKET_EMAIL` | Shiprocket API user email (server only) |
+| `SHIPROCKET_PASSWORD` | Shiprocket API user password (server only) |
+| `SHIPROCKET_PICKUP_LOCATION` | Pickup location nickname from the Shiprocket panel |
+| `SHIPROCKET_PICKUP_PIN` | Origin pincode for serviceability and live rates |
+| `SHIPROCKET_WEBHOOK_TOKEN` | Shared secret Shiprocket sends as `x-api-key` |
 | `SHIPPING_FREE_THRESHOLD` | Free shipping when goods total ≥ this amount (0 disables) |
-| `SHIPPING_FALLBACK_RATE` | Fallback shipping ₹ if Delhivery rate API is unavailable |
+| `SHIPPING_FALLBACK_RATE` | Fallback shipping ₹ if a live Shiprocket rate is unavailable |
+| `SHIPPING_ORIGIN_PIN` | Used as the pickup pincode when `SHIPROCKET_PICKUP_PIN` is empty |
 | `RESEND_API_KEY` | Resend API key for transactional email (server only) |
 | `EMAIL_FROM` | Verified Resend from address, e.g. `Anant Exotika Foods <orders@yourdomain.com>` |
 
 Never commit the real `.env` file.
 
-Webhook endpoint: `POST /api/v1/payments/webhook` (configure in Razorpay dashboard).
+Webhook endpoints:
+
+- Razorpay: `POST /api/v1/payments/webhook`
+- Shiprocket tracking: `POST /api/v1/shipping/webhook` (header `x-api-key: <SHIPROCKET_WEBHOOK_TOKEN>`)
+
+Shiprocket does not publish a separate sandbox host. The API base URL is `https://apiv2.shiprocket.in/v1/external`. Use a Shiprocket account and the pickup location configured in their panel.
 
 ## 5. How to run the development server
 
