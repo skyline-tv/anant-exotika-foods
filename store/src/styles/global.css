@@ -175,8 +175,9 @@ p {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-5);
+  grid-template-columns: repeat(auto-fill, minmax(150px, 190px));
+  justify-content: start;
+  gap: 1.25rem;
 }
 
 .section {

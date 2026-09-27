@@ -203,6 +203,23 @@ const ProductDetails = () => {
 
         <div className="product-details">
           <div className="product-gallery">
+            {images.length ? (
+              <div className="product-thumbs" role="tablist" aria-label="Product photos">
+                {images.map((image, index) => (
+                  <button
+                    key={image}
+                    type="button"
+                    role="tab"
+                    aria-selected={image === activeImage}
+                    aria-label={`Photo ${index + 1}`}
+                    className={image === activeImage ? 'is-active' : undefined}
+                    onClick={() => setActiveImage(image)}
+                  >
+                    <img src={image} alt="" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <button type="button" className="product-gallery__main" onClick={() => activeImage && setZoomOpen(true)}>
               {activeImage ? (
                 <img src={activeImage} alt={product.name} />
@@ -212,20 +229,6 @@ const ProductDetails = () => {
                 </div>
               )}
             </button>
-            {images.length > 1 ? (
-              <div className="product-thumbs">
-                {images.map((image) => (
-                  <button
-                    key={image}
-                    type="button"
-                    className={image === activeImage ? 'is-active' : undefined}
-                    onClick={() => setActiveImage(image)}
-                  >
-                    <img src={image} alt="" />
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
 
           <div className="product-info">
