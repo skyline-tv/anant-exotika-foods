@@ -49,8 +49,8 @@
   }
 
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(170px, 210px));
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.25rem;
   }
 
   .footer__grid {
@@ -83,7 +83,7 @@
   }
 
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem;
   }
 

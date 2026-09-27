@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Check, Heart, MapPin, ShieldCheck, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Heart, MapPin, ShieldCheck, X } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import EmptyState from '../../components/common/EmptyState';
@@ -116,6 +116,12 @@ const ProductDetails = () => {
 
   const productImages = (product.images || []).map((image) => resolveAssetUrl(image.url)).filter(Boolean);
   const images = productImages.length ? productImages : [getPrimaryImage(product)].filter(Boolean);
+  const activeIndex = Math.max(0, images.indexOf(activeImage));
+  const showPhoto = (direction) => {
+    if (images.length < 2) return;
+    const nextIndex = (activeIndex + direction + images.length) % images.length;
+    setActiveImage(images[nextIndex]);
+  };
   const outOfStock = isOutOfStock(product);
   const saved = isSaved(product._id);
   const sellingRate = getSellingRate(product);
@@ -203,7 +209,38 @@ const ProductDetails = () => {
 
         <div className="product-details">
           <div className="product-gallery">
-            {images.length ? (
+            <div className={`product-gallery__stage${images.length > 1 ? ' has-nav' : ''}`}>
+              {images.length > 1 ? (
+                <button
+                  type="button"
+                  className="product-gallery__nav product-gallery__nav--prev"
+                  aria-label="Previous photo"
+                  onClick={() => showPhoto(-1)}
+                >
+                  <ChevronLeft size={20} strokeWidth={1.6} />
+                </button>
+              ) : null}
+              <button type="button" className="product-gallery__main" onClick={() => activeImage && setZoomOpen(true)}>
+                {activeImage ? (
+                  <img src={activeImage} alt={product.name} />
+                ) : (
+                  <div className="product-card__placeholder" style={{ aspectRatio: '3 / 4' }}>
+                    <span>ANANT</span>
+                  </div>
+                )}
+              </button>
+              {images.length > 1 ? (
+                <button
+                  type="button"
+                  className="product-gallery__nav product-gallery__nav--next"
+                  aria-label="Next photo"
+                  onClick={() => showPhoto(1)}
+                >
+                  <ChevronRight size={20} strokeWidth={1.6} />
+                </button>
+              ) : null}
+            </div>
+            {images.length > 1 ? (
               <div className="product-thumbs" role="tablist" aria-label="Product photos">
                 {images.map((image, index) => (
                   <button
@@ -220,15 +257,6 @@ const ProductDetails = () => {
                 ))}
               </div>
             ) : null}
-            <button type="button" className="product-gallery__main" onClick={() => activeImage && setZoomOpen(true)}>
-              {activeImage ? (
-                <img src={activeImage} alt={product.name} />
-              ) : (
-                <div className="product-card__placeholder" style={{ aspectRatio: '3 / 4' }}>
-                  <span>ANANT</span>
-                </div>
-              )}
-            </button>
           </div>
 
           <div className="product-info">
