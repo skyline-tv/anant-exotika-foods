@@ -5,6 +5,11 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
+const {
+  claimWebhookEvent,
+  releaseWebhookEvent,
+  hashEvent,
+} = require('../services/webhookEventService');
 const { decrementStock, restoreStockItems, restoreStock } = require('../services/inventoryService');
 const {
   getPublicPaymentConfig,
@@ -19,7 +24,8 @@ const {
   sendOrderConfirmationEmail,
   safeSend,
 } = require('../services/emailService');
-const { createOrderShipment } = require('../services/shipmentService');
+const { isShiprocketConfigured } = require('../services/shiprocketService');
+const { scheduleShipment } = require('../services/shippingQueue');
 
 const finalizePaidOrder = async (order) => {
   const decremented = [];
@@ -59,8 +65,17 @@ const finalizePaidOrder = async (order) => {
         at: new Date(),
       });
     }
+    if (
+      isShiprocketConfigured() &&
+      !order.shipment?.awbNumber &&
+      !order.shipment?.shiprocketOrderId
+    ) {
+      order.shipment = order.shipment || {};
+      order.shipment.partner = 'shiprocket';
+      order.shipment.shippingStatus = 'shipping_pending';
+    }
     await order.save();
-    await createOrderShipment(order);
+    scheduleShipment(order);
     return order;
   } catch (error) {
     await restoreStockItems(decremented);
@@ -194,7 +209,19 @@ const handleRazorpayWebhook = asyncHandler(async (req, res) => {
   verifyWebhookSignature(rawBody, signature);
 
   const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+  if (!event || typeof event !== 'object' || Array.isArray(event)) {
+    throw new AppError('Invalid payment webhook payload.', 400);
+  }
   const eventName = event?.event;
+  const eventKey =
+    req.get('x-razorpay-event-id') ||
+    hashEvent(`${eventName || ''}:${event?.created_at || ''}:${rawBody.toString('utf8').slice(0, 2000)}`);
+  const claim = await claimWebhookEvent('razorpay', eventKey);
+  if (!claim.claimed) {
+    return successResponse(res, { message: 'Webhook already processed' });
+  }
+
+  try {
   const paymentEntity = event?.payload?.payment?.entity;
   const refundEntity = event?.payload?.refund?.entity;
 
@@ -309,6 +336,10 @@ const handleRazorpayWebhook = asyncHandler(async (req, res) => {
     message: 'Webhook processed',
     data: { event: eventName || 'unknown' },
   });
+  } catch (error) {
+    await releaseWebhookEvent(claim.key);
+    throw error;
+  }
 });
 
 const refundOrderPayment = asyncHandler(async (req, res) => {

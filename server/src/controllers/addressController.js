@@ -13,7 +13,7 @@ const unsetOtherDefaults = async (userId, keepId) => {
 };
 
 const getAddresses = asyncHandler(async (req, res) => {
-  const addresses = await Address.find({ user: req.user._id }).sort({
+  const addresses = await Address.find({ user: req.user._id }).limit(20).sort({
     isDefault: -1,
     createdAt: -1,
   });

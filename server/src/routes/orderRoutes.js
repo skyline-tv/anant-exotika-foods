@@ -17,15 +17,16 @@ const { refundOrderPayment } = require('../controllers/paymentController');
 const { authenticateUser } = require('../middleware/authMiddleware');
 const { authenticateAdmin } = require('../middleware/adminMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
+const { orderLimiter, limitSearch } = require('../middleware/rateLimits');
 
 const router = express.Router();
 const adminRouter = express.Router();
 
-router.post('/', authenticateUser, createOrder);
+router.post('/', authenticateUser, orderLimiter, createOrder);
 router.get('/my-orders', authenticateUser, getMyOrders);
 router.get('/:id', authenticateUser, validateObjectId('id'), getMyOrderById);
 
-adminRouter.get('/', authenticateAdmin, getAdminOrders);
+adminRouter.get('/', authenticateAdmin, limitSearch, getAdminOrders);
 adminRouter.get('/:id', authenticateAdmin, validateObjectId('id'), getAdminOrderById);
 adminRouter.put(
   '/:id/status',

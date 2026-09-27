@@ -1,5 +1,10 @@
 const asyncHandler = require('../utils/asyncHandler');
 const { successResponse } = require('../utils/apiResponse');
+const {
+  claimWebhookEvent,
+  releaseWebhookEvent,
+  hashEvent,
+} = require('../services/webhookEventService');
 const AppError = require('../utils/AppError');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
@@ -115,11 +120,32 @@ const handleShiprocketWebhook = asyncHandler(async (req, res) => {
     throw new AppError('Invalid Shiprocket webhook payload.', 400);
   }
 
-  const result = await applyShiprocketWebhook(payload);
-  successResponse(res, {
-    message: result.ignored ? 'Webhook ignored' : 'Webhook processed',
-    data: { ignored: Boolean(result.ignored) },
-  });
+  const eventKey = hashEvent(
+    [
+      payload.awb || payload.awb_code || '',
+      payload.current_status || payload.shipment_status || '',
+      payload.order_id || payload.sr_order_id || '',
+      payload.current_timestamp || '',
+    ].join('|')
+  );
+  const claim = await claimWebhookEvent('shiprocket', eventKey);
+  if (!claim.claimed) {
+    return successResponse(res, {
+      message: 'Webhook already processed',
+      data: { ignored: true },
+    });
+  }
+
+  try {
+    const result = await applyShiprocketWebhook(payload);
+    successResponse(res, {
+      message: result.ignored ? 'Webhook ignored' : 'Webhook processed',
+      data: { ignored: Boolean(result.ignored) },
+    });
+  } catch (error) {
+    await releaseWebhookEvent(claim.key);
+    throw error;
+  }
 });
 
 module.exports = {

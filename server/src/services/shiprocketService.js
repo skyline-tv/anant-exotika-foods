@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const AppError = require('../utils/AppError');
 
 const DEFAULT_BASE_URL = 'https://apiv2.shiprocket.in/v1/external';
-const REQUEST_TIMEOUT_MS = 20000;
 const TOKEN_TTL_MS = 9 * 24 * 60 * 60 * 1000;
 const SERVICEABILITY_CACHE_MS = 5 * 60 * 1000;
 const SERVICEABILITY_CACHE_LIMIT = 200;
@@ -65,7 +64,22 @@ const extractMessage = (data, fallback) => {
   return fallback;
 };
 
-const requestShiprocket = async (path, { method = 'GET', query, body, auth = true, retryAuth = true } = {}) => {
+const timeoutMs = () => {
+  const value = Number(process.env.SHIPROCKET_TIMEOUT_MS);
+  return Number.isFinite(value) && value >= 1000 ? value : 15000;
+};
+
+const maxRetries = () => {
+  const value = Number(process.env.SHIPROCKET_MAX_RETRIES);
+  return Number.isFinite(value) && value >= 0 ? Math.floor(value) : 2;
+};
+
+const shouldRetryShiprocketStatus = (status) => status === 429 || status >= 500;
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const requestShiprocket = async (path, options = {}, attempt = 0) => {
+  const { method = 'GET', query, body, auth = true, retryAuth = true } = options;
   const url = new URL(`${getBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`);
   if (query) {
     Object.entries(query).forEach(([key, value]) => {
@@ -92,10 +106,21 @@ const requestShiprocket = async (path, { method = 'GET', query, body, auth = tru
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs()),
     });
   } catch (error) {
-    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+    const timedOut = error.name === 'TimeoutError' || error.name === 'AbortError';
+    if (attempt < maxRetries()) {
+      const wait = 250 * 2 ** attempt;
+      log('warn', `${method} ${path} retrying`, {
+        attempt: attempt + 1,
+        wait,
+        reason: timedOut ? 'timeout' : 'network',
+      });
+      await sleep(wait);
+      return requestShiprocket(path, options, attempt + 1);
+    }
+    if (timedOut) {
       log('error', `${method} ${path} timed out`, { ms: Date.now() - started });
       throw new AppError('Shiprocket request timed out. Please try again.', 504);
     }
@@ -116,7 +141,14 @@ const requestShiprocket = async (path, { method = 'GET', query, body, auth = tru
   if (response.status === 401 && auth && retryAuth) {
     log('warn', 'Shiprocket token rejected; refreshing');
     tokenCache = { value: '', expiresAt: 0 };
-    return requestShiprocket(path, { method, query, body, auth, retryAuth: false });
+    return requestShiprocket(path, { method, query, body, auth, retryAuth: false }, attempt);
+  }
+
+  if (!response.ok && shouldRetryShiprocketStatus(response.status) && attempt < maxRetries()) {
+    const wait = 250 * 2 ** attempt;
+    log('warn', `${method} ${path} retrying`, { attempt: attempt + 1, wait, status: response.status });
+    await sleep(wait);
+    return requestShiprocket(path, options, attempt + 1);
   }
 
   if (!response.ok) {
@@ -680,4 +712,5 @@ module.exports = {
   verifyWebhookToken,
   resetShiprocketState,
   isDuplicateOrderError,
+  shouldRetryShiprocketStatus,
 };

@@ -6,6 +6,7 @@ const {
   buildAdhocOrderPayload,
   verifyWebhookToken,
   isDuplicateOrderError,
+  shouldRetryShiprocketStatus,
   resetShiprocketState,
   createAdhocOrder,
 } = require('./shiprocketService');
@@ -189,4 +190,13 @@ test('reuses an existing Shiprocket order instead of creating a second one', asy
     delete process.env.SHIPROCKET_EMAIL;
     delete process.env.SHIPROCKET_PASSWORD;
   }
+});
+
+test('retries Shiprocket 429 and 5xx responses and leaves 4xx alone', () => {
+  assert.equal(shouldRetryShiprocketStatus(429), true);
+  assert.equal(shouldRetryShiprocketStatus(502), true);
+  assert.equal(shouldRetryShiprocketStatus(503), true);
+  assert.equal(shouldRetryShiprocketStatus(400), false);
+  assert.equal(shouldRetryShiprocketStatus(401), false);
+  assert.equal(shouldRetryShiprocketStatus(422), false);
 });

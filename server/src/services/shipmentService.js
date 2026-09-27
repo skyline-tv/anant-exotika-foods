@@ -391,7 +391,7 @@ const advanceShipment = async (orderInput, { steps = ['create', 'awb', 'pickup',
     orderInput.shipment = {
       ...shipment,
       partner: shipment.partner && shipment.partner !== 'delhivery' ? shipment.partner : 'manual',
-      shippingStatus: shipment.shippingStatus || 'pending',
+      shippingStatus: 'pending',
       deliveryStatus: shipment.deliveryStatus || 'pending',
       pickupStatus: shipment.pickupStatus || 'pending',
       lastError: 'Shiprocket is not configured.',
@@ -417,11 +417,19 @@ const advanceShipment = async (orderInput, { steps = ['create', 'awb', 'pickup',
         if (!latest.shipment.partner || latest.shipment.partner === 'manual') {
           latest.shipment.partner = 'shiprocket';
         }
-        latest.shipment.shippingStatus = latest.shipment.shiprocketOrderId
-          ? latest.shipment.shippingStatus || 'error'
-          : 'error';
+        const attempts = Number(latest.shipment.attemptCount || 0) + 1;
+        const maxAttempts = Number(process.env.SHIPMENT_MAX_ATTEMPTS) || 5;
+        const incomplete = !latest.shipment.awbNumber;
+        latest.shipment.attemptCount = attempts;
         latest.shipment.lastError = clip(error.message || 'Shipment request failed');
         latest.shipment.lastSyncedAt = new Date();
+        if (incomplete && attempts < maxAttempts) {
+          latest.shipment.shippingStatus = 'shipping_pending';
+          const delay = Math.min(15 * 60 * 1000, 15000 * 2 ** (attempts - 1));
+          latest.shipment.nextAttemptAt = new Date(Date.now() + delay);
+        } else if (incomplete) {
+          latest.shipment.shippingStatus = 'error';
+        }
         await latest.save();
       }
       if (strict) throw error;

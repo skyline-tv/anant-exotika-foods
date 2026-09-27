@@ -8,7 +8,9 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "create-admin": "node src/scripts/createAdmin.js",
-    "seed-catalog": "node src/scripts/seedCatalog.js"
+    "seed-catalog": "node src/scripts/seedCatalog.js",
+    "test": "node --test src/services/shiprocketService.test.js",
+    "load-test": "node src/scripts/loadTest.js"
   },
   "engines": {
     "node": ">=18"
@@ -22,6 +24,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "compression": "^1.8.2",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

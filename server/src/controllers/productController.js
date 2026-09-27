@@ -423,7 +423,7 @@ const bulkCreateProducts = asyncHandler(async (req, res) => {
     throw new AppError(`Import up to ${BULK_PRODUCT_LIMIT} products at a time.`, 400);
   }
 
-  const categories = await Category.find().select('name slug parentCategory');
+  const categories = await Category.find().select('name slug parentCategory').limit(500);
   const requestedSkus = rows
     .map((row) => String(row.sku || '').trim().toUpperCase())
     .filter((sku) => sku && sku !== 'EXAMPLE-SKU');

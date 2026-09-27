@@ -77,6 +77,14 @@ The default database name is `anant_exotika`.
 | `SHIPPING_ORIGIN_PIN` | Used as the pickup pincode when `SHIPROCKET_PICKUP_PIN` is empty |
 | `RESEND_API_KEY` | Resend API key for transactional email (server only) |
 | `EMAIL_FROM` | Verified Resend from address, e.g. `Anant Exotika Foods <orders@yourdomain.com>` |
+| `JSON_BODY_LIMIT` | JSON body limit (default `2mb`). Uploads stay at 5MB per image |
+| `HTTP_REQUEST_TIMEOUT_MS` | Maximum time for one HTTP request (default `60000`) |
+| `RATE_LIMIT_PUBLIC_MAX` | Storefront requests per window (default `600` / 15 min) |
+| `RATE_LIMIT_AUTH_MAX` | Login and password attempts per window (default `20`) |
+| `RATE_LIMIT_ORDER_MAX` | Order creation attempts per window (default `30`) |
+| `SHIPROCKET_TIMEOUT_MS` | Shiprocket HTTP timeout (default `15000`) |
+| `SHIPROCKET_MAX_RETRIES` | Extra attempts for timeouts, HTTP 429, and HTTP 5xx (default `2`) |
+| `MONGO_MAX_POOL_SIZE` | Shared Mongo pool size (default `20`) |
 
 Never commit the real `.env` file.
 
@@ -178,10 +186,20 @@ server/
 └── README.md
 ```
 
-Health check:
+Health checks:
 
 ```bash
+curl http://localhost:5000/health
+curl http://localhost:5000/ready
 curl http://localhost:5000/api/v1/health
+```
+
+`/health` only reports that the process is up. `/ready` returns 503 until MongoDB is connected. Docker Compose in the repository root runs the API behind Nginx, with a daily MongoDB dump in a separate volume. See `deploy/backup-mongo.sh`.
+
+Safe read-only load test (does not place orders):
+
+```bash
+LOAD_TEST_URL=http://127.0.0.1:5001 npm run load-test
 ```
 
 If port `5000` is already in use (common on macOS because AirPlay Receiver binds to it), set `PORT=5001` in `.env` and use that URL instead.

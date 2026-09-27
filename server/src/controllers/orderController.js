@@ -29,6 +29,8 @@ const {
   safeSend,
 } = require('../services/emailService');
 const { quoteShipping, isCodEnabledGlobally, estimatePackageWeightGrams } = require('../services/shippingService');
+const { isShiprocketConfigured } = require('../services/shiprocketService');
+const { scheduleShipment } = require('../services/shippingQueue');
 const {
   createOrderShipment,
   refreshOrderTracking,
@@ -48,6 +50,48 @@ const getPrimaryImage = (product) => {
   return toStoredAssetPath(url);
 };
 
+const readIdempotencyKey = (req) =>
+  String(req.get('x-idempotency-key') || req.body?.idempotencyKey || '')
+    .trim()
+    .slice(0, 80);
+
+const replayOrderResponse = (res, order) => {
+  const paid = order.payment?.paymentStatus === 'paid';
+  const payment =
+    order.payment?.method === 'razorpay' && !paid
+      ? {
+          method: 'razorpay',
+          keyId: process.env.RAZORPAY_KEY_ID,
+          razorpayOrderId: order.payment.gatewayOrderId,
+          amount: Math.round(Number(order.pricing?.total || 0) * 100),
+          currency: 'INR',
+        }
+      : { method: order.payment?.method || 'cod' };
+
+  return successResponse(res, {
+    message: 'Order already created',
+    data: { order, payment, replayed: true },
+  });
+};
+
+const createOrderRecord = async (payload) => {
+  try {
+    const order = await Order.create(payload);
+    return { order, replayed: false };
+  } catch (error) {
+    if (error.code === 11000 && payload.idempotencyKey) {
+      const existing = await Order.findOne({
+        user: payload.user,
+        idempotencyKey: payload.idempotencyKey,
+      });
+      if (existing) return { order: existing, replayed: true };
+    }
+    throw error;
+  }
+};
+
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const createOrder = asyncHandler(async (req, res) => {
   const { shippingAddressId, billingAddressId, couponCode, paymentMethod, notes } =
     req.body;
@@ -58,6 +102,14 @@ const createOrder = asyncHandler(async (req, res) => {
 
   if (!paymentMethod || !PAYMENT_METHOD.includes(paymentMethod)) {
     throw new AppError('Valid payment method is required (cod or razorpay).', 400);
+  }
+
+  const idempotencyKey = readIdempotencyKey(req);
+  if (idempotencyKey) {
+    const existing = await Order.findOne({ user: req.user._id, idempotencyKey });
+    if (existing) {
+      return replayOrderResponse(res, existing);
+    }
   }
 
   const storefront = await SiteContent.findOne({ key: 'storefront' }).select('storeStatus');
@@ -199,7 +251,7 @@ const createOrder = asyncHandler(async (req, res) => {
     payment,
     shipment: {
       partner: shippingQuote.partner || 'shiprocket',
-      shippingStatus: 'pending',
+      shippingStatus: !useRazorpay && isShiprocketConfigured() ? 'shipping_pending' : 'pending',
       deliveryStatus: 'pending',
       pickupStatus: 'pending',
     },
@@ -221,10 +273,15 @@ const createOrder = asyncHandler(async (req, res) => {
         }
       : undefined,
     notes: notes || '',
+    idempotencyKey,
   };
 
   if (useRazorpay) {
-    const order = await Order.create(orderPayload);
+    const created = await createOrderRecord(orderPayload);
+    if (created.replayed) {
+      return replayOrderResponse(res, created.order);
+    }
+    const order = created.order;
     successResponse(res, {
       message: 'Order created. Complete payment to confirm.',
       statusCode: 201,
@@ -261,7 +318,12 @@ const createOrder = asyncHandler(async (req, res) => {
       at: new Date(),
     });
 
-    let order = await Order.create(orderPayload);
+    const created = await createOrderRecord(orderPayload);
+    if (created.replayed) {
+      await restoreStockItems(decremented);
+      return replayOrderResponse(res, created.order);
+    }
+    let order = created.order;
 
     if (coupon) {
       coupon.usedCount += 1;
@@ -271,7 +333,7 @@ const createOrder = asyncHandler(async (req, res) => {
     cart.items = [];
     await cart.save();
 
-    order = await createOrderShipment(order, { weightGrams: packageWeightGrams });
+    scheduleShipment(order);
 
     safeSend(sendOrderConfirmationEmail, {
       to: req.user.email,
@@ -341,7 +403,7 @@ const getAdminOrders = asyncHandler(async (req, res) => {
   }
 
   if (req.query.search) {
-    filter.orderNumber = new RegExp(String(req.query.search).trim(), 'i');
+    filter.orderNumber = new RegExp(escapeRegex(String(req.query.search).trim()), 'i');
   }
 
   const [orders, total] = await Promise.all([

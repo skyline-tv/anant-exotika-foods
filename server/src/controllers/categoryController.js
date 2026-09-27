@@ -14,7 +14,8 @@ const getCategories = asyncHandler(async (req, res) => {
 
   const categories = await Category.find(filter)
     .populate('parentCategory', 'name slug')
-    .sort({ displayOrder: 1, name: 1 });
+    .sort({ displayOrder: 1, name: 1 })
+    .limit(300);
 
   successResponse(res, {
     message: 'Categories retrieved successfully',

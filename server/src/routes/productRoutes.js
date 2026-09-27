@@ -11,11 +11,12 @@ const {
 } = require('../controllers/productController');
 const { authenticateAdmin, optionalAuthenticateAdmin } = require('../middleware/adminMiddleware');
 const validateObjectId = require('../middleware/validateObjectId');
+const { searchLimiter, limitSearch } = require('../middleware/rateLimits');
 
 const router = express.Router();
 
-router.get('/', optionalAuthenticateAdmin, listProducts);
-router.get('/search', optionalAuthenticateAdmin, searchProducts);
+router.get('/', limitSearch, optionalAuthenticateAdmin, listProducts);
+router.get('/search', searchLimiter, optionalAuthenticateAdmin, searchProducts);
 router.get('/id/:id', authenticateAdmin, validateObjectId('id'), getProductById);
 router.get('/:slug', getProductBySlug);
 

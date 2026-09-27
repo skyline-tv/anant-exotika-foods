@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const mongoose = require('mongoose');
 
 const { successResponse } = require('./utils/apiResponse');
@@ -10,6 +9,8 @@ const AppError = require('./utils/AppError');
 const { getUploadRoot } = require('./middleware/uploadMiddleware');
 const notFoundMiddleware = require('./middleware/notFoundMiddleware');
 const errorMiddleware = require('./middleware/errorMiddleware');
+const requestContext = require('./middleware/requestContext');
+const { publicLimiter, authLimiter } = require('./middleware/rateLimits');
 
 const authRoutes = require('./routes/authRoutes');
 const adminAuthRoutes = require('./routes/adminAuthRoutes');
@@ -30,12 +31,25 @@ const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
 const app = express();
 
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
+app.use(compression());
+app.use(requestContext);
+
+app.use((req, res, next) => {
+  if (!app.get('shuttingDown') || req.path === '/health') return next();
+  res.set('Connection', 'close');
+  return res.status(503).json({
+    success: false,
+    message: 'Server is shutting down.',
+    errors: [],
+  });
+});
 
 const allowedOrigins = [process.env.CLIENT_URL, process.env.ADMIN_URL].filter(Boolean);
 
@@ -52,13 +66,21 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Razorpay-Signature'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Razorpay-Signature',
+      'X-Request-Id',
+      'X-Idempotency-Key',
+    ],
   })
 );
 
+const jsonLimit = process.env.JSON_BODY_LIMIT || '2mb';
+
 app.use(
   express.json({
-    limit: '10mb',
+    limit: jsonLimit,
     verify: (req, res, buf) => {
       if (req.originalUrl?.includes('/payments/webhook')) {
         req.rawBody = buf;
@@ -66,50 +88,31 @@ app.use(
     },
   })
 );
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(express.urlencoded({ extended: true, limit: jsonLimit }));
 
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000,
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => String(req.originalUrl || '').includes('/shipping/webhook'),
-  message: {
-    success: false,
-    message: 'Too many requests, please try again later.',
-    errors: [],
-  },
+app.use('/uploads', express.static(getUploadRoot(), { maxAge: '1d' }));
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message: 'Too many authentication attempts, please try again later.',
-    errors: [],
-  },
+app.get('/ready', (req, res) => {
+  const ready = !app.get('shuttingDown') && mongoose.connection.readyState === 1;
+  res.status(ready ? 200 : 503).json({ status: ready ? 'ready' : 'not_ready' });
 });
-
-app.use('/uploads', express.static(getUploadRoot()));
 
 app.get('/api/v1/health', (req, res) => {
   const dbConnected = mongoose.connection.readyState === 1;
-
   successResponse(res, {
     message: 'ANANT EXOTIKA API is running',
     data: {
       status: dbConnected ? 'ok' : 'degraded',
-      environment: process.env.NODE_ENV || 'development',
       timestamp: new Date().toISOString(),
     },
   });
 });
 
-app.use('/api/v1', apiLimiter);
+app.use('/api/v1', publicLimiter);
 app.use('/api/v1/auth', authLimiter, authRoutes);
 app.use('/api/v1/admin/auth', authLimiter, adminAuthRoutes);
 app.use('/api/v1/products', productRoutes);

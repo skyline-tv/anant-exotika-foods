@@ -75,7 +75,7 @@ const getCustomerById = asyncHandler(async (req, res) => {
   }
 
   const [addresses, orders] = await Promise.all([
-    Address.find({ user: user._id }).sort({ isDefault: -1, createdAt: -1 }),
+    Address.find({ user: user._id }).sort({ isDefault: -1, createdAt: -1 }).limit(20),
     Order.find({ user: user._id }).sort({ createdAt: -1 }).limit(50),
   ]);
 

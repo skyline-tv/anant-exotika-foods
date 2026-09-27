@@ -74,7 +74,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
 });
 
 const getCoupons = asyncHandler(async (req, res) => {
-  const coupons = await Coupon.find().sort({ createdAt: -1 });
+  const coupons = await Coupon.find().sort({ createdAt: -1 }).limit(200);
 
   successResponse(res, {
     message: 'Coupons retrieved successfully',

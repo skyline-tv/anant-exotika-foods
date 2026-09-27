@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -66,6 +66,7 @@ const Checkout = () => {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const idempotencyKeyRef = useRef('');
   const [savingAddress, setSavingAddress] = useState(false);
   const [error, setError] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -267,6 +268,7 @@ const Checkout = () => {
   };
 
   const completeOrder = async (order) => {
+    idempotencyKeyRef.current = '';
     await refresh();
     toast.success('Order placed successfully.');
     navigate(`/account/orders/${order._id}`);
@@ -341,6 +343,9 @@ const Checkout = () => {
     }
 
     setSubmitting(true);
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
     try {
       const result = await createOrder({
         shippingAddressId,
@@ -348,6 +353,7 @@ const Checkout = () => {
         paymentMethod,
         couponCode: coupon?.coupon?.code || undefined,
         notes,
+        idempotencyKey: idempotencyKeyRef.current,
       });
       const order = result.order;
       if (result.payment?.method === 'razorpay') {

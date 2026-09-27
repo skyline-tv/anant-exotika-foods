@@ -201,6 +201,14 @@ const shipmentSchema = new mongoose.Schema(
       default: '',
       trim: true,
     },
+    attemptCount: {
+      type: Number,
+      default: 0,
+    },
+    nextAttemptAt: {
+      type: Date,
+      default: null,
+    },
     operationLock: {
       type: String,
       default: '',
@@ -300,6 +308,12 @@ const orderSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    idempotencyKey: {
+      type: String,
+      trim: true,
+      default: '',
+      maxlength: 80,
+    },
   },
   {
     timestamps: true,
@@ -309,6 +323,16 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ 'payment.paymentStatus': 1 });
 orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ 'payment.gatewayOrderId': 1 });
+orderSchema.index({ 'payment.gatewayPaymentId': 1 });
+orderSchema.index({ 'shipment.shippingStatus': 1, 'shipment.nextAttemptAt': 1 });
+orderSchema.index(
+  { user: 1, idempotencyKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { idempotencyKey: { $type: 'string', $gt: '' } },
+  }
+);
 
 orderSchema.methods.toJSON = function toJSON() {
   const obj = this.toObject();
@@ -319,6 +343,7 @@ orderSchema.methods.toJSON = function toJSON() {
       image: item.image ? toPublicAssetUrl(item.image) : item.image,
     }));
   }
+  delete obj.idempotencyKey;
   if (obj.shipment) {
     delete obj.shipment.operationLock;
     delete obj.shipment.operationLockedAt;
