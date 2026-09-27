@@ -60,6 +60,25 @@
   font-size: var(--fs-sm);
 }
 
+.auth-sent {
+  margin: var(--space-lg) 0 0;
+  max-width: 38ch;
+}
+
+.auth-sent strong {
+  font-weight: var(--fw-medium);
+  color: var(--dark-text);
+}
+
+.auth-split__meta .link-quiet {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 @media (min-width: 900px) {
   .auth-split {
     grid-template-columns: 1fr 1fr;

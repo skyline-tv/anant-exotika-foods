@@ -26,6 +26,30 @@ const ForgotPassword = () => {
     }
   };
 
+  if (message) {
+    return (
+      <AuthShell
+        eyebrow="Account recovery"
+        title="Check your email"
+        subtitle="A link to reset your password has been sent to your email."
+      >
+        <p className="auth-sent">
+          We sent it to <strong>{email}</strong>. Open that message and follow the link. It expires in one hour.
+        </p>
+        <div className="auth-split__meta">
+          <p>
+            <Link to="/login" className="link-quiet">Back to login</Link>
+          </p>
+          <p>
+            <button type="button" className="link-quiet" onClick={() => setMessage('')}>
+              Use a different email
+            </button>
+          </p>
+        </div>
+      </AuthShell>
+    );
+  }
+
   return (
     <AuthShell
       eyebrow="Account recovery"
@@ -34,10 +58,9 @@ const ForgotPassword = () => {
     >
       <form className="form-grid" onSubmit={handleSubmit}>
         {error ? <div className="alert alert-error">{error}</div> : null}
-        {message ? <div className="alert">{message}</div> : null}
         <div className="field">
           <label htmlFor="email">Email</label>
-          <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <input id="email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </div>
         <Button type="submit" disabled={submitting}>
           {submitting ? 'Sending...' : 'Send reset link'}
