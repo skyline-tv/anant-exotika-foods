@@ -134,7 +134,7 @@ const createOrder = asyncHandler(async (req, res) => {
   });
 
   if (paymentMethod === 'cod') {
-    if (!isCodEnabledGlobally()) {
+    if (!(await isCodEnabledGlobally())) {
       throw new AppError('Cash on Delivery is currently unavailable.', 400);
     }
     if (!shippingQuote.codAvailable) {
@@ -146,6 +146,11 @@ const createOrder = asyncHandler(async (req, res) => {
     items: orderItems,
     coupon,
     shipping: shippingQuote.shipping,
+    packaging: shippingQuote.packaging,
+    handling: shippingQuote.handling,
+    codFee: shippingQuote.codFee,
+    tax: shippingQuote.tax,
+    taxPercent: shippingQuote.taxPercent,
   });
   const packageWeightGrams = shippingQuote.weightGrams || estimatePackageWeightGrams(weightedItems);
   const orderNumber = await generateOrderNumber();

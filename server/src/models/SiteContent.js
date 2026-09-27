@@ -66,6 +66,20 @@ const tileSchema = new mongoose.Schema(
   { _id: true }
 );
 
+const commerceSchema = new mongoose.Schema(
+  {
+    shippingMode: { type: String, enum: ['flat', 'delhivery'], default: 'flat' },
+    shippingCharge: { type: Number, min: 0, default: 79 },
+    freeShippingThreshold: { type: Number, min: 0, default: 0 },
+    packagingCharge: { type: Number, min: 0, default: 0 },
+    handlingCharge: { type: Number, min: 0, default: 0 },
+    taxPercent: { type: Number, min: 0, max: 100, default: 0 },
+    codEnabled: { type: Boolean, default: true },
+    codFee: { type: Number, min: 0, default: 0 },
+  },
+  { _id: false }
+);
+
 const siteContentSchema = new mongoose.Schema(
   {
     key: {
@@ -81,6 +95,7 @@ const siteContentSchema = new mongoose.Schema(
     orderPrefix: { type: String, trim: true, default: 'AE' },
     currency: { type: String, trim: true, default: 'INR' },
     storeStatus: { type: String, enum: ['open', 'closed'], default: 'open' },
+    commerce: { type: commerceSchema, default: () => ({}) },
     seoTitle: {
       type: String,
       trim: true,

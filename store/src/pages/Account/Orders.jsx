@@ -153,6 +153,30 @@ const Orders = () => {
                     {order.pricing?.shipping > 0 ? formatCurrency(order.pricing.shipping) : 'Free'}
                   </span>
                 </div>
+                {order.pricing?.packaging > 0 ? (
+                  <div className="summary-row">
+                    <span>Packaging</span>
+                    <span>{formatCurrency(order.pricing.packaging)}</span>
+                  </div>
+                ) : null}
+                {order.pricing?.handling > 0 ? (
+                  <div className="summary-row">
+                    <span>Handling</span>
+                    <span>{formatCurrency(order.pricing.handling)}</span>
+                  </div>
+                ) : null}
+                {order.pricing?.codFee > 0 ? (
+                  <div className="summary-row">
+                    <span>COD fee</span>
+                    <span>{formatCurrency(order.pricing.codFee)}</span>
+                  </div>
+                ) : null}
+                {order.pricing?.tax > 0 ? (
+                  <div className="summary-row">
+                    <span>Tax</span>
+                    <span>{formatCurrency(order.pricing.tax)}</span>
+                  </div>
+                ) : null}
                 <div className="summary-row total">
                   <span>Total</span>
                   <strong>{formatCurrency(order.pricing?.total)}</strong>

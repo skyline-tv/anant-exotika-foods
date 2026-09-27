@@ -10,6 +10,7 @@ const ALLOWED = [
   'orderPrefix',
   'currency',
   'storeStatus',
+  'commerce',
   'seoTitle',
   'seoDescription',
   'hero',

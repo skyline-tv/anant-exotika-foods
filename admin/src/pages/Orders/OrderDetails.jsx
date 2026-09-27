@@ -269,6 +269,24 @@ function OrderDetails() {
               <span>Shipping</span>
               <strong>{formatCurrency(order.pricing?.shipping)}</strong>
             </div>
+            {order.pricing?.packaging > 0 ? (
+              <div>
+                <span>Packaging</span>
+                <strong>{formatCurrency(order.pricing.packaging)}</strong>
+              </div>
+            ) : null}
+            {order.pricing?.handling > 0 ? (
+              <div>
+                <span>Handling</span>
+                <strong>{formatCurrency(order.pricing.handling)}</strong>
+              </div>
+            ) : null}
+            {order.pricing?.codFee > 0 ? (
+              <div>
+                <span>COD fee</span>
+                <strong>{formatCurrency(order.pricing.codFee)}</strong>
+              </div>
+            ) : null}
             <div>
               <span>Tax</span>
               <strong>{formatCurrency(order.pricing?.tax)}</strong>

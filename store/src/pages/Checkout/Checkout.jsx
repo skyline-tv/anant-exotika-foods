@@ -554,21 +554,33 @@ const Checkout = () => {
                   <p>
                     {shippingQuote.freeShipping
                       ? 'Free shipping applies to this order.'
-                      : `Delhivery shipping to ${shippingQuote.postalCode}.`}
+                      : `Delivery to ${shippingQuote.postalCode}.`}
                   </p>
                   <p>
-                    Shipping charge:{' '}
+                    Shipping:{' '}
                     <strong>
                       {shippingQuote.shipping > 0 ? formatCurrency(shippingQuote.shipping) : 'Free'}
                     </strong>
                   </p>
+                  {shippingQuote.packaging > 0 ? (
+                    <p>Packaging: <strong>{formatCurrency(shippingQuote.packaging)}</strong></p>
+                  ) : null}
+                  {shippingQuote.handling > 0 ? (
+                    <p>Handling: <strong>{formatCurrency(shippingQuote.handling)}</strong></p>
+                  ) : null}
+                  {shippingQuote.tax > 0 ? (
+                    <p>Tax{shippingQuote.taxPercent ? ` (${shippingQuote.taxPercent}%)` : ''}: <strong>{formatCurrency(shippingQuote.tax)}</strong></p>
+                  ) : null}
+                  {paymentMethod === 'cod' && shippingQuote.codFee > 0 ? (
+                    <p>Cash on Delivery fee: <strong>{formatCurrency(shippingQuote.codFee)}</strong></p>
+                  ) : null}
                   {freeShippingThreshold > 0 && !shippingQuote.freeShipping ? (
                     <p className="checkout-shipping-hint">
                       Free shipping on orders of {formatCurrency(freeShippingThreshold)} and above.
                     </p>
                   ) : null}
                   {!shippingQuote.codAvailable ? (
-                    <p className="checkout-shipping-hint">Cash on Delivery is not available for this pincode.</p>
+                    <p className="checkout-shipping-hint">Cash on Delivery is not available for this address.</p>
                   ) : null}
                 </div>
               ) : (
@@ -666,6 +678,30 @@ const Checkout = () => {
                     : '—'}
               </span>
             </div>
+            {shippingQuote?.packaging > 0 ? (
+              <div className="summary-row">
+                <span>Packaging</span>
+                <span>{formatCurrency(shippingQuote.packaging)}</span>
+              </div>
+            ) : null}
+            {shippingQuote?.handling > 0 ? (
+              <div className="summary-row">
+                <span>Handling</span>
+                <span>{formatCurrency(shippingQuote.handling)}</span>
+              </div>
+            ) : null}
+            {paymentMethod === 'cod' && shippingQuote?.codFee > 0 ? (
+              <div className="summary-row">
+                <span>COD fee</span>
+                <span>{formatCurrency(shippingQuote.codFee)}</span>
+              </div>
+            ) : null}
+            {shippingQuote?.tax > 0 ? (
+              <div className="summary-row">
+                <span>Tax</span>
+                <span>{formatCurrency(shippingQuote.tax)}</span>
+              </div>
+            ) : null}
             {shippingQuote?.estimatedTotal !== undefined ? (
               <div className="summary-row total">
                 <span>Estimated total</span>

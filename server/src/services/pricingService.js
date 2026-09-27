@@ -33,20 +33,43 @@ const applyCouponDiscount = (subtotal, coupon) => {
   return roundMoney(discount);
 };
 
-const calculateOrderPricing = ({ items, coupon = null, shipping = 0, tax = 0 }) => {
+const calculateOrderPricing = ({
+  items,
+  coupon = null,
+  shipping = 0,
+  packaging = 0,
+  handling = 0,
+  codFee = 0,
+  taxPercent = 0,
+  tax,
+}) => {
   const subtotal = roundMoney(
     items.reduce((sum, item) => sum + item.total, 0)
   );
   const discount = applyCouponDiscount(subtotal, coupon);
   const shippingAmount = roundMoney(Math.max(0, Number(shipping) || 0));
-  const taxAmount = roundMoney(Math.max(0, Number(tax) || calculateTax()));
-  const total = roundMoney(Math.max(0, subtotal - discount + shippingAmount + taxAmount));
+  const packagingAmount = roundMoney(Math.max(0, Number(packaging) || 0));
+  const handlingAmount = roundMoney(Math.max(0, Number(handling) || 0));
+  const codFeeAmount = roundMoney(Math.max(0, Number(codFee) || 0));
+  const percent = roundMoney(Math.max(0, Number(taxPercent) || 0));
+  const taxable = Math.max(0, subtotal - discount);
+  const taxAmount =
+    tax === undefined
+      ? roundMoney((taxable * percent) / 100)
+      : roundMoney(Math.max(0, Number(tax) || 0));
+  const total = roundMoney(
+    Math.max(0, taxable + shippingAmount + packagingAmount + handlingAmount + codFeeAmount + taxAmount)
+  );
 
   return {
     subtotal,
     discount,
     shipping: shippingAmount,
+    packaging: packagingAmount,
+    handling: handlingAmount,
+    codFee: codFeeAmount,
     tax: taxAmount,
+    taxPercent: percent,
     total,
   };
 };

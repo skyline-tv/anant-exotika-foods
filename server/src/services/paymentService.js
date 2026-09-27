@@ -1,7 +1,7 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const AppError = require('../utils/AppError');
-const { isCodEnabledGlobally, getPublicShippingConfig } = require('./shippingService');
+const { getPublicShippingConfig } = require('./shippingService');
 
 const isRazorpayConfigured = () =>
   Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
@@ -21,10 +21,10 @@ const getClient = () => {
   return client;
 };
 
-const getPublicPaymentConfig = () => {
-  const shipping = getPublicShippingConfig();
+const getPublicPaymentConfig = async () => {
+  const shipping = await getPublicShippingConfig();
   const razorpayEnabled = isRazorpayConfigured();
-  const codEnabled = isCodEnabledGlobally();
+  const codEnabled = shipping.codEnabled;
   const methods = [];
 
   if (razorpayEnabled) {

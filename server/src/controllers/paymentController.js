@@ -71,7 +71,7 @@ const finalizePaidOrder = async (order) => {
 const getPaymentConfig = asyncHandler(async (req, res) => {
   successResponse(res, {
     message: 'Payment configuration retrieved successfully',
-    data: getPublicPaymentConfig(),
+    data: await getPublicPaymentConfig(),
   });
 });
 

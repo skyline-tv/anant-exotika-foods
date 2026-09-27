@@ -12,7 +12,7 @@ const { checkPincodeServiceability } = require('../services/delhiveryService');
 const getShippingConfig = asyncHandler(async (req, res) => {
   successResponse(res, {
     message: 'Shipping configuration retrieved successfully',
-    data: getPublicShippingConfig(),
+    data: await getPublicShippingConfig(),
   });
 });
 
@@ -88,7 +88,7 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
       ...quote,
       subtotal,
       discount,
-      estimatedTotal: roundMoney(Math.max(0, subtotal - discount + quote.shipping)),
+      estimatedTotal: quote.estimatedTotal,
       coupon: coupon
         ? {
             code: coupon.code,

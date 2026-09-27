@@ -18,6 +18,16 @@ const toForm = (content) => ({
   seoTitle: content?.seoTitle || '',
   seoDescription: content?.seoDescription || '',
   storeStatus: content?.storeStatus || 'open',
+  commerce: {
+    shippingMode: content?.commerce?.shippingMode === 'delhivery' ? 'delhivery' : 'flat',
+    shippingCharge: Number(content?.commerce?.shippingCharge ?? 79),
+    freeShippingThreshold: Number(content?.commerce?.freeShippingThreshold ?? 0),
+    packagingCharge: Number(content?.commerce?.packagingCharge ?? 0),
+    handlingCharge: Number(content?.commerce?.handlingCharge ?? 0),
+    taxPercent: Number(content?.commerce?.taxPercent ?? 0),
+    codEnabled: content?.commerce?.codEnabled !== false,
+    codFee: Number(content?.commerce?.codFee ?? 0),
+  },
   hero: {
     image: content?.hero?.image || '',
     heading: content?.hero?.heading || '',
@@ -209,6 +219,112 @@ function Settings() {
                   <option value="open">Open</option>
                   <option value="closed">Closed</option>
                 </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="card">
+          <div className="card-body form-section">
+            <h2>Shipping &amp; charges</h2>
+            <p className="muted">These amounts are applied at checkout and saved on each order.</p>
+            <div className="form-grid">
+              <div className="field">
+                <label htmlFor="shippingMode">Shipping calculation</label>
+                <select
+                  id="shippingMode"
+                  className="select"
+                  value={values.commerce.shippingMode}
+                  onChange={(event) => updateNested('commerce', 'shippingMode', event.target.value)}
+                >
+                  <option value="flat">Flat charge set below</option>
+                  <option value="delhivery">Live Delhivery rate, with flat charge as fallback</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="shippingCharge">Shipping charge (₹)</label>
+                <input
+                  id="shippingCharge"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input"
+                  value={values.commerce.shippingCharge}
+                  onChange={(event) => updateNested('commerce', 'shippingCharge', Number(event.target.value) || 0)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="freeShippingThreshold">Free shipping above (₹)</label>
+                <input
+                  id="freeShippingThreshold"
+                  type="number"
+                  min="0"
+                  step="1"
+                  className="input"
+                  value={values.commerce.freeShippingThreshold}
+                  onChange={(event) => updateNested('commerce', 'freeShippingThreshold', Number(event.target.value) || 0)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="packagingCharge">Packaging charge (₹)</label>
+                <input
+                  id="packagingCharge"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input"
+                  value={values.commerce.packagingCharge}
+                  onChange={(event) => updateNested('commerce', 'packagingCharge', Number(event.target.value) || 0)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="handlingCharge">Handling charge (₹)</label>
+                <input
+                  id="handlingCharge"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input"
+                  value={values.commerce.handlingCharge}
+                  onChange={(event) => updateNested('commerce', 'handlingCharge', Number(event.target.value) || 0)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="taxPercent">Tax (%)</label>
+                <input
+                  id="taxPercent"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  className="input"
+                  value={values.commerce.taxPercent}
+                  onChange={(event) => updateNested('commerce', 'taxPercent', Number(event.target.value) || 0)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="codEnabled">Cash on Delivery</label>
+                <select
+                  id="codEnabled"
+                  className="select"
+                  value={values.commerce.codEnabled ? 'yes' : 'no'}
+                  onChange={(event) => updateNested('commerce', 'codEnabled', event.target.value === 'yes')}
+                >
+                  <option value="yes">Enabled</option>
+                  <option value="no">Disabled</option>
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="codFee">COD fee (₹)</label>
+                <input
+                  id="codFee"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  className="input"
+                  value={values.commerce.codFee}
+                  onChange={(event) => updateNested('commerce', 'codFee', Number(event.target.value) || 0)}
+                />
               </div>
             </div>
           </div>

@@ -14,7 +14,6 @@ import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { PRODUCT_FAQS, PRODUCT_HIGHLIGHTS } from '../../data/brandContent';
 import { getProductBySlug, getProducts } from '../../services/productService';
-import { getProductReviews } from '../../services/reviewService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import {
@@ -39,7 +38,6 @@ const ProductDetails = () => {
   const { isSaved, toggle } = useWishlist();
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -62,15 +60,11 @@ const ProductDetails = () => {
         setActiveImage(getPrimaryImage(data));
         setQuantity(1);
         const categorySlug = data.category?.slug;
-        const [relatedData, reviewData] = await Promise.all([
-          categorySlug
-            ? getProducts({ category: categorySlug, limit: 4 }).catch(() => ({ products: [] }))
-            : Promise.resolve({ products: [] }),
-          data._id ? getProductReviews(data._id).catch(() => ({ reviews: [] })) : Promise.resolve({ reviews: [] }),
-        ]);
+        const relatedData = categorySlug
+          ? await getProducts({ category: categorySlug, limit: 4 }).catch(() => ({ products: [] }))
+          : { products: [] };
         if (!active) return;
         setRelated((relatedData.products || []).filter((item) => item._id !== data._id).slice(0, 4));
-        setReviews(reviewData.reviews || []);
       })
       .catch((err) => {
         if (active) setError(getErrorMessage(err, 'This product could not be found.'));
@@ -325,21 +319,6 @@ const ProductDetails = () => {
               {openPanel === panel.id ? <p>{panel.body}</p> : null}
             </section>
           ))}
-        </div>
-
-        <div className="pdp-reviews">
-          <h2>Reviews</h2>
-          {reviews.length === 0 ? (
-            <p>No reviews yet. Verified reviews appear here after delivery.</p>
-          ) : (
-            reviews.map((review) => (
-              <article key={review._id} className="review-card">
-                <span>{'★'.repeat(review.rating || 0)}</span>
-                <strong>{review.title || review.user?.name || 'Guest'}</strong>
-                <p>{review.comment}</p>
-              </article>
-            ))
-          )}
         </div>
 
         {related.length ? (

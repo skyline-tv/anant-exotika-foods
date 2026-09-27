@@ -1,4 +1,5 @@
 const AppError = require('../utils/AppError');
+const SiteContent = require('../models/SiteContent');
 const { roundMoney } = require('./pricingService');
 const {
   isDelhiveryConfigured,
@@ -9,17 +10,48 @@ const {
 const getOriginPin = () =>
   String(process.env.DELHIVERY_PICKUP_PIN || process.env.SHIPPING_ORIGIN_PIN || '').trim();
 
-const getFreeShippingThreshold = () => {
-  const value = Number(process.env.SHIPPING_FREE_THRESHOLD);
-  return Number.isFinite(value) && value > 0 ? value : 0;
+const nonNegative = (value, fallback) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? roundMoney(amount) : fallback;
 };
 
-const getFallbackRate = () => {
+const envFallbackRate = () => {
   const value = Number(process.env.SHIPPING_FALLBACK_RATE);
   return Number.isFinite(value) && value >= 0 ? value : 79;
 };
 
-const isCodEnabledGlobally = () => process.env.COD_ENABLED !== 'false';
+const envFreeThreshold = () => {
+  const value = Number(process.env.SHIPPING_FREE_THRESHOLD);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+};
+
+const getCommerceSettings = async () => {
+  const content = await SiteContent.findOne({ key: 'storefront' }).select('commerce').lean();
+  const stored = content?.commerce || {};
+  const hasSavedCommerce = Boolean(content?.commerce);
+
+  return {
+    shippingMode: stored.shippingMode === 'delhivery' ? 'delhivery' : 'flat',
+    shippingCharge: nonNegative(
+      stored.shippingCharge,
+      hasSavedCommerce ? 0 : envFallbackRate()
+    ),
+    freeShippingThreshold: nonNegative(
+      stored.freeShippingThreshold,
+      hasSavedCommerce ? 0 : envFreeThreshold()
+    ),
+    packagingCharge: nonNegative(stored.packagingCharge, 0),
+    handlingCharge: nonNegative(stored.handlingCharge, 0),
+    taxPercent: Math.min(100, nonNegative(stored.taxPercent, 0)),
+    codEnabled: stored.codEnabled !== false && process.env.COD_ENABLED !== 'false',
+    codFee: nonNegative(stored.codFee, 0),
+  };
+};
+
+const isCodEnabledGlobally = async () => {
+  const settings = await getCommerceSettings();
+  return settings.codEnabled;
+};
 
 const estimatePackageWeightGrams = (items = []) => {
   const total = items.reduce((sum, item) => {
@@ -51,13 +83,17 @@ const quoteShipping = async ({
     );
   }
 
+  const settings = await getCommerceSettings();
   const payableGoods = Math.max(0, Number(subtotal) - Number(discount));
-  const freeThreshold = getFreeShippingThreshold();
+  const freeThreshold = settings.freeShippingThreshold;
   const freeShipping = freeThreshold > 0 && payableGoods >= freeThreshold;
   const weightGrams = estimatePackageWeightGrams(items);
   const wantsCod = paymentMethod === 'cod';
-  const codAvailable = isCodEnabledGlobally() && serviceability.cod !== false;
+  const codAvailable = settings.codEnabled && serviceability.cod !== false;
 
+  if (wantsCod && !settings.codEnabled) {
+    throw new AppError('Cash on Delivery is currently unavailable.', 400);
+  }
   if (wantsCod && !codAvailable) {
     throw new AppError('Cash on Delivery is not available for this pincode.', 400);
   }
@@ -68,7 +104,8 @@ const quoteShipping = async ({
 
   if (!freeShipping) {
     const originPin = getOriginPin();
-    if (isDelhiveryConfigured() && originPin) {
+    const useLiveRate = settings.shippingMode === 'delhivery' && isDelhiveryConfigured() && originPin;
+    if (useLiveRate) {
       try {
         const quote = await calculateShippingCharge({
           destinationPin: pin,
@@ -87,12 +124,17 @@ const quoteShipping = async ({
     }
 
     if (source !== 'delhivery') {
-      amount = getFallbackRate();
-      source = isDelhiveryConfigured() ? 'fallback' : 'configured';
+      amount = settings.shippingCharge;
+      source = 'configured';
     }
   }
 
   amount = roundMoney(amount);
+  const packaging = settings.packagingCharge;
+  const handling = settings.handlingCharge;
+  const codFee = wantsCod ? settings.codFee : 0;
+  const tax = roundMoney((payableGoods * settings.taxPercent) / 100);
+  const estimatedTotal = roundMoney(Math.max(0, payableGoods + amount + packaging + handling + codFee + tax));
 
   return {
     postalCode: pin,
@@ -102,30 +144,44 @@ const quoteShipping = async ({
     freeShipping,
     freeShippingThreshold: freeThreshold,
     shipping: amount,
+    packaging,
+    handling,
+    codFee,
+    tax,
+    taxPercent: settings.taxPercent,
+    estimatedTotal,
     weightGrams,
     source,
-    partner: isDelhiveryConfigured() ? 'delhivery' : 'manual',
+    shippingMode: settings.shippingMode,
+    partner: settings.shippingMode === 'delhivery' && isDelhiveryConfigured() ? 'delhivery' : 'manual',
     city: serviceability.city || '',
     state: serviceability.state || '',
     remarks: freeShipping
-      ? `Free shipping on orders of ${freeThreshold ? `₹${freeThreshold}+` : 'eligible carts'}.`
+      ? `Free shipping on orders of ₹${freeThreshold}+.`
       : serviceability.remarks || '',
     raw,
   };
 };
 
-const getPublicShippingConfig = () => ({
-  partner: isDelhiveryConfigured() ? 'delhivery' : 'manual',
-  freeShippingThreshold: getFreeShippingThreshold(),
-  fallbackRate: getFallbackRate(),
-  codEnabled: isCodEnabledGlobally(),
-  configured: isDelhiveryConfigured(),
-});
+const getPublicShippingConfig = async () => {
+  const settings = await getCommerceSettings();
+  return {
+    partner: settings.shippingMode === 'delhivery' && isDelhiveryConfigured() ? 'delhivery' : 'manual',
+    shippingMode: settings.shippingMode,
+    shippingCharge: settings.shippingCharge,
+    freeShippingThreshold: settings.freeShippingThreshold,
+    packagingCharge: settings.packagingCharge,
+    handlingCharge: settings.handlingCharge,
+    taxPercent: settings.taxPercent,
+    codFee: settings.codFee,
+    codEnabled: settings.codEnabled,
+    configured: isDelhiveryConfigured(),
+  };
+};
 
 module.exports = {
   getOriginPin,
-  getFreeShippingThreshold,
-  getFallbackRate,
+  getCommerceSettings,
   isCodEnabledGlobally,
   estimatePackageWeightGrams,
   quoteShipping,
