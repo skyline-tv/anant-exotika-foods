@@ -17,13 +17,7 @@
   overflow: hidden;
   background: var(--ivory);
   border: none;
-  aspect-ratio: 1 / 1;
-}
-
-@media (min-width: 768px) {
-  .product-card__media {
-    aspect-ratio: 3 / 4;
-  }
+  aspect-ratio: 3 / 4;
 }
 
 .product-card__image,

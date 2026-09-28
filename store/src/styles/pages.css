@@ -1583,10 +1583,6 @@
     border-radius: var(--radius-sm);
   }
 
-  .skeleton-card__image {
-    aspect-ratio: 1 / 1;
-  }
-
   .shop-toolbar {
     margin-bottom: 0.9rem;
     gap: 0.65rem;
@@ -1610,12 +1606,6 @@
   .product-gallery__main {
     background: var(--ivory);
     border-radius: var(--radius-md);
-  }
-
-  .product-gallery__main img {
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    background: var(--ivory);
   }
 
   .product-gallery__nav {
