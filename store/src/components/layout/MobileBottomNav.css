@@ -7,9 +7,10 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   min-height: var(--bottom-nav-height);
-  background: var(--white);
-  border-top: 1px solid var(--border-subtle);
-  padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(201, 162, 39, 0.32);
+  padding: 0.3rem 0.15rem calc(0.3rem + env(safe-area-inset-bottom));
 }
 
 .mobile-bottom-nav a,
@@ -21,8 +22,8 @@
   justify-content: center;
   gap: 0.2rem;
   min-height: 44px;
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted-text);
 }

@@ -105,7 +105,23 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search products"
             aria-label="Search products"
+            enterKeyHint="search"
+            autoComplete="off"
+            autoCapitalize="off"
           />
+          {query ? (
+            <button
+              type="button"
+              className="search-overlay__clear"
+              onClick={() => {
+                setQuery('');
+                inputRef.current?.focus();
+              }}
+              aria-label="Clear search"
+            >
+              Clear
+            </button>
+          ) : null}
           <button type="button" onClick={onClose} aria-label="Close search">
             <X size={22} strokeWidth={1.4} />
           </button>
@@ -115,6 +131,19 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
           {query.trim().length >= 2 ? (
             <div>
               <p className="search-overlay__label">{loading ? 'Searching' : 'Results'}</p>
+              {loading && !results.length ? (
+                <ul className="search-overlay__results search-overlay__results--loading" aria-hidden="true">
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <li key={index}>
+                      <span className="skeleton search-overlay__bone search-overlay__bone--thumb" />
+                      <span>
+                        <span className="skeleton search-overlay__bone" />
+                        <span className="skeleton search-overlay__bone search-overlay__bone--short" />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               {results.length ? (
                 <ul className="search-overlay__results">
                   {results.map((product) => (

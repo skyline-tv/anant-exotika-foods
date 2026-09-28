@@ -107,6 +107,12 @@
   cursor: not-allowed;
 }
 
+@media (max-width: 1023px) {
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
 .btn--full {
   width: 100%;
 }

@@ -76,6 +76,23 @@
   border-color: var(--soft-gold);
 }
 
+@media (max-width: 767px) {
+  .site-footer {
+    padding-top: 2.25rem;
+  }
+
+  .footer__links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .footer__social a {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 .footer__bottom {
   padding-top: var(--space-lg);
 }

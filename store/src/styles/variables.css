@@ -89,6 +89,13 @@
   --z-sticky-cart: 170;
 }
 
+@media (max-width: 767px) {
+  :root {
+    --container-padding: 16px;
+    --header-height: 60px;
+  }
+}
+
 @media (min-width: 768px) {
   :root {
     --container-padding: 2rem;

@@ -184,12 +184,13 @@ p {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.15rem 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.15rem 0.75rem;
 }
 
 @media (min-width: 768px) {
   .product-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem 1rem;
   }
 }
@@ -207,6 +208,16 @@ p {
 @media (min-width: 1024px) {
   .section {
     padding: var(--space-9) 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .section {
+    padding: 2.25rem 0;
+  }
+
+  .section--tight {
+    padding: 1.75rem 0;
   }
 }
 

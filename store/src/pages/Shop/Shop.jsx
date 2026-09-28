@@ -200,6 +200,23 @@ const Shop = () => {
             {renderFilters('desk')}
           </aside>
           <div>
+            {parentCategories.length ? (
+              <div className="shop-chips" aria-label="Categories">
+                <Link to="/shop" className={!category ? 'is-active' : undefined}>
+                  All
+                </Link>
+                {parentCategories.map((item) => (
+                  <Link
+                    key={item._id}
+                    to={`/shop/${item.slug}`}
+                    className={category === item.slug ? 'is-active' : undefined}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+
             <div className="shop-toolbar">
               <p>{pagination.total || 0} products</p>
               <div className="shop-toolbar__actions">

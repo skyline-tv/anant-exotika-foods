@@ -318,11 +318,18 @@ const Home = () => {
               message="New dry fruits and hampers will appear here when they are published."
             />
           ) : (
-            <div className="product-grid">
-              {products.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
+            <>
+              <div className="product-grid">
+                {products.map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+              <div className="home-view-all show-mobile-only">
+                <Button as={Link} to="/shop" variant="outline" className="btn--full">
+                  View all
+                </Button>
+              </div>
+            </>
           )}
         </div>
       </Reveal>

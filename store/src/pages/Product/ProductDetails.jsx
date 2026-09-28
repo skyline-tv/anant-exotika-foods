@@ -388,12 +388,15 @@ const ProductDetails = () => {
       </div>
 
       <div className="pdp-sticky show-mobile-only">
-        <div>
+        <div className="pdp-sticky__price">
           <strong>{formatCurrency(sellingRate)}</strong>
-          <span>{product.name}</span>
+          {mrp > sellingRate ? <s>{formatCurrency(mrp)}</s> : null}
         </div>
         <Button onClick={handleAdd} disabled={outOfStock || adding} size="sm">
-          {outOfStock ? 'Unavailable' : 'Add to cart'}
+          {outOfStock ? 'Unavailable' : adding ? 'Adding...' : 'Add to cart'}
+        </Button>
+        <Button onClick={handleBuyNow} disabled={outOfStock || buying} variant="secondary" size="sm">
+          {buying ? 'Wait' : 'Buy now'}
         </Button>
       </div>
 
