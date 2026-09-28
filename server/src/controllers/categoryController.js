@@ -123,7 +123,11 @@ const deleteCategory = asyncHandler(async (req, res) => {
   const [childCount, productCount] = await Promise.all([
     Category.countDocuments({ parentCategory: category._id }),
     Product.countDocuments({
-      $or: [{ category: category._id }, { subCategory: category._id }],
+      $or: [
+        { category: category._id },
+        { categories: category._id },
+        { subCategory: category._id },
+      ],
     }),
   ]);
 

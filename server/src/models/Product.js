@@ -63,6 +63,10 @@ const productSchema = new mongoose.Schema(
       ref: 'Category',
       required: [true, 'Category is required'],
     },
+    categories: {
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
+      default: [],
+    },
     subCategory: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
@@ -168,6 +172,7 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ name: 1 });
 productSchema.index({ category: 1, status: 1 });
+productSchema.index({ categories: 1, status: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ isFeatured: 1 });
 productSchema.index({ isNewArrival: 1 });

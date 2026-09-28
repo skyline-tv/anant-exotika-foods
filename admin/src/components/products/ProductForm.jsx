@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Trash2, Upload } from 'lucide-react';
 import { PRODUCT_STATUSES } from '../../utils/constants';
@@ -16,6 +16,7 @@ const EMPTY_FORM = {
   shortDescription: '',
   description: '',
   category: '',
+  categories: [],
   subCategory: '',
   brand: 'ANANT EXOTIKA',
   tags: '',
@@ -40,6 +41,30 @@ const EMPTY_FORM = {
   seoDescription: '',
 };
 
+function categoryId(value) {
+  if (!value) return '';
+  return String(value._id || value);
+}
+
+function collectCategoryIds(product) {
+  const ids = [];
+  const add = (value) => {
+    const id = categoryId(value);
+    if (id && !ids.includes(id)) ids.push(id);
+  };
+  add(product?.category);
+  (product?.categories || []).forEach(add);
+  add(product?.subCategory);
+  return ids;
+}
+
+function categoryLabel(category, categories) {
+  const parentId = categoryId(category.parentCategory);
+  if (!parentId) return category.name;
+  const parent = categories.find((item) => categoryId(item) === parentId);
+  return parent ? `${parent.name} / ${category.name}` : category.name;
+}
+
 function toFormValues(product) {
   if (!product) return EMPTY_FORM;
 
@@ -48,8 +73,9 @@ function toFormValues(product) {
     slug: product.slug || '',
     shortDescription: product.shortDescription || '',
     description: product.description || '',
-    category: product.category?._id || product.category || '',
-    subCategory: product.subCategory?._id || product.subCategory || '',
+    category: categoryId(product.category),
+    categories: collectCategoryIds(product),
+    subCategory: categoryId(product.subCategory),
     brand: product.brand || 'ANANT EXOTIKA',
     tags: Array.isArray(product.tags) ? product.tags.join(', ') : '',
     price: product.price ?? product.sellingRate ?? '',
@@ -92,14 +118,20 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
     setSlugLocked(Boolean(product?.slug));
   }, [product]);
 
-  const subCategories = useMemo(
-    () =>
-      categories.filter((category) => {
-        const parentId = category.parentCategory?._id || category.parentCategory;
-        return parentId && String(parentId) === String(values.category);
-      }),
-    [categories, values.category]
-  );
+  const toggleCategory = (id) => {
+    setValues((current) => {
+      const selected = current.categories.includes(id)
+        ? current.categories.filter((item) => item !== id)
+        : [...current.categories, id];
+      return {
+        ...current,
+        categories: selected,
+        category: selected[0] || '',
+        subCategory: selected.includes(current.subCategory) ? current.subCategory : '',
+      };
+    });
+    setErrors((current) => ({ ...current, category: '' }));
+  };
 
   const updateField = (name, value) => {
     setValues((current) => {
@@ -109,9 +141,6 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
       }
       if (name === 'slug') {
         setSlugLocked(true);
-      }
-      if (name === 'category') {
-        next.subCategory = '';
       }
       return next;
     });
@@ -127,7 +156,7 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
     } else if (Number(values.compareAtPrice) < Number(values.price)) {
       next.compareAtPrice = 'MRP cannot be lower than selling rate.';
     }
-    if (!values.category) next.category = 'Category is required.';
+    if (!values.categories.length) next.category = 'Select at least one category.';
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -137,8 +166,9 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
     slug: values.slug.trim() || undefined,
     shortDescription: values.shortDescription.trim(),
     description: values.description.trim(),
-    category: values.category,
-    subCategory: values.subCategory || null,
+    category: values.categories[0],
+    categories: values.categories,
+    subCategory: values.categories.includes(values.subCategory) ? values.subCategory : null,
     brand: values.brand.trim() || 'ANANT EXOTIKA',
     tags: values.tags
       .split(',')
@@ -297,39 +327,36 @@ function ProductForm({ mode = 'create', product, categories = [] }) {
         <div className="card-body form-section">
           <h2>Organization</h2>
           <div className="form-grid">
-            <div className="field">
-              <label htmlFor="category">Category</label>
-              <select
-                id="category"
-                className={`select ${errors.category ? 'is-invalid' : ''}`}
-                value={values.category}
-                onChange={(event) => updateField('category', event.target.value)}
-                required
+            <div className="field span-2">
+              <span className="field-label" id="category-label">Categories</span>
+              <p className="hint" id="category-hint">
+                Select every category this product should appear in.
+              </p>
+              <div
+                className={`category-picker ${errors.category ? 'is-invalid' : ''}`}
+                role="group"
+                aria-labelledby="category-label"
+                aria-describedby="category-hint"
               >
-                <option value="">Select category</option>
-                {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                {categories.length === 0 ? (
+                  <p className="hint">Create a category before adding products.</p>
+                ) : (
+                  categories.map((category) => {
+                    const id = categoryId(category);
+                    return (
+                      <label key={id} className="checkbox-row">
+                        <input
+                          type="checkbox"
+                          checked={values.categories.includes(id)}
+                          onChange={() => toggleCategory(id)}
+                        />
+                        <span>{categoryLabel(category, categories)}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
               {errors.category ? <span className="field-error">{errors.category}</span> : null}
-            </div>
-            <div className="field">
-              <label htmlFor="subCategory">Sub Category</label>
-              <select
-                id="subCategory"
-                className="select"
-                value={values.subCategory}
-                onChange={(event) => updateField('subCategory', event.target.value)}
-              >
-                <option value="">None</option>
-                {subCategories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="field">
               <label htmlFor="brand">Brand</label>

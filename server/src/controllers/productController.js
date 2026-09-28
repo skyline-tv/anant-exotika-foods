@@ -14,6 +14,7 @@ const { normalizeProductImages } = require('../utils/assetUrl');
 const PUBLIC_PRODUCT_FILTER = { status: { $in: ['active', 'out_of_stock'] } };
 const PRODUCT_POPULATE = [
   { path: 'category', select: 'name slug image' },
+  { path: 'categories', select: 'name slug image' },
   { path: 'subCategory', select: 'name slug image' },
 ];
 
@@ -39,6 +40,7 @@ const buildProductQuery = async (query, { isAdmin = false } = {}) => {
     }
   }
 
+  let categoryId = null;
   if (query.category) {
     const categoryFilter = [{ slug: query.category }];
     if (mongoose.isValidObjectId(query.category)) {
@@ -46,12 +48,7 @@ const buildProductQuery = async (query, { isAdmin = false } = {}) => {
     }
 
     const category = await Category.findOne({ $or: categoryFilter }).select('_id');
-
-    if (category) {
-      filter.category = category._id;
-    } else {
-      filter.category = null;
-    }
+    categoryId = category ? category._id : null;
   }
 
   if (query.minPrice || query.maxPrice) {
@@ -84,6 +81,24 @@ const buildProductQuery = async (query, { isAdmin = false } = {}) => {
       { sku: regex },
       { brand: regex },
     ];
+  }
+
+  if (query.category) {
+    const membership = categoryId
+      ? {
+          $or: [
+            { category: categoryId },
+            { categories: categoryId },
+            { subCategory: categoryId },
+          ],
+        }
+      : { category: null };
+    if (filter.$or) {
+      filter.$and = [{ $or: filter.$or }, membership];
+      delete filter.$or;
+    } else {
+      Object.assign(filter, membership);
+    }
   }
 
   return filter;
@@ -179,6 +194,34 @@ const getProductById = asyncHandler(async (req, res) => {
   });
 });
 
+const normalizeCategorySelection = async (body) => {
+  const raw = [];
+  if (Array.isArray(body.categories)) raw.push(...body.categories);
+  if (body.category) raw.push(body.category);
+  if (body.subCategory) raw.push(body.subCategory);
+
+  const ids = [];
+  raw.forEach((value) => {
+    const id = String(value?._id || value || '').trim();
+    if (mongoose.isValidObjectId(id) && !ids.includes(id)) ids.push(id);
+  });
+
+  if (!ids.length) {
+    throw new AppError('Select at least one category.', 400);
+  }
+
+  const found = await Category.find({ _id: { $in: ids } }).select('_id');
+  if (found.length !== ids.length) {
+    throw new AppError('One or more categories were not found.', 400);
+  }
+
+  body.categories = ids;
+  body.category = ids[0];
+  if (!ids.includes(String(body.subCategory || ''))) {
+    body.subCategory = null;
+  }
+};
+
 const normalizePricing = (body) => {
   if (body.mrp !== undefined && body.compareAtPrice === undefined) {
     body.compareAtPrice = Number(body.mrp);
@@ -198,22 +241,11 @@ const normalizePricing = (body) => {
 
 const createProduct = asyncHandler(async (req, res) => {
   normalizePricing(req.body);
-  const { name, sku, price, category } = req.body;
+  await normalizeCategorySelection(req.body);
+  const { name, sku, price } = req.body;
 
-  if (!name || !sku || price === undefined || !category) {
-    throw new AppError('Name, SKU, selling rate and category are required.', 400);
-  }
-
-  const categoryExists = await Category.findById(category);
-  if (!categoryExists) {
-    throw new AppError('Category not found.', 400);
-  }
-
-  if (req.body.subCategory) {
-    const sub = await Category.findById(req.body.subCategory);
-    if (!sub) {
-      throw new AppError('Sub-category not found.', 400);
-    }
+  if (!name || !sku || price === undefined) {
+    throw new AppError('Name, SKU and selling rate are required.', 400);
   }
 
   if (req.body.slug) {
@@ -252,6 +284,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     'shortDescription',
     'description',
     'category',
+    'categories',
     'subCategory',
     'brand',
     'tags',
@@ -274,6 +307,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     'seoDescription',
   ];
 
+  if (req.body.category !== undefined || req.body.categories !== undefined || req.body.subCategory !== undefined) {
+    await normalizeCategorySelection(req.body);
+  }
+
   allowed.forEach((field) => {
     if (req.body[field] !== undefined) {
       if (field === 'images') {
@@ -283,13 +320,6 @@ const updateProduct = asyncHandler(async (req, res) => {
       }
     }
   });
-
-  if (product.category) {
-    const categoryExists = await Category.findById(product.category);
-    if (!categoryExists) {
-      throw new AppError('Category not found.', 400);
-    }
-  }
 
   await product.save();
   await product.populate(PRODUCT_POPULATE);
@@ -389,6 +419,7 @@ const buildBulkProduct = (row, categories) => {
     costPrice: numericFields.costPrice,
     discount: numericFields.discount,
     category: category._id,
+    categories: [category._id, ...(subCategory ? [subCategory._id] : [])],
     subCategory: subCategory?._id || null,
     shortDescription: String(row.shortDescription || '').trim(),
     description: String(row.description || '').trim(),

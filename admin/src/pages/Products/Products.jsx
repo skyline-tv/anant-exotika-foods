@@ -15,7 +15,7 @@ import { getCategories } from '../../services/categoryService';
 import { PRODUCT_SORT_OPTIONS, PRODUCT_STATUSES } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { getErrorMessage } from '../../utils/getErrorMessage';
-import { getCategoryName, getPrimaryImage } from '../../utils/productHelpers';
+import { getCategoryNames, getPrimaryImage } from '../../utils/productHelpers';
 
 function Products() {
   const navigate = useNavigate();
@@ -226,7 +226,7 @@ function Products() {
                         </td>
                         <td className="cell-wrap">{product.name}</td>
                         <td>{product.sku}</td>
-                        <td>{getCategoryName(product.category)}</td>
+                        <td className="cell-wrap">{getCategoryNames(product)}</td>
                         <td>{formatCurrency(product.compareAtPrice || product.mrp)}</td>
                         <td>{formatCurrency(product.price)}</td>
                         <td>{product.stock}</td>

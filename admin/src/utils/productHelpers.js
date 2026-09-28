@@ -21,6 +21,22 @@ export function getCategoryName(category) {
   return category.name || '—';
 }
 
+export function getCategoryNames(product) {
+  const names = [];
+  const seen = new Set();
+  const add = (category) => {
+    const id = category?._id || category;
+    const name = getCategoryName(category);
+    if (!id || !name || name === '—' || seen.has(String(id))) return;
+    seen.add(String(id));
+    names.push(name);
+  };
+  add(product?.category);
+  (product?.categories || []).forEach(add);
+  add(product?.subCategory);
+  return names.length ? names.join(', ') : '—';
+}
+
 export function getUserName(user) {
   if (!user) return 'Guest';
   if (typeof user === 'string') return 'Customer';

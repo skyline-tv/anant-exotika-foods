@@ -242,6 +242,22 @@ p {
   accent-color: var(--primary-green);
 }
 
+.category-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-height: 240px;
+  overflow: auto;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.category-picker.is-invalid {
+  border-color: var(--danger);
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;
