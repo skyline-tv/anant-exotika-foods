@@ -159,6 +159,11 @@
   display: grid;
   gap: var(--space-xl);
   padding-bottom: var(--space-2xl);
+  min-width: 0;
+}
+
+.shop-layout > * {
+  min-width: 0;
 }
 
 .shop-layout .product-grid {
@@ -1761,6 +1766,9 @@
 .shop-chips {
   display: flex;
   gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scrollbar-width: none;

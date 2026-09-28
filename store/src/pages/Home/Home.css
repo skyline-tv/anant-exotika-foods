@@ -185,6 +185,9 @@
 .category-scroller {
   display: flex;
   gap: var(--space-4);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
