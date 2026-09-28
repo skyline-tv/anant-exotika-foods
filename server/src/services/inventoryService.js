@@ -20,7 +20,7 @@ const decrementStock = async (productId, quantity) => {
         },
       },
     ],
-    { new: true }
+    { returnDocument: 'after', updatePipeline: true }
   );
 };
 
@@ -44,7 +44,7 @@ const restoreStock = async (productId, quantity) => {
         },
       },
     ],
-    { new: true }
+    { returnDocument: 'after', updatePipeline: true }
   );
 };
 
