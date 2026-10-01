@@ -17,19 +17,22 @@ const applyCouponDiscount = (subtotal, coupon) => {
     return 0;
   }
 
+  const type = String(coupon?.discountType || '').trim().toLowerCase();
+  const value = Number(coupon.discountValue) || 0;
+  const base = Math.max(0, Number(subtotal) || 0);
   let discount = 0;
-
-  if (coupon.discountType === 'percentage') {
-    discount = (subtotal * coupon.discountValue) / 100;
-  } else if (coupon.discountType === 'fixed') {
-    discount = coupon.discountValue;
+  if (type === 'percentage' || type === 'percent' || type === '%') {
+    discount = (base * value) / 100;
+  } else if (type === 'fixed') {
+    discount = value;
   }
 
-  if (coupon.maximumDiscount && coupon.maximumDiscount > 0) {
-    discount = Math.min(discount, coupon.maximumDiscount);
+  const cap = Number(coupon.maximumDiscount) || 0;
+  if (cap > 0) {
+    discount = Math.min(discount, cap);
   }
 
-  discount = Math.min(discount, subtotal);
+  discount = Math.min(discount, base);
   return roundMoney(discount);
 };
 

@@ -497,11 +497,14 @@ function Coupons() {
           {isGiftForm ? null : (
             <>
               <div className="field">
-                <label htmlFor="discountValue">Discount Value</label>
+                <label htmlFor="discountValue">
+                  {values.discountType === 'percentage' ? 'Discount (%)' : 'Discount amount (₹)'}
+                </label>
                 <input
                   id="discountValue"
                   type="number"
                   min="0"
+                  max={values.discountType === 'percentage' ? '100' : undefined}
                   className="input"
                   value={values.discountValue}
                   onChange={(event) =>
@@ -509,9 +512,14 @@ function Coupons() {
                   }
                   required
                 />
+                <p className="hint">
+                  {values.discountType === 'percentage'
+                    ? 'Taken as a percent of the order. 10 means 10% off the cart.'
+                    : 'Taken as a flat rupee amount off the order.'}
+                </p>
               </div>
               <div className="field">
-                <label htmlFor="maximumDiscount">Maximum Discount</label>
+                <label htmlFor="maximumDiscount">Maximum discount (₹, optional)</label>
                 <input
                   id="maximumDiscount"
                   type="number"
@@ -522,6 +530,7 @@ function Coupons() {
                     setValues((current) => ({ ...current, maximumDiscount: event.target.value }))
                   }
                 />
+                <p className="hint">Leave blank to apply the full percentage. A number here caps the discount in rupees.</p>
               </div>
               <div className="field">
                 <label htmlFor="usageLimit">Usage Limit</label>

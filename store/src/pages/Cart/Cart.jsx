@@ -12,6 +12,7 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { validateCoupon } from '../../services/couponService';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { formatWeight, getMrp, getPrimaryImage } from '../../utils/productHelpers';
 
@@ -128,8 +129,8 @@ const Cart = () => {
             </div>
             {coupon ? (
               <div className="summary-row">
-                <span>{coupon.coupon.kind === 'gift_voucher' ? 'Gift voucher' : 'Estimated discount'}</span>
-                <span>-{formatCurrency(coupon.discount)}</span>
+                <span>{couponDiscountLabel(coupon)}</span>
+                <span>-{formatCurrency(couponDiscountAmount(coupon, cart.subtotal))}</span>
               </div>
             ) : null}
             {isAuthenticated ? (

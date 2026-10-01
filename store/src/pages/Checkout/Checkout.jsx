@@ -23,6 +23,7 @@ import { useStoreContent } from '../../context/ContentContext';
 import { ADDRESS_TYPES, PAYMENT_METHODS } from '../../utils/constants';
 import { validateAddressForm } from '../../utils/addressValidation';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 
 const EMPTY_FORM = {
@@ -159,7 +160,7 @@ const Checkout = () => {
     return () => {
       active = false;
     };
-  }, [shippingAddressId, paymentMethod, coupon?.coupon?.code]);
+  }, [shippingAddressId, paymentMethod, coupon?.coupon?.code, cart.subtotal]);
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
 
@@ -637,7 +638,8 @@ const Checkout = () => {
               {coupon ? (
                 <p>
                   {coupon.coupon.kind === 'gift_voucher' ? 'Gift voucher' : 'Coupon'}{' '}
-                  {coupon.coupon.code}: estimated discount {formatCurrency(coupon.discount)}.
+                  {coupon.coupon.code}: {couponDiscountLabel(coupon).toLowerCase()} (
+                  {formatCurrency(couponDiscountAmount(coupon, cart.subtotal))}).
                 </p>
               ) : null}
             </section>
@@ -666,10 +668,8 @@ const Checkout = () => {
             </div>
             {coupon ? (
               <div className="summary-row">
-                <span>
-                  {coupon.coupon.kind === 'gift_voucher' ? 'Gift voucher' : 'Estimated discount'}
-                </span>
-                <span>-{formatCurrency(coupon.discount)}</span>
+                <span>{couponDiscountLabel(coupon)}</span>
+                <span>-{formatCurrency(couponDiscountAmount(coupon, cart.subtotal))}</span>
               </div>
             ) : null}
             <div className="summary-row">
