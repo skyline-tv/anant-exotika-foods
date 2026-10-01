@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import './BrandMark.css';
 
-const LOGO_SRC = '/logo.png';
+const LOGO_SRC = '/newlogo.png';
 
 const BrandMark = ({ to = '/', inverted = false, compact = false, large = false }) => {
   const classes = [
