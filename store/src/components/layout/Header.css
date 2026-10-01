@@ -320,8 +320,8 @@
   }
 
   .site-header__logo .brand-mark__logo {
-    height: 32px;
-    max-width: min(42vw, 150px);
+    height: 48px;
+    max-width: none;
   }
 
   .nav-drawer__link {

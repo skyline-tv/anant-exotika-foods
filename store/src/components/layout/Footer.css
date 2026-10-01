@@ -6,11 +6,12 @@
 }
 
 .footer__brand .brand-mark__plate {
-  padding: 0.35rem 0.5rem;
+  padding: 0;
+  background: transparent;
 }
 
 .footer__brand .brand-mark__logo {
-  height: 48px;
+  height: 72px;
 }
 
 .footer__grid {

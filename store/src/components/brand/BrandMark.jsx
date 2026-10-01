@@ -20,8 +20,8 @@ const BrandMark = ({ to = '/', inverted = false, compact = false, large = false 
           className="brand-mark__logo"
           src={LOGO_SRC}
           alt="Anant Exotika — Beyond Time Beyond Luxury"
-          width={320}
-          height={80}
+          width={527}
+          height={474}
           decoding="async"
         />
       </span>
