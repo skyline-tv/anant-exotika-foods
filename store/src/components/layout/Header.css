@@ -127,9 +127,8 @@
 }
 
 .mega-menu__inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.1fr;
-  gap: var(--space-7);
+  display: flex;
+  gap: 5rem;
 }
 
 .mega-menu__label {
@@ -152,31 +151,6 @@
 
 .mega-menu a:hover {
   color: var(--soft-gold);
-}
-
-.mega-menu__promo {
-  display: flex;
-  align-items: flex-end;
-  min-height: 140px;
-  padding: 1.2rem;
-  background: rgba(248, 245, 240, 0.08);
-  border: 1px solid rgba(201, 162, 39, 0.28);
-  border-radius: var(--radius-md);
-}
-
-.mega-menu__promo em {
-  display: block;
-  font-family: var(--font-heading);
-  font-style: normal;
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-lg);
-  color: var(--ivory);
-  margin-bottom: 0.3rem;
-}
-
-.mega-menu__promo span {
-  color: rgba(248, 245, 240, 0.72);
-  font-size: var(--fs-sm);
 }
 
 .site-header__shop {

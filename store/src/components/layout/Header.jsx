@@ -164,12 +164,6 @@ const Header = () => {
                         </li>
                       </ul>
                     </div>
-                    <Link to={{ pathname: '/', hash: 'gifting' }} className="mega-menu__promo" onClick={() => setShopOpen(false)}>
-                      <span>
-                        <em>Gifting</em>
-                        Hampers for festivals, weddings and the boardroom.
-                      </span>
-                    </Link>
                   </div>
                 </div>
               </li>

@@ -12,7 +12,7 @@ import {
 import Button from '../../components/common/Button';
 import Reveal from '../../components/common/Reveal';
 import SectionTitle from '../../components/common/SectionTitle';
-import CollectionShowcase from '../../components/home/CollectionShowcase';
+import CollectionShowcase, { buildCollectionTabs, orderCollectionTabs } from '../../components/home/CollectionShowcase';
 import EmptyState from '../../components/common/EmptyState';
 import { getCategories } from '../../services/categoryService';
 import { resolveAssetUrl } from '../../utils/assetUrl';
@@ -155,12 +155,13 @@ const Home = () => {
   const featuredIds = (content?.featuredCategoryIds || [])
     .map((item) => item?._id || item)
     .filter(Boolean);
-  const categoryCards = (featuredIds.length
-    ? featuredIds
-        .map((id) => categories.find((category) => String(category._id) === String(id)))
-        .filter(Boolean)
-    : categories
-  ).filter((category) => category.isActive !== false);
+  const orderedCategories = orderCollectionTabs(buildCollectionTabs(categories), content?.collectionOrder)
+    .filter((tab) => tab.id !== 'all')
+    .map((tab) => categories.find((category) => String(category._id) === tab.id))
+    .filter((category) => category && category.isActive !== false);
+  const categoryCards = featuredIds.length
+    ? orderedCategories.filter((category) => featuredIds.some((id) => String(id) === String(category._id)))
+    : orderedCategories;
 
   const giftingTiles = (content?.gifting || [])
     .filter((item) => item.isActive !== false && item.title)
