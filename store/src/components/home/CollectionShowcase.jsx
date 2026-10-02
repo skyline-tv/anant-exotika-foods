@@ -53,12 +53,11 @@ export function buildCollectionTabs(categories = []) {
       label: 'Gift Hampers',
       score: (category) => {
         const text = haystack(category);
-        if (!/hamper/.test(text)) return 0;
+        if (!/hamper/.test(text) || /personal/.test(text)) return 0;
         if (/^gift[-\s]?hampers?$/.test(category.slug || '') || /^gift hampers?$/.test(String(category.name || '').trim().toLowerCase())) {
           return 3;
         }
-        if (!/personal/.test(text)) return 2;
-        return 1;
+        return 2;
       },
     },
   ];
@@ -82,6 +81,20 @@ export function buildCollectionTabs(categories = []) {
   return tabs;
 }
 
+export function orderCollectionTabs(tabs, order = []) {
+  const rank = new Map((order || []).map((id, index) => [String(id), index]));
+  if (!rank.size) return tabs;
+  return tabs
+    .map((tab, index) => ({ tab, index }))
+    .sort((left, right) => {
+      const leftRank = rank.has(left.tab.id) ? rank.get(left.tab.id) : Number.MAX_SAFE_INTEGER;
+      const rightRank = rank.has(right.tab.id) ? rank.get(right.tab.id) : Number.MAX_SAFE_INTEGER;
+      if (leftRank !== rightRank) return leftRank - rightRank;
+      return left.index - right.index;
+    })
+    .map((item) => item.tab);
+}
+
 const chosenProducts = (collection, tab) => {
   const match = (collection || []).find((entry) => {
     const id = entry?.category?._id || entry?.category || '';
@@ -95,7 +108,10 @@ const chosenProducts = (collection, tab) => {
 
 const CollectionShowcase = ({ categories = [] }) => {
   const { content } = useStoreContent();
-  const tabs = useMemo(() => buildCollectionTabs(categories), [categories]);
+  const tabs = useMemo(
+    () => orderCollectionTabs(buildCollectionTabs(categories), content?.collectionOrder),
+    [categories, content?.collectionOrder]
+  );
   const [activeId, setActiveId] = useState('all');
   const [products, setProducts] = useState([]);
   const cacheRef = useRef({});

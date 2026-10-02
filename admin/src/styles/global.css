@@ -304,6 +304,60 @@ p {
   font-size: var(--fs-sm);
 }
 
+.collection-order {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collection-order li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.collection-order li.is-active {
+  border-color: var(--primary-green);
+}
+
+.collection-order__name {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collection-order__name span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--primary-green);
+  color: var(--white);
+  font-size: var(--fs-sm);
+}
+
+.collection-order__actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
 .hamper-group + .hamper-group {
   margin-top: 0.85rem;
   padding-top: 0.75rem;

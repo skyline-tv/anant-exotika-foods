@@ -19,6 +19,7 @@ const ALLOWED = [
   'banners',
   'featuredCategoryIds',
   'collection',
+  'collectionOrder',
   'newsletter',
 ];
 
@@ -63,6 +64,18 @@ const updateContent = asyncHandler(async (req, res) => {
           .slice(0, 4),
       }))
       .filter((entry) => entry.products.length);
+  }
+
+  if (Array.isArray(incoming.collectionOrder)) {
+    const seen = new Set();
+    incoming.collectionOrder = incoming.collectionOrder
+      .map((id) => String(id?._id || id || '').trim())
+      .filter((id) => {
+        const valid = id === 'all' || /^[a-f\d]{24}$/i.test(id);
+        if (!valid || seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      });
   }
 
   ALLOWED.forEach((field) => {

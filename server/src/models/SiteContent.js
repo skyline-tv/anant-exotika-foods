@@ -124,6 +124,10 @@ const siteContentSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    collectionOrder: {
+      type: [String],
+      default: [],
+    },
     newsletter: {
       heading: { type: String, trim: true, default: 'Invitations, harvests and gifting notes' },
       body: {
