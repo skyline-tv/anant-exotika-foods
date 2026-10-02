@@ -67,6 +67,11 @@ module.exports = {
     30,
     'Too many upload attempts, please try again later.'
   ),
+  leadLimiter: buildLimiter(
+    'RATE_LIMIT_LEAD_MAX',
+    8,
+    'Too many enquiries, please try again later.'
+  ),
   searchLimiter,
   limitSearch,
 };

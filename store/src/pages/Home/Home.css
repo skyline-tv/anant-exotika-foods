@@ -347,15 +347,31 @@
 }
 
 .occasions__grid li {
+  margin: 0;
+}
+
+.occasions__item {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   text-align: center;
   color: var(--dark-text);
+  font: inherit;
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   line-height: 1.3;
+  cursor: pointer;
+}
+
+.occasions__item:hover .occasions__mark,
+.occasions__item:focus-visible .occasions__mark {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(3, 74, 42, 0.12);
 }
 
 .occasions__mark {
@@ -366,7 +382,7 @@
   border-radius: 50%;
   border: 1.5px solid var(--luxury-gold);
   background: var(--white);
-  color: var(--primary-green);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .occasions__script {
@@ -387,6 +403,10 @@
   }
 
   .occasions__grid li {
+    font-size: var(--fs-base);
+  }
+
+  .occasions__item {
     font-size: var(--fs-base);
   }
 
@@ -741,4 +761,58 @@
   .newsletter h2 {
     font-size: clamp(1.85rem, 7.5vw, 2.4rem);
   }
+}
+
+.lead-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(3, 74, 42, 0.55);
+}
+
+.lead-modal__dialog {
+  position: relative;
+  width: min(100%, 440px);
+  max-height: min(92vh, 720px);
+  overflow: auto;
+  padding: 1.4rem 1.25rem 1.3rem;
+  border-radius: 12px;
+  background: var(--ivory);
+  box-shadow: 0 24px 48px rgba(3, 74, 42, 0.28);
+}
+
+.lead-modal__dialog h2 {
+  margin: 0.2rem 0 0.4rem;
+}
+
+.lead-modal__note {
+  margin: 0 0 1rem;
+  color: var(--muted-text);
+}
+
+.lead-modal__dialog .field {
+  margin-bottom: 0.85rem;
+}
+
+.lead-modal__close {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.7rem;
+  border: 0;
+  background: transparent;
+  color: var(--dark-text);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lead-modal__done {
+  padding: 0.5rem 0.2rem 0.2rem;
+}
+
+.lead-modal__done p {
+  margin: 0 0 1rem;
 }

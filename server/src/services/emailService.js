@@ -451,6 +451,30 @@ const sendPasswordChangedEmail = async ({ to, name, changedAt }) => {
   return sendEmail({ to, subject, html, text });
 };
 
+const sendLeadEnquiryEmail = (lead) => {
+  const subject = `Gift enquiry: ${lead.occasion}`;
+  const html = emailShell({
+    title: subject,
+    preview: `${lead.name} asked about ${lead.occasion}`,
+    body: `
+      ${paragraph(`<strong style="color:${BRAND.dark};">${escapeHtml(lead.name)}</strong> would like help with ${escapeHtml(lead.occasion)}.`)}
+      ${paragraph(`Phone: ${escapeHtml(lead.phone)}`)}
+      ${paragraph(`Email: ${escapeHtml(lead.email)}`)}
+      ${lead.message ? paragraph(`Note: ${escapeHtml(lead.message)}`) : ''}
+    `,
+  });
+  const text = [
+    `${lead.name} would like help with ${lead.occasion}.`,
+    `Phone: ${lead.phone}`,
+    `Email: ${lead.email}`,
+    lead.message ? `Note: ${lead.message}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  return sendEmail({ to: SUPPORT_EMAIL, subject, html, text });
+};
+
 const safeSend = async (fn, ...args) => {
   try {
     return await fn(...args);
@@ -470,6 +494,7 @@ module.exports = {
   sendOrderConfirmationEmail,
   sendOrderStatusEmail,
   sendWelcomeEmail,
+  sendLeadEnquiryEmail,
   safeSend,
   getClientUrl,
   shouldNotifyOrderStatus,

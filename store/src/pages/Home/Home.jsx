@@ -3,22 +3,26 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Apple,
   Award,
-  Baby,
-  Briefcase,
-  Cake,
-  Flame,
   Gift,
-  Heart,
-  House,
   Leaf,
   PackageCheck,
-  Sparkles,
   Truck,
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Reveal from '../../components/common/Reveal';
 import SectionTitle from '../../components/common/SectionTitle';
 import CollectionShowcase, { buildCollectionTabs, orderCollectionTabs } from '../../components/home/CollectionShowcase';
+import OccasionEnquiry from '../../components/home/OccasionEnquiry';
+import {
+  BabyIcon,
+  BirthdayIcon,
+  CorporateIcon,
+  FestivalIcon,
+  HouseIcon,
+  MomentIcon,
+  ReturnGiftIcon,
+  WeddingIcon,
+} from '../../components/home/occasionArt';
 import EmptyState from '../../components/common/EmptyState';
 import { getCategories } from '../../services/categoryService';
 import { resolveAssetUrl } from '../../utils/assetUrl';
@@ -32,14 +36,14 @@ import './Home.css';
 const TRUST_ICONS = [Leaf, Award, Apple, Gift, Truck];
 
 const OCCASIONS = [
-  { title: 'Corporate Gifting', Icon: Briefcase },
-  { title: 'Weddings', Icon: Heart },
-  { title: 'Birthdays & Anniversaries', Icon: Cake },
-  { title: 'Festivals & Celebrations', Icon: Flame },
-  { title: 'Return Gifts', Icon: Gift },
-  { title: 'Housewarming', Icon: House },
-  { title: 'Baby Celebrations', Icon: Baby },
-  { title: 'Special Moments', Icon: Sparkles },
+  { title: 'Corporate Gifting', Icon: CorporateIcon },
+  { title: 'Weddings', Icon: WeddingIcon },
+  { title: 'Birthdays & Anniversaries', Icon: BirthdayIcon },
+  { title: 'Festivals & Celebrations', Icon: FestivalIcon },
+  { title: 'Return Gifts', Icon: ReturnGiftIcon },
+  { title: 'Housewarming', Icon: HouseIcon },
+  { title: 'Baby Celebrations', Icon: BabyIcon },
+  { title: 'Special Moments', Icon: MomentIcon },
 ];
 const ROTATE_MS = 4200;
 
@@ -123,6 +127,7 @@ const Home = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subscribed, setSubscribed] = useState(false);
+  const [enquiry, setEnquiry] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -356,10 +361,12 @@ const Home = () => {
             <ul className="occasions__grid">
               {OCCASIONS.map(({ title, Icon }) => (
                 <li key={title}>
-                  <span className="occasions__mark" aria-hidden="true">
-                    <Icon size={28} strokeWidth={1.4} />
-                  </span>
-                  <span>{title}</span>
+                  <button type="button" className="occasions__item" onClick={() => setEnquiry(title)}>
+                    <span className="occasions__mark">
+                      <Icon />
+                    </span>
+                    <span>{title}</span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -400,6 +407,7 @@ const Home = () => {
           </div>
         </div>
       </section>
+      {enquiry ? <OccasionEnquiry occasion={enquiry} onClose={() => setEnquiry('')} /> : null}
     </div>
   );
 };

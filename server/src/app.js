@@ -27,6 +27,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const shippingRoutes = require('./routes/shippingRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const adminCustomerRoutes = require('./routes/adminCustomerRoutes');
+const leadRoutes = require('./routes/leadRoutes');
 
 const app = express();
 
@@ -132,6 +133,7 @@ app.use('/api/v1/admin/content', adminContentRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/shipping', shippingRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/leads', leadRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
