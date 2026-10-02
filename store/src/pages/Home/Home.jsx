@@ -5,7 +5,6 @@ import {
   Award,
   Gift,
   Leaf,
-  Lock,
   PackageCheck,
   Truck,
 } from 'lucide-react';
@@ -23,7 +22,7 @@ import { useStoreContent } from '../../context/ContentContext';
 import { usePageMeta } from '../../hooks/usePageMeta';
 import './Home.css';
 
-const TRUST_ICONS = [Leaf, Award, Apple, Gift, Lock, Truck];
+const TRUST_ICONS = [Leaf, Award, Apple, Gift, Truck];
 const ROTATE_MS = 4200;
 
 const HeroShowcase = ({ slides }) => {
@@ -289,7 +288,7 @@ const Home = () => {
         <div className="container">
           <SectionTitle
             eyebrow="The Anant standard"
-            title="Trusted from orchard to occasion"
+            title="Luxury collection of premium dry fruits"
             subtitle="Quality, hygiene and careful delivery — the quiet details that make a gift feel assured."
           />
           <div className="trust-grid">
@@ -312,8 +311,7 @@ const Home = () => {
           <div className="container">
             <SectionTitle
               eyebrow="Gifting"
-              title="A luxury gifting catalogue"
-              subtitle="Hampers and occasions published from the admin panel."
+              title="A luxury gifting lookbook"
             />
             <div className="gifting-grid">
               {giftingTiles.map((item) => (

@@ -124,12 +124,8 @@ export const TRUST_POINTS = [
     text: 'Ready to share for any occasion.',
   },
   {
-    title: 'Secure Payments',
-    text: 'Protected checkout with Cash on Delivery across India.',
-  },
-  {
-    title: 'Fast & Reliable Delivery',
-    text: 'Dispatched with care and tracked until it arrives.',
+    title: 'Secure Payments & Reliable Delivery',
+    text: 'Protected checkout with Cash on Delivery across India. Dispatched with care and tracked until it arrives.',
   },
 ];
 

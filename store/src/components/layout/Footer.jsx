@@ -41,11 +41,7 @@ const Footer = () => {
       <div className="footer__grid">
         <div className="footer__brand">
           <BrandMark inverted />
-          <p className="footer__tagline">
-            Thoughtfully curated dry fruits
-            <br />
-            and gifting, presented with care.
-          </p>
+          <p className="footer__tagline">A gift of Health, Happiness and Prosperity.</p>
           <ul className="footer__links">
             <li>
               <a href={`tel:${contact.phoneTel}`}>{contact.phoneDisplay}</a>
