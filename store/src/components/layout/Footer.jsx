@@ -41,7 +41,7 @@ const Footer = () => {
       <div className="footer__grid">
         <div className="footer__brand">
           <BrandMark inverted />
-          <p className="footer__tagline">A gift of Health, Happiness and Prosperity.</p>
+          <p className="footer__tagline">A Gift of Health, Happiness and Prosperity.</p>
           <ul className="footer__links">
             <li>
               <a href={`tel:${contact.phoneTel}`}>{contact.phoneDisplay}</a>
@@ -105,9 +105,6 @@ const Footer = () => {
             </li>
             <li>
               <Link to="/about">About Us</Link>
-            </li>
-            <li>
-              <Link to="/about#our-story">Our Story</Link>
             </li>
             <li>
               <Link to="/contact">Contact Us</Link>

@@ -168,23 +168,8 @@ const Header = () => {
                 </div>
               </li>
               <li>
-                <NavLink
-                  to="/about"
-                  className={({ isActive }) =>
-                    `site-header__nav-link${isActive && location.hash !== '#our-story' ? ' is-active' : ''}`
-                  }
-                >
+                <NavLink to="/about" className={navClass}>
                   About Us
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to={{ pathname: '/about', hash: 'our-story' }}
-                  className={() =>
-                    `site-header__nav-link${location.pathname === '/about' && location.hash === '#our-story' ? ' is-active' : ''}`
-                  }
-                >
-                  Our Story
                 </NavLink>
               </li>
               <li>
@@ -307,23 +292,10 @@ const Header = () => {
             <li>
               <NavLink
                 to="/about"
-                className={({ isActive }) =>
-                  `nav-drawer__link${isActive && location.hash !== '#our-story' ? ' is-active' : ''}`
-                }
+                className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`}
                 onClick={closeDrawer}
               >
                 About Us
-              </NavLink>
-            </li>
-            <li>
-              <NavLink
-                to={{ pathname: '/about', hash: 'our-story' }}
-                className={() =>
-                  `nav-drawer__link${location.pathname === '/about' && location.hash === '#our-story' ? ' is-active' : ''}`
-                }
-                onClick={closeDrawer}
-              >
-                Our Story
               </NavLink>
             </li>
             <li>

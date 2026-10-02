@@ -3,9 +3,16 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   Apple,
   Award,
+  Baby,
+  Briefcase,
+  Cake,
+  Flame,
   Gift,
+  Heart,
+  House,
   Leaf,
   PackageCheck,
+  Sparkles,
   Truck,
 } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -23,6 +30,17 @@ import { usePageMeta } from '../../hooks/usePageMeta';
 import './Home.css';
 
 const TRUST_ICONS = [Leaf, Award, Apple, Gift, Truck];
+
+const OCCASIONS = [
+  { title: 'Corporate Gifting', Icon: Briefcase },
+  { title: 'Weddings', Icon: Heart },
+  { title: 'Birthdays & Anniversaries', Icon: Cake },
+  { title: 'Festivals & Celebrations', Icon: Flame },
+  { title: 'Return Gifts', Icon: Gift },
+  { title: 'Housewarming', Icon: House },
+  { title: 'Baby Celebrations', Icon: Baby },
+  { title: 'Special Moments', Icon: Sparkles },
+];
 const ROTATE_MS = 4200;
 
 const HeroShowcase = ({ slides }) => {
@@ -129,7 +147,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (location.hash !== '#gifting' && location.hash !== '#our-story') return undefined;
+    if (location.hash !== '#gifting') return undefined;
     const id = location.hash.replace('#', '');
     const timer = window.setTimeout(() => {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -145,9 +163,7 @@ const Home = () => {
   const dryFruitsTo = matchCategoryPath(categories, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
   const hampersTo = matchCategoryPath(categories, ['hamper', 'box', 'combo', 'gift']);
   const hero = content?.hero || {};
-  const story = content?.brandStory || {};
   const heroImage = resolveAssetUrl(hero.image);
-  const storyImage = resolveAssetUrl(story.image);
   const primaryCta = hero.primaryCta || { label: 'Shop Hampers', to: hampersTo };
   const secondaryCta = hero.secondaryCta || { label: 'Explore Dry Fruits', to: dryFruitsTo };
 
@@ -330,32 +346,27 @@ const Home = () => {
         <div id="gifting" />
       )}
 
-      <Reveal as="section" className="section">
+      <section className="section occasions" aria-label="Customised gifts for every occasion">
         <div className="container">
-          <div className="brand-story" id="our-story">
-            {storyImage ? (
-              <div className="brand-story__visual">
-                <img src={storyImage} alt="" />
-              </div>
-            ) : null}
-            <div className="brand-story__content">
-              <SectionTitle
-                align="left"
-                eyebrow={story.eyebrow || 'Our story'}
-                title={story.heading || 'Quality, elegance and the art of giving well'}
-                subtitle="Anant Exotika Foods is a modern Indian house for premium dry fruits and gifting."
-              />
-              <p className="brand-story__text">
-                {story.body ||
-                  'We believe a gift should feel considered: selected for taste, packed with care, and remembered after the occasion has passed.'}
-              </p>
-              <Button as={Link} to={story.cta?.to || '/about'} variant="secondary">
-                {story.cta?.label || 'Discover our story'}
-              </Button>
-            </div>
+          <div className="occasions__panel">
+            <header className="occasions__heading">
+              <h2>Customised Gifts</h2>
+              <p>For Every Occasion</p>
+            </header>
+            <ul className="occasions__grid">
+              {OCCASIONS.map(({ title, Icon }) => (
+                <li key={title}>
+                  <span className="occasions__mark" aria-hidden="true">
+                    <Icon size={28} strokeWidth={1.4} />
+                  </span>
+                  <span>{title}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="occasions__script">Crafted with Love &amp; Shared with Joy</p>
           </div>
         </div>
-      </Reveal>
+      </section>
 
       <section className="newsletter-band">
         <div className="container">

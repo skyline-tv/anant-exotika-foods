@@ -295,8 +295,105 @@
   gap: var(--space-4);
 }
 
-#our-story {
-  scroll-margin-top: calc(var(--header-height) + 12px);
+.occasions__panel {
+  max-width: 980px;
+  margin-inline: auto;
+  padding: clamp(1.75rem, 4vw, 3rem) clamp(1rem, 3vw, 2.5rem);
+  border: 1px solid rgba(201, 162, 39, 0.55);
+  background:
+    radial-gradient(circle at 0 0, rgba(201, 162, 39, 0.08), transparent 28%),
+    radial-gradient(circle at 100% 0, rgba(201, 162, 39, 0.08), transparent 28%),
+    var(--ivory);
+}
+
+.occasions__heading {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.occasions__heading h2 {
+  margin: 0;
+  color: var(--primary-green);
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.occasions__heading p {
+  margin: 0.2rem 0 0;
+  color: var(--luxury-gold);
+  font-size: clamp(1.15rem, 2.4vw, 1.7rem);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.occasions__heading::after {
+  content: '';
+  display: block;
+  width: 7rem;
+  height: 1px;
+  margin: 1.1rem auto 0;
+  background: var(--luxury-gold);
+}
+
+.occasions__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.occasions__grid li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--dark-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: 1.3;
+}
+
+.occasions__mark {
+  display: grid;
+  place-items: center;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 50%;
+  border: 1.5px solid var(--luxury-gold);
+  background: var(--white);
+  color: var(--primary-green);
+}
+
+.occasions__script {
+  margin: 2rem 0 0;
+  text-align: center;
+  color: var(--primary-green);
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 400;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+@media (min-width: 768px) {
+  .occasions__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem 1.25rem;
+  }
+
+  .occasions__grid li {
+    font-size: var(--fs-base);
+  }
+
+  .occasions__mark {
+    width: 6.25rem;
+    height: 6.25rem;
+  }
 }
 
 .category-card,
