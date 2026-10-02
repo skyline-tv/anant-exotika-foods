@@ -284,7 +284,7 @@ const Checkout = () => {
         key: payment.keyId,
         amount: payment.amount,
         currency: payment.currency || 'INR',
-        name: 'Anant Exotika Foods',
+        name: 'Anant Exotika',
         description: order.orderNumber,
         order_id: payment.razorpayOrderId,
         prefill: {

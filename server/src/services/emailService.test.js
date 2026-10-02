@@ -58,7 +58,7 @@ const sampleOrder = {
 describe('customer email', () => {
   before(() => {
     process.env.RESEND_API_KEY = 're_test_key_not_real';
-    process.env.EMAIL_FROM = 'Anant Exotika Foods <orders@foods.anantexotika.in>';
+    process.env.EMAIL_FROM = 'Anant Exotika <orders@foods.anantexotika.in>';
     process.env.CLIENT_URL = 'https://foods.anantexotika.in';
   });
 
@@ -70,7 +70,7 @@ describe('customer email', () => {
   test('welcome email uses the store URL and does not include the API key', async () => {
     await sendWelcomeEmail({ to: 'asha@example.com', name: 'Asha' });
     assert.equal(sent.length, 1);
-    assert.equal(sent[0].subject, 'Welcome to Anant Exotika Foods');
+    assert.equal(sent[0].subject, 'Welcome to Anant Exotika');
     assert.match(sent[0].html, /https:\/\/foods\.anantexotika\.in/);
     assert.match(sent[0].text, /https:\/\/foods\.anantexotika\.in/);
     assert.equal(JSON.stringify(sent[0]).includes('re_test_key_not_real'), false);
@@ -79,7 +79,7 @@ describe('customer email', () => {
   test('password reset link uses CLIENT_URL and the token once in the URL', async () => {
     await sendPasswordResetEmail({ to: 'asha@example.com', name: 'Asha', resetToken: 'abc123' });
     const url = 'https://foods.anantexotika.in/reset-password?token=abc123';
-    assert.equal(sent[0].subject, 'Reset your Anant Exotika Foods password');
+    assert.equal(sent[0].subject, 'Reset your Anant Exotika password');
     assert.match(sent[0].html, /expires in one hour/);
     assert.match(sent[0].html, new RegExp(url.replace(/[?]/g, '\\?')));
     assert.match(sent[0].text, /If you did not request this/);
@@ -87,7 +87,7 @@ describe('customer email', () => {
 
   test('password changed email is sent only through the caller after success', async () => {
     await sendPasswordChangedEmail({ to: 'asha@example.com', name: 'Asha', changedAt: '2026-09-28T04:00:00.000Z' });
-    assert.equal(sent[0].subject, 'Your Anant Exotika Foods password was changed');
+    assert.equal(sent[0].subject, 'Your Anant Exotika password was changed');
     assert.match(sent[0].text, /info@anantexotika\.in/);
     assert.equal(JSON.stringify(sent[0]).includes('abc123'), false);
   });

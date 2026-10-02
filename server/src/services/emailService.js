@@ -2,7 +2,7 @@ const { Resend } = require('resend');
 const { log, redact } = require('../utils/logger');
 
 const BRAND = {
-  name: 'Anant Exotika Foods',
+  name: 'Anant Exotika',
   ivory: '#f8f5f0',
   cream: '#f3eee6',
   gold: '#c9a227',
@@ -12,12 +12,13 @@ const BRAND = {
 };
 
 const getFromAddress = () =>
-  process.env.EMAIL_FROM || 'Anant Exotika Foods <onboarding@resend.dev>';
+  process.env.EMAIL_FROM || 'Anant Exotika <onboarding@resend.dev>';
 
 const getClientUrl = () =>
   String(process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 const SUPPORT_EMAIL = 'info@anantexotika.in';
+const LEAD_EMAIL = 'anantexotika.in@gmail.com';
 const SUPPORT_PHONE = '+91 96230 79356';
 
 const getResend = () => {
@@ -123,14 +124,14 @@ const sendEmail = async ({ to, subject, html, text }) => {
 
 const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
   const resetUrl = `${getClientUrl()}/reset-password?token=${encodeURIComponent(resetToken)}`;
-  const subject = 'Reset your Anant Exotika Foods password';
+  const subject = 'Reset your Anant Exotika password';
   const html = emailShell({
     title: subject,
     preview: 'Reset your password securely. This link expires in one hour.',
     body: `
       <p style="margin:0 0 12px;font-size:22px;color:${BRAND.green};">Hello ${escapeHtml(name || 'there')},</p>
       <p style="margin:0 0 12px;color:${BRAND.muted};font-family:Arial,Helvetica,sans-serif;font-size:15px;">
-        We received a request to reset the password for your Anant Exotika Foods account.
+        We received a request to reset the password for your Anant Exotika account.
         Use the button below to choose a new password. This link expires in one hour and can only be used once.
       </p>
       ${ctaButton(resetUrl, 'Reset password')}
@@ -145,7 +146,7 @@ const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
   const text = [
     `Hello ${name || 'there'},`,
     '',
-    'Reset your Anant Exotika Foods password using this link (expires in one hour):',
+    'Reset your Anant Exotika password using this link (expires in one hour):',
     resetUrl,
     '',
     'If you did not request this, ignore this email.',
@@ -404,20 +405,20 @@ const sendOrderStatusEmail = async ({ to, name, order, status }) => {
 const sendWelcomeEmail = async ({ to, name }) => {
   if (!to) return { skipped: true };
   const storeUrl = getClientUrl();
-  const subject = 'Welcome to Anant Exotika Foods';
+  const subject = 'Welcome to Anant Exotika';
   const html = emailShell({
     title: subject,
     preview: 'Your account is ready. Explore premium dry fruits and gifting.',
     body: `
       <p style="margin:0 0 12px;font-size:22px;color:${BRAND.green};">Welcome, ${escapeHtml(name || 'there')}</p>
-      ${paragraph('Your Anant Exotika Foods account is ready. Discover premium dry fruits and thoughtfully curated hampers for every occasion.')}
+      ${paragraph('Your Anant Exotika account is ready. Discover premium dry fruits and thoughtfully curated hampers for every occasion.')}
       ${ctaButton(storeUrl, 'Visit the store')}
       ${paragraph(`Or open ${escapeHtml(storeUrl)}`)}
     `,
   });
   const text = [
     `Welcome, ${name || 'there'}.`,
-    'Your Anant Exotika Foods account is ready.',
+    'Your Anant Exotika account is ready.',
     `Visit the store: ${storeUrl}`,
   ].join('\n');
 
@@ -428,13 +429,13 @@ const sendPasswordChangedEmail = async ({ to, name, changedAt }) => {
   if (!to) return { skipped: true };
   const when = formatWhen(changedAt || new Date());
   const storeUrl = getClientUrl();
-  const subject = 'Your Anant Exotika Foods password was changed';
+  const subject = 'Your Anant Exotika password was changed';
   const html = emailShell({
     title: subject,
     preview: 'Your password was changed. Contact us if this was not you.',
     body: `
       <p style="margin:0 0 12px;font-size:22px;color:${BRAND.green};">Hello ${escapeHtml(name || 'there')},</p>
-      ${paragraph(`The password for your Anant Exotika Foods account was changed${when ? ` on ${escapeHtml(when)} IST` : ''}.`)}
+      ${paragraph(`The password for your Anant Exotika account was changed${when ? ` on ${escapeHtml(when)} IST` : ''}.`)}
       ${paragraph('If you made this change, no further action is needed.')}
       ${paragraph(`If you did not change your password, contact us immediately at <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND.green};">${SUPPORT_EMAIL}</a> or ${escapeHtml(SUPPORT_PHONE)}, and reset your password from the store.`)}
       ${ctaButton(`${storeUrl}/forgot-password`, 'Reset password')}
@@ -442,7 +443,7 @@ const sendPasswordChangedEmail = async ({ to, name, changedAt }) => {
   });
   const text = [
     `Hello ${name || 'there'},`,
-    `Your Anant Exotika Foods password was changed${when ? ` on ${when} IST` : ''}.`,
+    `Your Anant Exotika password was changed${when ? ` on ${when} IST` : ''}.`,
     'If you made this change, no further action is needed.',
     `If you did not, contact ${SUPPORT_EMAIL} or ${SUPPORT_PHONE}.`,
     `Reset password: ${storeUrl}/forgot-password`,
@@ -472,7 +473,7 @@ const sendLeadEnquiryEmail = (lead) => {
     .filter(Boolean)
     .join('\n');
 
-  return sendEmail({ to: SUPPORT_EMAIL, subject, html, text });
+  return sendEmail({ to: LEAD_EMAIL, subject, html, text });
 };
 
 const safeSend = async (fn, ...args) => {

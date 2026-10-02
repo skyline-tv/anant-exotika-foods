@@ -176,11 +176,11 @@ const Shop = () => {
   );
 
   usePageMeta({
-    title: `${activeCategory?.seoTitle || title} | Anant Exotika Foods`,
+    title: `${activeCategory?.seoTitle || title} | Anant Exotika`,
     description:
       activeCategory?.seoDescription ||
       activeCategory?.description ||
-      'Premium dry fruits, hampers and gifting from Anant Exotika Foods.',
+      'Premium dry fruits, hampers and gifting from Anant Exotika.',
     image: activeCategory?.image,
   });
 

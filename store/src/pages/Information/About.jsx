@@ -21,7 +21,7 @@ const About = () => {
   }, [location.hash]);
 
   usePageMeta({
-    title: 'Our story | Anant Exotika Foods',
+    title: 'Our story | Anant Exotika',
     description: story?.body,
     image,
   });
@@ -40,7 +40,7 @@ const About = () => {
             <h1>{toTitleCase(story?.heading || 'Quality, elegance and thoughtful gifting')}</h1>
             <p>
               {story?.body ||
-                'Anant Exotika Foods is a premium Indian house for dry fruits, mukhwas and gifting. We select for flavour and freshness, then present each piece so it feels worthy of the occasion.'}
+                'Anant Exotika is a premium Indian house for dry fruits, mukhwas and gifting. We select for flavour and freshness, then present each piece so it feels worthy of the occasion.'}
             </p>
             <Button as={Link} to={story?.cta?.to || '/shop'} variant="primary">
               {story?.cta?.label || 'Shop the collection'}

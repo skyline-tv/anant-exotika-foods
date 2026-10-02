@@ -15,6 +15,7 @@ const Categories = lazy(() => import('../pages/Categories/Categories'));
 const Orders = lazy(() => import('../pages/Orders/Orders'));
 const OrderDetails = lazy(() => import('../pages/Orders/OrderDetails'));
 const Customers = lazy(() => import('../pages/Customers/Customers'));
+const Leads = lazy(() => import('../pages/Leads/Leads'));
 const CustomerDetails = lazy(() => import('../pages/Customers/CustomerDetails'));
 const Inventory = lazy(() => import('../pages/Inventory/Inventory'));
 const Coupons = lazy(() => import('../pages/Coupons/Coupons'));
@@ -48,6 +49,7 @@ function AppRoutes() {
             <Route path="/orders" element={<Orders />} />
             <Route path="/orders/:id" element={<OrderDetails />} />
             <Route path="/customers" element={<Customers />} />
+            <Route path="/leads" element={<Leads />} />
             <Route path="/customers/:id" element={<CustomerDetails />} />
             <Route path="/inventory" element={<Inventory />} />
             <Route path="/coupons" element={<Coupons />} />

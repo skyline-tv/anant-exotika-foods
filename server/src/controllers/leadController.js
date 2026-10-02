@@ -2,7 +2,10 @@ const Lead = require('../models/Lead');
 const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
+const { getPagination, buildPagination } = require('../utils/pagination');
 const { safeSend, sendLeadEnquiryEmail } = require('../services/emailService');
+
+const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const phoneDigits = (value) => String(value || '').replace(/\D/g, '');
 
@@ -37,4 +40,31 @@ const createLead = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createLead };
+const listLeads = asyncHandler(async (req, res) => {
+  const { page, limit, skip } = getPagination(req.query);
+  const filter = {};
+
+  if (req.query.occasion && Lead.OCCASIONS.includes(req.query.occasion)) {
+    filter.occasion = req.query.occasion;
+  }
+
+  if (req.query.search) {
+    const regex = new RegExp(escapeRegex(req.query.search), 'i');
+    filter.$or = [{ name: regex }, { email: regex }, { phone: regex }, { message: regex }];
+  }
+
+  const [leads, total] = await Promise.all([
+    Lead.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+    Lead.countDocuments(filter),
+  ]);
+
+  successResponse(res, {
+    message: 'Leads retrieved successfully',
+    data: {
+      leads,
+      pagination: buildPagination({ page, limit, total }),
+    },
+  });
+});
+
+module.exports = { createLead, listLeads };

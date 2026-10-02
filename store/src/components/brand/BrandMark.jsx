@@ -14,7 +14,7 @@ const BrandMark = ({ to = '/', inverted = false, compact = false, large = false 
     .join(' ');
 
   return (
-    <Link to={to} className={classes} aria-label="Anant Exotika Foods Home">
+    <Link to={to} className={classes} aria-label="Anant Exotika Home">
       <span className="brand-mark__plate">
         <img
           className="brand-mark__logo"

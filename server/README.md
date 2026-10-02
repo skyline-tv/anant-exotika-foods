@@ -76,7 +76,7 @@ The default database name is `anant_exotika`.
 | `SHIPPING_FALLBACK_RATE` | Fallback shipping ₹ if a live Shiprocket rate is unavailable |
 | `SHIPPING_ORIGIN_PIN` | Used as the pickup pincode when `SHIPROCKET_PICKUP_PIN` is empty |
 | `RESEND_API_KEY` | Resend API key for transactional email (server only) |
-| `EMAIL_FROM` | Verified Resend from address, e.g. `Anant Exotika Foods <orders@yourdomain.com>` |
+| `EMAIL_FROM` | Verified Resend from address, e.g. `Anant Exotika <orders@yourdomain.com>` |
 | `JSON_BODY_LIMIT` | JSON body limit (default `2mb`). Uploads stay at 5MB per image |
 | `HTTP_REQUEST_TIMEOUT_MS` | Maximum time for one HTTP request (default `60000`) |
 | `RATE_LIMIT_PUBLIC_MAX` | Storefront requests per window (default `600` / 15 min) |

@@ -129,7 +129,7 @@ const Footer = () => {
       </div>
 
       <div className="footer__bottom">
-        <p className="footer__copyright">© {new Date().getFullYear()} {(content?.storeName || 'Anant Exotika Foods').trim()}. All rights reserved.</p>
+        <p className="footer__copyright">© {new Date().getFullYear()} {(content?.storeName || 'Anant Exotika').trim()}. All rights reserved.</p>
       </div>
     </div>
   </footer>

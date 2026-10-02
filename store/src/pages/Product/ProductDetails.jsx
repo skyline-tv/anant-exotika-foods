@@ -88,7 +88,7 @@ const ProductDetails = () => {
   }, [slug]);
 
   usePageMeta({
-    title: product ? `${product.seoTitle || product.name} | Anant Exotika Foods` : 'Anant Exotika Foods',
+    title: product ? `${product.seoTitle || product.name} | Anant Exotika` : 'Anant Exotika',
     description: product?.seoDescription || product?.shortDescription || product?.description,
     image: activeImage,
     type: 'product',
@@ -100,7 +100,7 @@ const ProductDetails = () => {
           description: product.shortDescription || product.description,
           sku: product.sku,
           image: activeImage ? [activeImage] : undefined,
-          brand: { '@type': 'Brand', name: product.brand || 'Anant Exotika Foods' },
+          brand: { '@type': 'Brand', name: product.brand || 'Anant Exotika' },
           offers: {
             '@type': 'Offer',
             priceCurrency: 'INR',
@@ -225,7 +225,7 @@ const ProductDetails = () => {
     {
       id: 'description',
       title: 'Description',
-      body: product.description || product.shortDescription || 'A carefully selected piece from the Anant Exotika Foods collection.',
+      body: product.description || product.shortDescription || 'A carefully selected piece from the Anant Exotika collection.',
     },
     {
       id: 'details',

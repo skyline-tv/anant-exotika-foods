@@ -11,7 +11,7 @@ import { resolveAssetUrl } from '../../utils/assetUrl';
 const EMPTY_TILE = { title: '', text: '', image: '', to: '/shop', isActive: true, displayOrder: 0 };
 
 const toForm = (content) => ({
-  storeName: content?.storeName || 'Anant Exotika Foods',
+  storeName: content?.storeName || 'Anant Exotika',
   storeEmail: content?.storeEmail || '',
   phone: content?.phone || '',
   address: content?.address || '',

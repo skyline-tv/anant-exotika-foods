@@ -1,4 +1,4 @@
-export const BRAND_NAME = 'Anant Exotika Foods';
+export const BRAND_NAME = 'Anant Exotika';
 export const BRAND_TAGLINE = 'Crafted with love & shared with joy';
 
 export const CONTACT = {

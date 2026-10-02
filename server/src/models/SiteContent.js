@@ -44,7 +44,7 @@ const storySchema = new mongoose.Schema(
       type: String,
       trim: true,
       default:
-        'Anant Exotika Foods is a modern Indian house for premium dry fruits and gifting. We select for taste, pack with care, and present each piece so it feels worthy of the occasion.',
+        'Anant Exotika is a modern Indian house for premium dry fruits and gifting. We select for taste, pack with care, and present each piece so it feels worthy of the occasion.',
     },
     cta: {
       type: ctaSchema,
@@ -88,7 +88,7 @@ const siteContentSchema = new mongoose.Schema(
       default: 'storefront',
       trim: true,
     },
-    storeName: { type: String, trim: true, default: 'Anant Exotika Foods' },
+    storeName: { type: String, trim: true, default: 'Anant Exotika' },
     storeEmail: { type: String, trim: true, default: 'info@anantexotika.in' },
     phone: { type: String, trim: true, default: '9623079356' },
     address: { type: String, trim: true, default: '' },
@@ -99,13 +99,13 @@ const siteContentSchema = new mongoose.Schema(
     seoTitle: {
       type: String,
       trim: true,
-      default: 'Anant Exotika Foods | Premium Dry Fruits & Gifting',
+      default: 'Anant Exotika | Premium Dry Fruits & Gifting',
     },
     seoDescription: {
       type: String,
       trim: true,
       default:
-        'Anant Exotika Foods — premium dry fruits, gift hampers and corporate gifting, thoughtfully curated and elegantly presented.',
+        'Anant Exotika — premium dry fruits, gift hampers and corporate gifting, thoughtfully curated and elegantly presented.',
     },
     hero: { type: heroSchema, default: () => ({}) },
     brandStory: { type: storySchema, default: () => ({}) },

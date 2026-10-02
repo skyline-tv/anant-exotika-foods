@@ -198,7 +198,7 @@ const Home = () => {
 
   addSlide({
     id: 'hero-banner',
-    name: toTitleCase(hero.heading || content?.storeName || 'Anant Exotika Foods'),
+    name: toTitleCase(hero.heading || content?.storeName || 'Anant Exotika'),
     src: heroImage,
     to: primaryCta.to || hampersTo,
   });
@@ -212,7 +212,7 @@ const Home = () => {
   });
 
   usePageMeta({
-    title: content?.seoTitle || 'Anant Exotika Foods | Premium Dry Fruits & Gifting',
+    title: content?.seoTitle || 'Anant Exotika | Premium Dry Fruits & Gifting',
     description: content?.seoDescription,
     image: heroImage,
     type: 'website',
@@ -228,7 +228,7 @@ const Home = () => {
 
       <section className="hero" aria-label="Hero">
         <div className="hero__copy">
-          <p className="hero__brand">{content?.storeName || 'Anant Exotika Foods'}</p>
+          <p className="hero__brand">{content?.storeName || 'Anant Exotika'}</p>
           <h1 className="hero__title">{toTitleCase(hero.heading || 'Crafted with love & shared with joy')}</h1>
           <p className="hero__subtitle">
             {hero.subheading ||
