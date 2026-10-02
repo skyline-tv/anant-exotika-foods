@@ -5,6 +5,7 @@ import EmptyState from '../common/EmptyState';
 import ProductCard from '../product/ProductCard';
 import ProductSkeleton from '../common/ProductSkeleton';
 import SectionTitle from '../common/SectionTitle';
+import { useStoreContent } from '../../context/ContentContext';
 import { getProducts } from '../../services/productService';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { toTitleCase } from '../../utils/titleCase';
@@ -81,7 +82,19 @@ export function buildCollectionTabs(categories = []) {
   return tabs;
 }
 
+const chosenProducts = (collection, tab) => {
+  const match = (collection || []).find((entry) => {
+    const id = entry?.category?._id || entry?.category || '';
+    if (tab.id === 'all') return !id;
+    return String(id) === String(tab.id);
+  });
+  return (match?.products || [])
+    .filter((product) => product && typeof product === 'object' && product.name && product.status !== 'inactive' && product.status !== 'draft')
+    .slice(0, SHOWCASE_LIMIT);
+};
+
 const CollectionShowcase = ({ categories = [] }) => {
+  const { content } = useStoreContent();
   const tabs = useMemo(() => buildCollectionTabs(categories), [categories]);
   const [activeId, setActiveId] = useState('all');
   const [products, setProducts] = useState([]);
@@ -97,6 +110,15 @@ const CollectionShowcase = ({ categories = [] }) => {
   }, [tabs, activeId]);
 
   useEffect(() => {
+    const chosen = chosenProducts(content?.collection, active);
+    if (chosen.length) {
+      cacheRef.current[active.id] = chosen;
+      setProducts(chosen);
+      setLoading(false);
+      setError('');
+      return undefined;
+    }
+
     const cached = cacheRef.current[active.id];
     if (cached) {
       setProducts(cached);
@@ -131,7 +153,7 @@ const CollectionShowcase = ({ categories = [] }) => {
     return () => {
       cancelled = true;
     };
-  }, [active.id, active.slug]);
+  }, [active.id, active.slug, content?.collection]);
 
   return (
     <section className="section section--ivory" aria-label="The Collection">

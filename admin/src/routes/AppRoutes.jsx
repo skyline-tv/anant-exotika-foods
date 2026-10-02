@@ -20,6 +20,7 @@ const Inventory = lazy(() => import('../pages/Inventory/Inventory'));
 const Coupons = lazy(() => import('../pages/Coupons/Coupons'));
 const Hampers = lazy(() => import('../pages/Hampers/Hampers'));
 const HamperForm = lazy(() => import('../pages/Hampers/HamperForm'));
+const Collection = lazy(() => import('../pages/Collection/Collection'));
 const Settings = lazy(() => import('../pages/Settings/Settings'));
 
 function RootRedirect() {
@@ -53,6 +54,7 @@ function AppRoutes() {
             <Route path="/hampers" element={<Hampers />} />
             <Route path="/hampers/new" element={<HamperForm />} />
             <Route path="/hampers/:id" element={<HamperForm />} />
+            <Route path="/collection" element={<Collection />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>

@@ -115,6 +115,15 @@ const siteContentSchema = new mongoose.Schema(
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
       default: [],
     },
+    collection: {
+      type: [
+        {
+          category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+          products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+        },
+      ],
+      default: [],
+    },
     newsletter: {
       heading: { type: String, trim: true, default: 'Invitations, harvests and gifting notes' },
       body: {
