@@ -258,6 +258,34 @@ p {
   border-color: var(--danger);
 }
 
+.category-picker.hamper-groups {
+  max-height: 420px;
+  gap: 0;
+}
+
+.hamper-group + .hamper-group {
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.hamper-group__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+.hamper-group__title strong {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.hamper-group__product {
+  padding-left: 0.35rem;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr;

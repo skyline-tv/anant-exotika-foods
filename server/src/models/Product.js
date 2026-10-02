@@ -160,6 +160,8 @@ const productSchema = new mongoose.Schema(
         {
           label: { type: String, required: true, trim: true, maxlength: 80 },
           required: { type: Boolean, default: true },
+          category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null },
+          categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
           products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
         },
       ],

@@ -10,13 +10,15 @@ const { getPagination, buildPagination } = require('../utils/pagination');
 const { slugify } = require('../utils/slugify');
 const { PRODUCT_STATUS } = require('../utils/constants');
 const { normalizeProductImages } = require('../utils/assetUrl');
-const { normalizeHamper } = require('../services/hamperService');
+const { hydrateHamperSlots, normalizeHamper } = require('../services/hamperService');
 
 const PUBLIC_PRODUCT_FILTER = { status: { $in: ['active', 'out_of_stock'] } };
 const PRODUCT_POPULATE = [
   { path: 'category', select: 'name slug image' },
   { path: 'categories', select: 'name slug image' },
   { path: 'subCategory', select: 'name slug image' },
+  { path: 'slots.category', select: 'name slug' },
+  { path: 'slots.categories', select: 'name slug' },
   { path: 'slots.products', select: 'name slug price stock status images sku' },
 ];
 
@@ -176,6 +178,8 @@ const getProductBySlug = asyncHandler(async (req, res) => {
   if (!product) {
     throw new AppError('Product not found.', 404);
   }
+
+  await hydrateHamperSlots(product);
 
   successResponse(res, {
     message: 'Product retrieved successfully',
