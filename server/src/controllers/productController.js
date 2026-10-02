@@ -10,12 +10,14 @@ const { getPagination, buildPagination } = require('../utils/pagination');
 const { slugify } = require('../utils/slugify');
 const { PRODUCT_STATUS } = require('../utils/constants');
 const { normalizeProductImages } = require('../utils/assetUrl');
+const { normalizeHamper } = require('../services/hamperService');
 
 const PUBLIC_PRODUCT_FILTER = { status: { $in: ['active', 'out_of_stock'] } };
 const PRODUCT_POPULATE = [
   { path: 'category', select: 'name slug image' },
   { path: 'categories', select: 'name slug image' },
   { path: 'subCategory', select: 'name slug image' },
+  { path: 'slots.products', select: 'name slug price stock status images sku' },
 ];
 
 const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -65,6 +67,9 @@ const buildProductQuery = async (query, { isAdmin = false } = {}) => {
 
   const bestSeller = parseBoolean(query.bestSeller);
   if (bestSeller !== undefined) filter.isBestSeller = bestSeller;
+
+  const personalized = parseBoolean(query.isPersonalizedHamper);
+  if (personalized !== undefined) filter.isPersonalizedHamper = personalized;
 
   if (isAdmin && query.status && PRODUCT_STATUS.includes(query.status)) {
     filter.status = query.status;
@@ -241,6 +246,7 @@ const normalizePricing = (body) => {
 
 const createProduct = asyncHandler(async (req, res) => {
   normalizePricing(req.body);
+  await normalizeHamper(req.body);
   await normalizeCategorySelection(req.body);
   const { name, sku, price } = req.body;
 
@@ -301,11 +307,16 @@ const updateProduct = asyncHandler(async (req, res) => {
     'isFeatured',
     'isNewArrival',
     'isBestSeller',
+    'isPersonalizedHamper',
+    'packaging',
+    'slots',
     'displayOrder',
     'status',
     'seoTitle',
     'seoDescription',
   ];
+
+  await normalizeHamper(req.body);
 
   if (req.body.category !== undefined || req.body.categories !== undefined || req.body.subCategory !== undefined) {
     await normalizeCategorySelection(req.body);

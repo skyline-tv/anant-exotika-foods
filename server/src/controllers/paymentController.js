@@ -10,7 +10,7 @@ const {
   releaseWebhookEvent,
   hashEvent,
 } = require('../services/webhookEventService');
-const { decrementStock, restoreStockItems, restoreStock } = require('../services/inventoryService');
+const { decrementOrderStock, restoreStockItems, restoreOrderStock } = require('../services/inventoryService');
 const {
   getPublicPaymentConfig,
   verifyRazorpaySignature,
@@ -28,22 +28,7 @@ const { isShiprocketConfigured } = require('../services/shiprocketService');
 const { scheduleShipment } = require('../services/shippingQueue');
 
 const finalizePaidOrder = async (order) => {
-  const decremented = [];
-  try {
-    for (const item of order.items) {
-      const updated = await decrementStock(item.product, item.quantity);
-      if (!updated) {
-        throw new AppError(
-          `Insufficient stock for ${item.name}. Payment verification could not confirm this order.`,
-          409
-        );
-      }
-      decremented.push(item);
-    }
-  } catch (error) {
-    await restoreStockItems(decremented);
-    throw error;
-  }
+  const decremented = await decrementOrderStock(order.items);
 
   try {
     if (order.coupon?.code) {
@@ -314,9 +299,7 @@ const handleRazorpayWebhook = asyncHandler(async (req, res) => {
 
       if (refundStatus === 'processed') {
         if (order.payment.paymentStatus === 'paid') {
-          for (const item of order.items) {
-            await restoreStock(item.product, item.quantity);
-          }
+          await restoreOrderStock(order.items);
         }
         order.payment.paymentStatus = 'refunded';
         order.orderStatus = 'refunded';
@@ -382,9 +365,7 @@ const refundOrderPayment = asyncHandler(async (req, res) => {
   order.payment.refundedAt = new Date();
 
   if (String(refund.status).toLowerCase() === 'processed') {
-    for (const item of order.items) {
-      await restoreStock(item.product, item.quantity);
-    }
+    await restoreOrderStock(order.items);
     order.payment.paymentStatus = 'refunded';
     order.orderStatus = 'refunded';
     order.statusHistory.push({

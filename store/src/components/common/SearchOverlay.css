@@ -41,7 +41,8 @@
   border: 0;
   background: transparent;
   font-family: var(--font-heading);
-  font-size: clamp(1.5rem, 3.2vw, 2.2rem);
+  font-size: 1.125rem;
+  font-weight: var(--fw-medium);
   outline: none;
 }
 
@@ -59,9 +60,10 @@
   width: auto !important;
   min-width: 44px;
   padding: 0 0.35rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--luxury-gold);
 }
 
@@ -73,7 +75,7 @@
 .search-overlay__label {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   margin-bottom: var(--space-sm);
 }
@@ -110,8 +112,10 @@
 .search-overlay__results strong {
   display: block;
   font-family: var(--font-heading);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  text-transform: capitalize;
   color: var(--dark-text);
 }
 

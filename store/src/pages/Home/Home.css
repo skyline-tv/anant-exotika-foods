@@ -12,20 +12,20 @@
 }
 
 .hero__brand {
-  font-size: 0.72rem;
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-brand);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   margin-bottom: var(--space-4);
 }
 
 .hero__title {
   font-size: var(--fs-hero);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   color: var(--dark-text);
   margin-bottom: var(--space-4);
-  line-height: 0.98;
+  line-height: 1.2;
 }
 
 .hero__subtitle {
@@ -116,8 +116,8 @@
 
 .hero__caption {
   font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--dark-text);
   padding: 0.55rem 0.85rem;
   background: var(--white);
@@ -180,6 +180,79 @@
 
 .section-heading-row .section-title {
   margin-bottom: 0;
+}
+
+.collection-tabs {
+  display: flex;
+  gap: 0.35rem 1.35rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0 0 2rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.collection-tabs::-webkit-scrollbar {
+  display: none;
+  height: 0;
+}
+
+.collection-tabs button {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.35rem 0 0.55rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--muted-text);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.collection-tabs button:hover,
+.collection-tabs button:focus-visible {
+  color: var(--dark-text);
+}
+
+.collection-tabs button.is-active {
+  color: var(--dark-text);
+  font-weight: 600;
+  border-bottom-color: var(--primary-green);
+}
+
+.collection-panel {
+  transition: opacity 220ms var(--ease-out);
+}
+
+.collection-panel.is-switching {
+  opacity: 0.55;
+}
+
+.product-grid.collection-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem 0.9rem;
+}
+
+@media (min-width: 900px) {
+  .product-grid.collection-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2.25rem 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-panel {
+    transition: none;
+  }
 }
 
 .category-scroller {
@@ -264,8 +337,11 @@
 .category-card strong,
 .gifting-card strong {
   font-family: var(--font-heading);
-  font-size: clamp(1.5rem, 2vw, 1.9rem);
-  font-weight: var(--fw-medium);
+  font-size: clamp(1.15rem, 1.6vw, 1.35rem);
+  font-weight: var(--fw-semibold);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
 }
 
 .category-card em,
@@ -388,7 +464,8 @@
 
 .newsletter__thanks {
   font-family: var(--font-heading);
-  font-style: italic;
+  font-style: normal;
+  font-weight: var(--fw-medium);
   font-size: var(--fs-xl);
   color: var(--soft-gold);
 }

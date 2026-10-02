@@ -4,6 +4,7 @@ import Button from '../../components/common/Button';
 import PageHeader from '../../components/common/PageHeader';
 import { useAuth } from '../../context/AuthContext';
 import { formatDate } from '../../utils/formatDate';
+import { toTitleCase } from '../../utils/titleCase';
 
 const Profile = () => {
   const { user, logout } = useAuth();
@@ -24,7 +25,7 @@ const Profile = () => {
             <div className="account-card form-grid two">
               <div>
                 <span className="eyebrow">Name</span>
-                <h2>{user?.name}</h2>
+                <h2>{toTitleCase(user?.name)}</h2>
               </div>
               <div>
                 <span className="eyebrow">Email</span>

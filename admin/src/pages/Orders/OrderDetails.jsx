@@ -309,7 +309,18 @@ function OrderDetails() {
                       <div className="thumb thumb-placeholder">AE</div>
                     )}
                   </td>
-                  <td className="cell-wrap">{item.name}</td>
+                  <td className="cell-wrap">
+                    {item.name}
+                    {item.selections?.length ? (
+                      <div className="muted">
+                        {item.selections.map((selection) => (
+                          <div key={`${selection.slotLabel}-${selection.product}`}>
+                            {selection.slotLabel}: {selection.name}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </td>
                   <td>{item.sku}</td>
                   <td>{formatCurrency(item.price)}</td>
                   <td>{item.quantity}</td>

@@ -5,7 +5,7 @@ const AuthShell = ({ eyebrow, title, subtitle, children }) => (
   <section className="auth-split">
     <div className="auth-split__visual">
       <BrandMark inverted large to="/" />
-      <p>Thoughtfully curated. Elegantly gifted.</p>
+      <p>Crafted with love & shared with joy</p>
     </div>
     <div className="auth-split__panel">
       <div className="auth-split__content">

@@ -8,6 +8,7 @@ import { useCart } from '../../context/CartContext';
 import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { matchCategoryPath } from '../../data/brandContent';
+import { toTitleCase } from '../../utils/titleCase';
 import { getCategories } from '../../services/categoryService';
 import { getChildCategories, getParentCategories } from '../../utils/categories';
 import './Header.css';
@@ -68,7 +69,10 @@ const Header = () => {
   const parents = getParentCategories(categories);
   const closeDrawer = () => setDrawerOpen(false);
   const dryFruitsTo = matchCategoryPath(parents, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
-  const hampersTo = matchCategoryPath(parents, ['hamper', 'box', 'combo', 'gift']);
+  const hampersTo = matchCategoryPath(
+    parents.filter((category) => category.slug !== 'personalized-gift-hampers'),
+    ['hamper', 'box', 'combo', 'gift']
+  );
   const navClass = ({ isActive }) => `site-header__nav-link${isActive ? ' is-active' : ''}`;
 
   return (
@@ -123,13 +127,13 @@ const Header = () => {
                       <ul>
                         <li>
                           <Link to="/shop" onClick={() => setShopOpen(false)}>
-                            All products
+                            All Products
                           </Link>
                         </li>
                         {parents.map((category) => (
                           <li key={category._id}>
                             <Link to={`/shop/${category.slug}`} onClick={() => setShopOpen(false)}>
-                              {category.name}
+                              {toTitleCase(category.name)}
                             </Link>
                           </li>
                         ))}
@@ -155,7 +159,7 @@ const Header = () => {
                         </li>
                         <li>
                           <Link to="/shop/new-arrivals" onClick={() => setShopOpen(false)}>
-                            New arrivals
+                            New Arrivals
                           </Link>
                         </li>
                       </ul>
@@ -279,7 +283,7 @@ const Header = () => {
                 <ul className="nav-drawer__sub">
                   <li>
                     <Link to="/shop" onClick={closeDrawer}>
-                      All products
+                      All Products
                     </Link>
                   </li>
                   {parents.map((category) => {
@@ -287,14 +291,14 @@ const Header = () => {
                     return (
                       <li key={category._id}>
                         <Link to={`/shop/${category.slug}`} onClick={closeDrawer}>
-                          {category.name}
+                          {toTitleCase(category.name)}
                         </Link>
                         {children.length ? (
                           <ul>
                             {children.map((child) => (
                               <li key={child._id}>
                                 <Link to={`/shop/${child.slug}`} onClick={closeDrawer}>
-                                  {child.name}
+                                  {toTitleCase(child.name)}
                                 </Link>
                               </li>
                             ))}

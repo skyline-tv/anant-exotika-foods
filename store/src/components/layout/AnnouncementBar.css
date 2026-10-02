@@ -14,11 +14,11 @@
   max-width: 100%;
   overflow: hidden;
   font-family: var(--font-body);
-  font-size: 0.68rem;
+  font-size: 0.8125rem;
   font-weight: var(--fw-medium);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.01em;
   text-overflow: ellipsis;
-  text-transform: uppercase;
+  text-transform: capitalize;
   white-space: nowrap;
   color: rgba(248, 245, 240, 0.9);
   margin: 0;

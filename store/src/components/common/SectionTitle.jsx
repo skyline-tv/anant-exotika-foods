@@ -1,3 +1,4 @@
+import { toTitleCase } from '../../utils/titleCase';
 import './SectionTitle.css';
 
 const SectionTitle = ({
@@ -19,8 +20,8 @@ const SectionTitle = ({
 
   return (
     <div className={classes}>
-      {eyebrow && <span className="section-title__eyebrow">{eyebrow}</span>}
-      {title && <h2 className="section-title__heading">{title}</h2>}
+      {eyebrow && <span className="section-title__eyebrow">{toTitleCase(eyebrow)}</span>}
+      {title && <h2 className="section-title__heading">{toTitleCase(title)}</h2>}
       {subtitle && <p className="section-title__subtitle">{subtitle}</p>}
       <span className="section-title__divider" aria-hidden="true" />
     </div>

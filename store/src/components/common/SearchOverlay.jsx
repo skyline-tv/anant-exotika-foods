@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react';
 import { searchProducts } from '../../services/productService';
 import { getPrimaryImage } from '../../utils/productHelpers';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toTitleCase } from '../../utils/titleCase';
 import './SearchOverlay.css';
 
 const RECENT_KEY = 'anant_recent_searches';
@@ -161,7 +162,7 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
                           <span className="search-overlay__thumb" />
                         )}
                         <span>
-                          <strong>{product.name}</strong>
+                          <strong>{toTitleCase(product.name)}</strong>
                           <em>{formatCurrency(product.price)}</em>
                         </span>
                       </Link>
@@ -198,7 +199,7 @@ const SearchOverlay = ({ open, onClose, categories = [] }) => {
                     {categories.slice(0, 6).map((category) => (
                       <li key={category._id}>
                         <Link to={`/shop/${category.slug}`} onClick={onClose}>
-                          {category.name}
+                          {toTitleCase(category.name)}
                         </Link>
                       </li>
                     ))}

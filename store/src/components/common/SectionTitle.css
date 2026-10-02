@@ -13,17 +13,18 @@
 .section-title__eyebrow {
   display: block;
   font-family: var(--font-body);
-  font-size: 0.7rem;
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   margin-bottom: var(--space-sm);
 }
 
 .section-title__heading {
-  font-size: clamp(2rem, 4.2vw, 3.1rem);
-  font-weight: var(--fw-medium);
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
   color: var(--dark-text);
   margin-bottom: var(--space-md);
 }

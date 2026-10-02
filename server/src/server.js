@@ -7,6 +7,7 @@ require('dotenv').config({ path: path.join(__dirname, '../.env'), quiet: true })
 const app = require('./app');
 const connectDatabase = require('./config/database');
 const seedAdmin = require('./utils/seedAdmin');
+const { ensurePersonalizedCategory } = require('./services/hamperService');
 const { log } = require('./utils/logger');
 const { startShippingWorker, stopShippingWorker } = require('./services/shippingQueue');
 
@@ -64,6 +65,11 @@ const shutdown = (signal, exitCode = 0) => {
 const start = async () => {
   await connectDatabase();
   await seedAdmin();
+  await ensurePersonalizedCategory().catch((error) => {
+    log('error', 'personalized hamper category was not created', {
+      message: String(error.message || '').slice(0, 300),
+    });
+  });
 
   server = http.createServer(app);
   const keepAliveTimeout = positiveInt('HTTP_KEEP_ALIVE_TIMEOUT_MS', 65000);

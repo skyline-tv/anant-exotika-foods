@@ -6,6 +6,7 @@ import { useToast } from '../../context/ToastContext';
 import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toTitleCase } from '../../utils/titleCase';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import {
   formatWeight,
@@ -26,10 +27,10 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
   const { isSaved, toggle } = useWishlist();
   const [adding, setAdding] = useState(false);
   const resolved = product || { name, slug, price, category, image, badge };
-  const title = resolved.name || 'Signature selection';
+  const title = toTitleCase(resolved.name || 'Signature selection');
   const productSlug = resolved.slug || 'signature-selection';
   const imageSrc = product ? getPrimaryImage(product) : image;
-  const categoryLabel = product ? getCategoryName(product.category) : category || 'Collection';
+  const categoryLabel = toTitleCase(product ? getCategoryName(product.category) : category || 'Collection');
   const sellingValue = product ? getSellingRate(product) : 0;
   const sellingRate = product ? formatCurrency(sellingValue) : price;
   const mrp = product ? getMrp(product) : 0;
@@ -100,7 +101,12 @@ const ProductCard = ({ product, name, slug, price, category, image, badge }) => 
           {mrp > sellingValue ? <s>{formatCurrency(mrp)}</s> : null}
           {discount ? <em>{discount}% off</em> : null}
         </p>
-        {product?._id ? (
+        {product?._id && product.isPersonalizedHamper ? (
+          <Link className="product-card__cart" to={`/product/${productSlug}`}>
+            <span className="product-card__cart-short">Choose</span>
+            <span className="product-card__cart-full">Personalize</span>
+          </Link>
+        ) : product?._id ? (
           <button type="button" className="product-card__cart" onClick={handleAdd} disabled={outOfStock || adding}>
             <span className="product-card__cart-short">{outOfStock ? 'Sold out' : adding ? '…' : 'Add'}</span>
             <span className="product-card__cart-full">{outOfStock ? 'Out of stock' : adding ? 'Adding' : 'Add to cart'}</span>

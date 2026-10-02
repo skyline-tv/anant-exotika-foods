@@ -4,12 +4,29 @@ const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
 const { roundMoney } = require('../services/pricingService');
+const { resolveHamperLine } = require('../services/hamperService');
 
-const CART_POPULATE = {
-  path: 'items.product',
-  select: 'name slug images price compareAtPrice stock status sku weight shortDescription',
-  populate: { path: 'category', select: 'name slug image' },
-};
+const CART_POPULATE = [
+  {
+    path: 'items.product',
+    select: 'name slug images price compareAtPrice stock status sku weight shortDescription isPersonalizedHamper packaging',
+    populate: { path: 'category', select: 'name slug image' },
+  },
+  {
+    path: 'items.selections.product',
+    select: 'name sku status stock',
+  },
+];
+
+const lineKey = (item) => `${item.product?._id || item.product}|${item.selectionKey || ''}`;
+
+const snapshotSelections = (selections = []) =>
+  selections.map((selection) => ({
+    slotLabel: selection.slotLabel,
+    product: selection.product?._id || selection.product,
+    name: selection.name || selection.product?.name || '',
+    sku: selection.sku || selection.product?.sku || '',
+  }));
 
 const getOrCreateCart = async (userId) => {
   let cart = await Cart.findOne({ user: userId });
@@ -33,9 +50,24 @@ const formatCart = (cart) => {
       warnings.push(`${product.name} is currently unavailable.`);
       continue;
     }
+
+    let maxQty = Number(product.stock);
+    if (product.isPersonalizedHamper) {
+      for (const selection of item.selections || []) {
+        const chosen = selection.product;
+        if (!chosen || chosen.status !== 'active' || Number(chosen.stock) < 1) {
+          maxQty = 0;
+          warnings.push(`${product.name} needs to be personalized again because a selected product is unavailable.`);
+          break;
+        }
+        maxQty = Math.min(maxQty, Number(chosen.stock));
+      }
+    }
+    if (maxQty < 1) continue;
+
     let quantity = item.quantity;
-    if (quantity > product.stock) {
-      quantity = product.stock;
+    if (quantity > maxQty) {
+      quantity = maxQty;
       warnings.push(`Quantity for ${product.name} was updated because stock availability changed.`);
     }
     const currentPrice = product.price;
@@ -44,6 +76,8 @@ const formatCart = (cart) => {
       quantity,
       price: currentPrice,
       lineTotal: roundMoney(currentPrice * quantity),
+      selectionKey: item.selectionKey || '',
+      selections: snapshotSelections(item.selections),
     });
   }
 
@@ -64,22 +98,20 @@ const formatCart = (cart) => {
 const respondWithCart = async (cart) => {
   await cart.populate(CART_POPULATE);
   const formatted = formatCart(cart);
-  const nextIds = formatted.items.map((item) => String(item.product._id));
-  const currentIds = cart.items
-    .filter((item) => item.product)
-    .map((item) => String(item.product._id || item.product));
+  const nextKeys = formatted.items.map(lineKey);
+  const currentKeys = cart.items.filter((item) => item.product).map(lineKey);
   const quantityChanged = formatted.items.some((item) => {
-    const current = cart.items.find(
-      (entry) => String(entry.product?._id || entry.product) === String(item.product._id)
-    );
+    const current = cart.items.find((entry) => lineKey(entry) === lineKey(item));
     return !current || current.quantity !== item.quantity;
   });
 
-  if (quantityChanged || nextIds.length !== currentIds.length) {
+  if (quantityChanged || nextKeys.length !== currentKeys.length) {
     cart.items = formatted.items.map((item) => ({
       product: item.product._id,
       quantity: item.quantity,
       price: item.price,
+      selectionKey: item.selectionKey || '',
+      selections: snapshotSelections(item.selections),
     }));
     await cart.save();
     await cart.populate(CART_POPULATE);
@@ -98,7 +130,7 @@ const getCart = asyncHandler(async (req, res) => {
   });
 });
 
-const addToCartItem = async (cart, productId, quantity) => {
+const addToCartItem = async (cart, productId, quantity, selections) => {
   const qty = Number(quantity);
 
   if (!productId) {
@@ -114,27 +146,36 @@ const addToCartItem = async (cart, productId, quantity) => {
     throw new AppError('Product not found.', 404);
   }
 
+  const hamperLine = await resolveHamperLine(product, qty, selections);
+
   if (product.status === 'out_of_stock' || product.stock < qty) {
     throw new AppError(`Insufficient stock for ${product.name}.`, 400);
   }
 
   const existing = cart.items.find(
-    (item) => String(item.product) === String(product._id)
+    (item) => String(item.product) === String(product._id) && String(item.selectionKey || '') === hamperLine.selectionKey
   );
 
   const nextQty = existing ? existing.quantity + qty : qty;
   if (nextQty > product.stock) {
     throw new AppError(`Insufficient stock for ${product.name}.`, 400);
   }
+  if (product.isPersonalizedHamper && nextQty !== qty) {
+    await resolveHamperLine(product, nextQty, hamperLine.selections);
+  }
 
   if (existing) {
     existing.quantity = nextQty;
     existing.price = product.price;
+    existing.selections = hamperLine.selections;
+    existing.selectionKey = hamperLine.selectionKey;
   } else {
     cart.items.push({
       product: product._id,
       quantity: qty,
       price: product.price,
+      selectionKey: hamperLine.selectionKey,
+      selections: hamperLine.selections,
     });
   }
 
@@ -142,9 +183,9 @@ const addToCartItem = async (cart, productId, quantity) => {
 };
 
 const addToCart = asyncHandler(async (req, res) => {
-  const { productId, quantity = 1 } = req.body;
+  const { productId, quantity = 1, selections } = req.body;
   const cart = await getOrCreateCart(req.user._id);
-  await addToCartItem(cart, productId, quantity);
+  await addToCartItem(cart, productId, quantity, selections);
   await cart.save();
 
   successResponse(res, {
@@ -162,7 +203,7 @@ const mergeCart = asyncHandler(async (req, res) => {
     const quantity = Number(item.quantity) || 1;
     if (!productId) continue;
     try {
-      await addToCartItem(cart, productId, quantity);
+      await addToCartItem(cart, productId, quantity, item.selections);
     } catch {
       // Skip unavailable guest-cart items so login never destroys a valid server cart.
     }
@@ -185,8 +226,9 @@ const updateCartItem = asyncHandler(async (req, res) => {
   }
 
   const cart = await getOrCreateCart(req.user._id);
+  const selectionKey = String(req.body.selectionKey || '');
   const item = cart.items.find(
-    (entry) => String(entry.product) === String(req.params.productId)
+    (entry) => String(entry.product) === String(req.params.productId) && String(entry.selectionKey || '') === selectionKey
   );
 
   if (!item) {
@@ -195,7 +237,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
 
   if (qty === 0) {
     cart.items = cart.items.filter(
-      (entry) => String(entry.product) !== String(req.params.productId)
+      (entry) => !(String(entry.product) === String(req.params.productId) && String(entry.selectionKey || '') === selectionKey)
     );
   } else {
     const product = await Product.findById(req.params.productId);
@@ -204,6 +246,9 @@ const updateCartItem = asyncHandler(async (req, res) => {
     }
     if (qty > product.stock) {
       throw new AppError('Insufficient stock for this product.', 400);
+    }
+    if (product.isPersonalizedHamper) {
+      await resolveHamperLine(product, qty, item.selections);
     }
     item.quantity = qty;
     item.price = product.price;
@@ -220,9 +265,10 @@ const updateCartItem = asyncHandler(async (req, res) => {
 const removeCartItem = asyncHandler(async (req, res) => {
   const cart = await getOrCreateCart(req.user._id);
   const before = cart.items.length;
+  const selectionKey = String(req.query.selectionKey || '');
 
   cart.items = cart.items.filter(
-    (item) => String(item.product) !== String(req.params.productId)
+    (item) => !(String(item.product) === String(req.params.productId) && String(item.selectionKey || '') === selectionKey)
   );
 
   if (cart.items.length === before) {

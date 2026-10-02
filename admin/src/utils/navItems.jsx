@@ -2,6 +2,7 @@ import {
   FolderTree,
   LayoutDashboard,
   Package,
+  Gift,
   Settings,
   ShoppingBag,
   TicketPercent,
@@ -12,6 +13,7 @@ import {
 export const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/products', label: 'Products', icon: Package },
+  { to: '/hampers', label: 'Hampers', icon: Gift },
   { to: '/categories', label: 'Categories', icon: FolderTree },
   { to: '/orders', label: 'Orders', icon: ShoppingBag },
   { to: '/customers', label: 'Customers', icon: Users },

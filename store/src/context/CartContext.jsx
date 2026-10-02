@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import * as cartService from '../services/cartService';
 import { getProducts } from '../services/productService';
 import { getErrorMessage } from '../utils/getErrorMessage';
+import { hamperSelectionKey, sameCartLine } from '../utils/hamper';
 import { clearGuestCart, getGuestCart, setGuestCart } from '../utils/storage';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -26,6 +27,8 @@ const toGuestCartState = (items) => {
         quantity,
         price,
         lineTotal: price * quantity,
+        selectionKey: item.selectionKey || hamperSelectionKey(item.selections),
+        selections: item.selections || [],
       };
     });
 
@@ -42,6 +45,8 @@ const persistGuest = (items) => {
       productId: item.product?._id || item.productId,
       quantity: item.quantity,
       product: item.product,
+      selectionKey: item.selectionKey || hamperSelectionKey(item.selections),
+      selections: item.selections || [],
     }))
   );
 };
@@ -121,6 +126,7 @@ export function CartProvider({ children }) {
               guestItems.map((item) => ({
                 productId: item.productId,
                 quantity: item.quantity,
+                selections: item.selections || [],
               }))
             );
             clearGuestCart();
@@ -161,12 +167,13 @@ export function CartProvider({ children }) {
   }, [loadCart]);
 
   const addItem = useCallback(
-    async (product, quantity = 1) => {
+    async (product, quantity = 1, selections = []) => {
       const productId = product?._id || product;
       if (!productId) return;
+      const selectionKey = hamperSelectionKey(selections);
 
       if (isAuthenticated) {
-        const next = await cartService.addToCart({ productId, quantity });
+        const next = await cartService.addToCart({ productId, quantity, selections });
         applyServerCart(next);
         if (next?.warnings?.length) {
           toast.warning(next.warnings[0]);
@@ -177,7 +184,7 @@ export function CartProvider({ children }) {
       }
 
       const guestItems = getGuestCart();
-      const existing = guestItems.find((item) => String(item.productId) === String(productId));
+      const existing = guestItems.find((item) => sameCartLine(item, productId, selectionKey));
       const nextQty = (existing?.quantity || 0) + quantity;
       const available = Number(product?.stock);
       if (product?.status === 'out_of_stock' || (Number.isFinite(available) && available <= 0)) {
@@ -190,9 +197,9 @@ export function CartProvider({ children }) {
       }
       const nextItems = existing
         ? guestItems.map((item) =>
-            String(item.productId) === String(productId) ? { ...item, quantity: nextQty, product } : item
+            sameCartLine(item, productId, selectionKey) ? { ...item, quantity: nextQty, product, selections, selectionKey } : item
           )
-        : [...guestItems, { productId, quantity, product }];
+        : [...guestItems, { productId, quantity, product, selections, selectionKey }];
 
       persistGuest(nextItems);
       setCart(toGuestCartState(nextItems));
@@ -203,15 +210,15 @@ export function CartProvider({ children }) {
   );
 
   const updateItem = useCallback(
-    async (productId, quantity) => {
+    async (productId, quantity, selectionKey = '') => {
       if (isAuthenticated) {
-        const next = await cartService.updateCartItem(productId, quantity);
+        const next = await cartService.updateCartItem(productId, quantity, selectionKey);
         applyServerCart(next);
         return next;
       }
 
       const guestItems = getGuestCart();
-      const current = guestItems.find((item) => String(item.productId) === String(productId));
+      const current = guestItems.find((item) => sameCartLine(item, productId, selectionKey));
       if (quantity > 0) {
         const available = Number(current?.product?.stock);
         if (current?.product?.status === 'out_of_stock' || (Number.isFinite(available) && available <= 0)) {
@@ -225,9 +232,9 @@ export function CartProvider({ children }) {
       }
       const nextItems =
         quantity <= 0
-          ? guestItems.filter((item) => String(item.productId) !== String(productId))
+          ? guestItems.filter((item) => !sameCartLine(item, productId, selectionKey))
           : guestItems.map((item) =>
-              String(item.productId) === String(productId) ? { ...item, quantity } : item
+              sameCartLine(item, productId, selectionKey) ? { ...item, quantity } : item
             );
       persistGuest(nextItems);
       const next = toGuestCartState(nextItems);
@@ -238,15 +245,15 @@ export function CartProvider({ children }) {
   );
 
   const removeItem = useCallback(
-    async (productId) => {
+    async (productId, selectionKey = '') => {
       if (isAuthenticated) {
-        const next = await cartService.removeCartItem(productId);
+        const next = await cartService.removeCartItem(productId, selectionKey);
         applyServerCart(next);
         toast.success('Item removed from cart.');
         return next;
       }
 
-      const nextItems = getGuestCart().filter((item) => String(item.productId) !== String(productId));
+      const nextItems = getGuestCart().filter((item) => !sameCartLine(item, productId, selectionKey));
       persistGuest(nextItems);
       setCart(toGuestCartState(nextItems));
       toast.success('Item removed from cart.');

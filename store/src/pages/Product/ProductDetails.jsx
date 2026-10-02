@@ -7,6 +7,8 @@ import EmptyState from '../../components/common/EmptyState';
 import Loader from '../../components/common/Loader';
 import ProductCard from '../../components/product/ProductCard';
 import QuantitySelector from '../../components/common/QuantitySelector';
+import HamperPersonalizer from '../../components/product/HamperPersonalizer';
+import { buildHamperSelections, hamperReady } from '../../utils/hamper';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
@@ -16,6 +18,7 @@ import { PRODUCT_FAQS, PRODUCT_HIGHLIGHTS } from '../../data/brandContent';
 import { getProductBySlug, getProducts } from '../../services/productService';
 import { checkPincode } from '../../services/shippingService';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toTitleCase } from '../../utils/titleCase';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import {
   formatWeight,
@@ -48,6 +51,11 @@ const ProductDetails = () => {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [openPanel, setOpenPanel] = useState('description');
   const [pincode, setPincode] = useState('');
+  const [choices, setChoices] = useState({});
+
+  useEffect(() => {
+    setChoices({});
+  }, [product?._id]);
   const [pincodeMessage, setPincodeMessage] = useState('');
   const [pincodeLoading, setPincodeLoading] = useState(false);
 
@@ -134,9 +142,17 @@ const ProductDetails = () => {
   const weight = formatWeight(product.weight);
 
   const handleAdd = async () => {
+    if (product.isPersonalizedHamper && !hamperReady(product, choices)) {
+      toast.error('Choose an option for each required slot.');
+      return;
+    }
     setAdding(true);
     try {
-      await addItem(product, quantity);
+      await addItem(
+        product,
+        quantity,
+        product.isPersonalizedHamper ? buildHamperSelections(product, choices) : []
+      );
       openCart();
     } catch (err) {
       toast.error(getErrorMessage(err, 'Unable to add to cart.'));
@@ -146,9 +162,17 @@ const ProductDetails = () => {
   };
 
   const handleBuyNow = async () => {
+    if (product.isPersonalizedHamper && !hamperReady(product, choices)) {
+      toast.error('Choose an option for each required slot.');
+      return;
+    }
     setBuying(true);
     try {
-      await addItem(product, quantity);
+      await addItem(
+        product,
+        quantity,
+        product.isPersonalizedHamper ? buildHamperSelections(product, choices) : []
+      );
       if (isAuthenticated) navigate('/checkout');
       else navigate('/login', { state: { from: '/checkout' } });
     } catch (err) {
@@ -225,8 +249,8 @@ const ProductDetails = () => {
           items={[
             { label: 'Home', to: '/' },
             { label: 'Shop', to: '/shop' },
-            ...(categorySlug ? [{ label: categoryName, to: `/shop/${categorySlug}` }] : []),
-            { label: product.name },
+            ...(categorySlug ? [{ label: toTitleCase(categoryName), to: `/shop/${categorySlug}` }] : []),
+            { label: toTitleCase(product.name) },
           ]}
         />
 
@@ -283,8 +307,8 @@ const ProductDetails = () => {
           </div>
 
           <div className="product-info">
-            <p className="eyebrow">{categoryName}</p>
-            <h1>{product.name}</h1>
+            <p className="eyebrow">{toTitleCase(categoryName)}</p>
+            <h1>{toTitleCase(product.name)}</h1>
             <div className="price-compare">
               <strong>{formatCurrency(sellingRate)}</strong>
               {mrp > sellingRate ? <s>{formatCurrency(mrp)}</s> : null}
@@ -302,6 +326,20 @@ const ProductDetails = () => {
               </div>
             ) : null}
 
+            {product.isPersonalizedHamper ? (
+              <HamperPersonalizer
+                product={product}
+                quantity={quantity}
+                onQuantity={setQuantity}
+                choices={choices}
+                onChoice={(index, value) => setChoices((current) => ({ ...current, [index]: value }))}
+                onAdd={handleAdd}
+                onBuy={handleBuyNow}
+                adding={adding}
+                buying={buying}
+              />
+            ) : (
+              <>
             <QuantitySelector
               id="qty"
               value={quantity}
@@ -327,6 +365,8 @@ const ProductDetails = () => {
                 <Heart size={18} strokeWidth={1.5} fill={saved ? 'currentColor' : 'none'} />
               </button>
             </div>
+              </>
+            )}
 
             <form className="pincode-check" onSubmit={handlePincode}>
               <label htmlFor="pincode" className="qty-selector__label">
@@ -392,11 +432,11 @@ const ProductDetails = () => {
           <strong>{formatCurrency(sellingRate)}</strong>
           {mrp > sellingRate ? <s>{formatCurrency(mrp)}</s> : null}
         </div>
-        <Button onClick={handleAdd} disabled={outOfStock || adding} size="sm">
-          {outOfStock ? 'Unavailable' : adding ? 'Adding...' : 'Add to cart'}
+        <Button onClick={handleAdd} disabled={outOfStock || adding || (product.isPersonalizedHamper && !hamperReady(product, choices))} size="sm">
+          {outOfStock ? 'Unavailable' : adding ? 'Adding...' : product.isPersonalizedHamper ? 'Add To Cart' : 'Add to cart'}
         </Button>
-        <Button onClick={handleBuyNow} disabled={outOfStock || buying} variant="secondary" size="sm">
-          {buying ? 'Wait' : 'Buy now'}
+        <Button onClick={handleBuyNow} disabled={outOfStock || buying || (product.isPersonalizedHamper && !hamperReady(product, choices))} variant="secondary" size="sm">
+          {buying ? 'Wait' : 'Buy Now'}
         </Button>
       </div>
 

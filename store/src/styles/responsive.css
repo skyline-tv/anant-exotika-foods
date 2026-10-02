@@ -12,8 +12,8 @@
 
 @media (max-width: 767px) {
   .announcement-bar__text {
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

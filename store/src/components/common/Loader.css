@@ -28,6 +28,6 @@
 .loader__text {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--muted-text);
 }

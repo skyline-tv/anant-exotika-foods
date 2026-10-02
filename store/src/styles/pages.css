@@ -28,7 +28,7 @@
 }
 
 .page-header h1 {
-  font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+  font-size: clamp(1.75rem, 3.2vw, 2.35rem);
   margin-bottom: var(--space-3);
 }
 
@@ -43,8 +43,8 @@
   gap: 0.4rem 0.7rem;
   margin-bottom: var(--space-lg);
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--muted-text);
 }
 
@@ -123,7 +123,7 @@
 .qty-selector__label {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--muted-text);
 }
 
@@ -184,9 +184,9 @@
 
 .filter-group strong,
 .filter-group label {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   font-weight: var(--fw-medium);
 }
@@ -273,7 +273,7 @@
   padding: 0 0.95rem;
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--dark-text);
   background: var(--white);
   border: 1px solid var(--border-subtle);
@@ -446,7 +446,7 @@
 }
 
 .product-info h1 {
-  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-size: clamp(1.6rem, 2.6vw, 2.15rem);
   margin-bottom: var(--space-md);
 }
 
@@ -458,7 +458,7 @@
 .product-info__stock {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--green-mid);
 }
 
@@ -483,8 +483,8 @@
 
 .price-compare__off {
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--luxury-gold);
 }
 
@@ -539,9 +539,10 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.1rem 0;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--dark-text);
 }
 
@@ -604,9 +605,9 @@
 
 .pdp-sticky .btn {
   min-height: 44px;
-  padding: 0.45rem 0.4rem;
-  letter-spacing: 0.06em;
-  font-size: 0.62rem;
+  padding: 0.45rem 0.65rem;
+  letter-spacing: 0.01em;
+  font-size: 0.8125rem;
 }
 
 .image-zoom {
@@ -679,7 +680,7 @@
   display: grid;
   place-items: center;
   font-family: var(--font-heading);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.01em;
   color: rgba(23, 63, 42, 0.28);
 }
 
@@ -768,7 +769,7 @@
   margin-bottom: var(--space-5);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--muted-text);
 }
 
@@ -956,8 +957,8 @@
   gap: 0.5rem 1.25rem;
   margin-top: var(--space-md);
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--green-mid);
 }
 
@@ -973,7 +974,7 @@
   flex: 0 0 auto;
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--muted-text);
   padding: 0.65rem 0.9rem;
   border-bottom: 1px solid transparent;
@@ -996,6 +997,9 @@
 .account-card .eyebrow + h2 {
   font-size: var(--fs-xl);
   font-family: var(--font-heading);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .account-shortcuts {
@@ -1038,8 +1042,8 @@
 .status-pill {
   display: inline-block;
   font-size: 0.65rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--luxury-gold);
 }
 
@@ -1244,9 +1248,10 @@
 }
 
 .shop-toolbar p {
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: var(--fs-xs);
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
   color: var(--muted-text);
 }
 
@@ -1328,8 +1333,8 @@
 
 .review-card span {
   font-size: var(--fs-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--luxury-gold);
 }
 
@@ -1489,8 +1494,8 @@
 
 .care-links a {
   font-size: var(--fs-xs);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: var(--muted-text);
 }
 
@@ -1508,8 +1513,10 @@
 .about-points strong {
   display: block;
   font-family: var(--font-heading);
-  font-size: 1.35rem;
-  font-weight: var(--fw-medium);
+  font-size: 1.125rem;
+  font-weight: var(--fw-semibold);
+  line-height: 1.35;
+  text-transform: capitalize;
   margin: 0.15rem 0 0.25rem;
 }
 
@@ -1572,7 +1579,7 @@
   }
 
   .page-header h1 {
-    font-size: clamp(1.9rem, 8vw, 2.45rem);
+    font-size: clamp(1.6rem, 7vw, 2rem);
   }
 
   .alert {
@@ -1635,7 +1642,7 @@
   }
 
   .product-info h1 {
-    font-size: clamp(1.85rem, 7.4vw, 2.3rem);
+    font-size: clamp(1.45rem, 6vw, 1.85rem);
   }
 
   .price-compare strong {
@@ -1779,7 +1786,8 @@
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   background: var(--white);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
+  font-weight: var(--fw-medium);
   color: var(--dark-text);
 }
 
@@ -1801,8 +1809,8 @@
   }
 
   .pdp-sticky .btn {
-    letter-spacing: 0.03em;
-    font-size: 0.58rem;
+    letter-spacing: 0.01em;
+    font-size: 0.75rem;
     padding-inline: 0.25rem;
   }
 
@@ -1815,11 +1823,79 @@
   appearance: none;
   padding-right: 2.1rem;
   cursor: pointer;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   background-image: linear-gradient(45deg, transparent 50%, #c9a227 50%), linear-gradient(135deg, #c9a227 50%, transparent 50%);
   background-position: calc(100% - 16px) calc(50% - 1px), calc(100% - 11px) calc(50% - 1px);
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
+}
+
+.hamper-builder {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 0.4rem;
+}
+
+.hamper-builder__note,
+.hamper-builder__hint {
+  margin: 0;
+  color: var(--muted-text);
+}
+
+.hamper-builder select {
+  min-height: 48px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--white);
+  border-radius: var(--radius-sm);
+}
+
+.hamper-confirmation {
+  padding: 1rem;
+  background: var(--ivory);
+  border: 1px solid rgba(201, 162, 39, 0.35);
+  border-radius: var(--radius-md);
+}
+
+.hamper-confirmation h2 {
+  font-size: 1.15rem;
+  margin-bottom: 0.7rem;
+}
+
+.hamper-confirmation ul,
+.hamper-selections {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.35rem 0 0;
+}
+
+.hamper-confirmation li,
+.hamper-selections li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.6rem;
+  align-items: baseline;
+}
+
+.hamper-confirmation li span,
+.hamper-selections li span {
+  color: var(--muted-text);
+}
+
+.hamper-selections li strong,
+.hamper-confirmation li strong {
+  font-weight: var(--fw-semibold);
+}
+
+.summary-row--hamper {
+  align-items: flex-start;
+}
+
+.product-card__cart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }

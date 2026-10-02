@@ -108,16 +108,20 @@ export const GIFTING_OCCASIONS = [
 
 export const TRUST_POINTS = [
   {
+    title: '100% Natural',
+    text: 'Nothing artificial added.',
+  },
+  {
     title: 'Premium Quality',
-    text: 'Grade-selected dry fruits chosen for flavour, size and freshness.',
+    text: 'Chosen for flavour, size and freshness.',
   },
   {
-    title: 'Carefully Selected',
-    text: 'Sourced with care and tasted before they reach your table.',
+    title: 'Rich in Nutrition',
+    text: 'A wholesome choice for everyday eating.',
   },
   {
-    title: 'Hygienically Packed',
-    text: 'Sealed in clean, gift-ready packaging you can trust.',
+    title: 'Perfect for Gifting',
+    text: 'Ready to share for any occasion.',
   },
   {
     title: 'Secure Payments',

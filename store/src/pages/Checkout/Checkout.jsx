@@ -17,6 +17,8 @@ import {
 } from '../../services/addressService';
 import { validateCoupon } from '../../services/couponService';
 import { createOrder } from '../../services/orderService';
+import { toTitleCase } from '../../utils/titleCase';
+import HamperSelections from '../../components/product/HamperSelections';
 import { failPayment, getPaymentConfig, loadRazorpayScript, verifyPayment } from '../../services/paymentService';
 import { quoteShipping } from '../../services/shippingService';
 import { useStoreContent } from '../../context/ContentContext';
@@ -655,9 +657,10 @@ const Checkout = () => {
           <aside className="cart-summary">
             <h2>Order summary</h2>
             {cart.items.map((item) => (
-              <div key={item.product?._id} className="summary-row">
+              <div key={`${item.product?._id}-${item.selectionKey || ''}`} className="summary-row summary-row--hamper">
                 <span>
-                  {item.product?.name} × {item.quantity}
+                  {toTitleCase(item.product?.name)} × {item.quantity}
+                  <HamperSelections selections={item.selections} />
                 </span>
                 <span>{formatCurrency(item.lineTotal)}</span>
               </div>

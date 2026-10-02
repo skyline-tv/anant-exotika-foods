@@ -255,6 +255,12 @@ const summaryRow = (label, value) => `
     <td style="padding:4px 0;text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.dark};">${escapeHtml(value)}</td>
   </tr>`;
 
+const selectionSummary = (item) =>
+  (item.selections || [])
+    .map((selection) => `${selection.slotLabel}: ${selection.name}`)
+    .filter(Boolean)
+    .join(' · ');
+
 const orderItemsTable = (order) => {
   const rows = (order.items || [])
     .map(
@@ -262,6 +268,7 @@ const orderItemsTable = (order) => {
       <tr>
         <td style="padding:10px 0;border-bottom:1px solid ${BRAND.cream};font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.dark};">
           <strong>${escapeHtml(item.name)}</strong><br />
+          ${selectionSummary(item) ? `<span style="color:${BRAND.muted};">${escapeHtml(selectionSummary(item))}</span><br />` : ''}
           <span style="color:${BRAND.muted};">Qty ${escapeHtml(item.quantity)} · ${escapeHtml(formatMoney(item.price))} each</span>
         </td>
         <td style="padding:10px 0;border-bottom:1px solid ${BRAND.cream};text-align:right;font-family:Arial,Helvetica,sans-serif;font-size:14px;color:${BRAND.dark};vertical-align:top;">
@@ -317,7 +324,10 @@ const sendOrderConfirmationEmail = async ({ to, name, order }) => {
   const number = orderNumberLabel(order.orderNumber);
   const subject = `Order confirmed — ${number}`;
   const itemLines = (order.items || [])
-    .map((item) => `${item.name} · Qty ${item.quantity} · ${formatMoney(item.price)} each · ${formatMoney(item.total)}`)
+    .map((item) => {
+      const picks = selectionSummary(item);
+      return `${item.name}${picks ? ` (${picks})` : ''} · Qty ${item.quantity} · ${formatMoney(item.price)} each · ${formatMoney(item.total)}`;
+    })
     .join('\n');
   const html = emailShell({
     title: subject,

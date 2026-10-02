@@ -8,8 +8,10 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { useUi } from '../../context/UiContext';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toTitleCase } from '../../utils/titleCase';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { getPrimaryImage } from '../../utils/productHelpers';
+import HamperSelections from '../product/HamperSelections';
 import './CartDrawer.css';
 
 const CartDrawer = () => {
@@ -30,17 +32,17 @@ const CartDrawer = () => {
     };
   }, [cartOpen]);
 
-  const handleQuantity = async (productId, quantity) => {
+  const handleQuantity = async (productId, quantity, selectionKey = '') => {
     try {
-      await updateItem(productId, quantity);
+      await updateItem(productId, quantity, selectionKey);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Unable to update cart.'));
     }
   };
 
-  const handleRemove = async (productId) => {
+  const handleRemove = async (productId, selectionKey = '') => {
     try {
-      await removeItem(productId);
+      await removeItem(productId, selectionKey);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Unable to remove item.'));
     }
@@ -82,25 +84,26 @@ const CartDrawer = () => {
               const productId = product?._id;
               const image = getPrimaryImage(product);
               return (
-                <article key={productId} className="cart-drawer__item">
+                <article key={`${productId}-${item.selectionKey || ''}`} className="cart-drawer__item">
                   <Link to={`/product/${product?.slug}`} onClick={closeCart}>
                     {image ? <img src={image} alt={product?.name} /> : <span className="cart-drawer__thumb" />}
                   </Link>
                   <div>
                     <h3>
                       <Link to={`/product/${product?.slug}`} onClick={closeCart}>
-                        {product?.name}
+                        {toTitleCase(product?.name)}
                       </Link>
                     </h3>
                     <p>{formatCurrency(item.price)}</p>
+                    <HamperSelections selections={item.selections} />
                     <QuantitySelector
                       value={item.quantity}
                       min={1}
                       max={product?.stock || 99}
                       label=""
-                      onChange={(quantity) => handleQuantity(productId, quantity)}
+                      onChange={(quantity) => handleQuantity(productId, quantity, item.selectionKey)}
                     />
-                    <button type="button" className="text-link" onClick={() => handleRemove(productId)}>
+                    <button type="button" className="text-link" onClick={() => handleRemove(productId, item.selectionKey)}>
                       Remove
                     </button>
                   </div>

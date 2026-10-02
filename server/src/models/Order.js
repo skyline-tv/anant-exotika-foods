@@ -42,6 +42,17 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    selections: {
+      type: [
+        {
+          slotLabel: { type: String, required: true, trim: true },
+          product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+          name: { type: String, trim: true, default: '' },
+          sku: { type: String, trim: true, default: '' },
+        },
+      ],
+      default: [],
+    },
   },
   { _id: false }
 );

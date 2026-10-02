@@ -12,7 +12,7 @@ const ctaSchema = new mongoose.Schema(
 const heroSchema = new mongoose.Schema(
   {
     image: { type: String, trim: true, default: '' },
-    heading: { type: String, trim: true, default: 'Thoughtfully Curated. Elegantly Gifted.' },
+    heading: { type: String, trim: true, default: 'Crafted with love & shared with joy' },
     subheading: {
       type: String,
       trim: true,

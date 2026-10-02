@@ -38,10 +38,10 @@
 .site-header__nav-link {
   position: relative;
   display: inline-block;
-  font-size: 0.68rem;
+  font-size: 0.9375rem;
   font-weight: var(--fw-medium);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: rgba(248, 245, 240, 0.88);
   padding: 0.45rem 0;
   white-space: nowrap;
@@ -135,7 +135,7 @@
 .mega-menu__label {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   margin-bottom: var(--space-md);
 }
@@ -167,8 +167,9 @@
 .mega-menu__promo em {
   display: block;
   font-family: var(--font-heading);
-  font-style: italic;
-  font-size: var(--fs-xl);
+  font-style: normal;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-lg);
   color: var(--ivory);
   margin-bottom: 0.3rem;
 }
@@ -241,7 +242,7 @@
 .nav-drawer__brand {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
 }
 
@@ -256,9 +257,10 @@
   justify-content: space-between;
   width: 100%;
   padding: 1rem 0;
-  font-size: 1.02rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 1rem;
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
   color: rgba(248, 245, 240, 0.9);
   border-bottom: 1px solid rgba(248, 245, 240, 0.12);
 }
@@ -296,7 +298,7 @@
 .nav-drawer__meta-link {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: rgba(248, 245, 240, 0.7);
   text-align: left;
 }

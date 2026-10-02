@@ -1,30 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
+  Apple,
   Award,
+  Gift,
   Leaf,
   Lock,
   PackageCheck,
-  ShieldCheck,
   Truck,
 } from 'lucide-react';
 import Button from '../../components/common/Button';
 import Reveal from '../../components/common/Reveal';
 import SectionTitle from '../../components/common/SectionTitle';
-import ProductCard from '../../components/product/ProductCard';
-import ProductSkeleton from '../../components/common/ProductSkeleton';
+import CollectionShowcase from '../../components/home/CollectionShowcase';
 import EmptyState from '../../components/common/EmptyState';
 import { getCategories } from '../../services/categoryService';
-import { getProducts } from '../../services/productService';
-import { getErrorMessage } from '../../utils/getErrorMessage';
 import { resolveAssetUrl } from '../../utils/assetUrl';
+import { toTitleCase } from '../../utils/titleCase';
 import { getParentCategories } from '../../utils/categories';
 import { TRUST_POINTS, matchCategoryPath } from '../../data/brandContent';
 import { useStoreContent } from '../../context/ContentContext';
 import { usePageMeta } from '../../hooks/usePageMeta';
 import './Home.css';
 
-const TRUST_ICONS = [Award, Leaf, ShieldCheck, Lock, Truck];
+const TRUST_ICONS = [Leaf, Award, Apple, Gift, Lock, Truck];
 const ROTATE_MS = 4200;
 
 const HeroShowcase = ({ slides }) => {
@@ -105,9 +104,7 @@ const Home = () => {
   const location = useLocation();
   const { content } = useStoreContent();
   const [categories, setCategories] = useState([]);
-  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {
@@ -115,22 +112,12 @@ const Home = () => {
 
     const load = async () => {
       setLoading(true);
-      setError('');
       try {
-        const [categoryData, featuredData] = await Promise.all([
-          getCategories(),
-          getProducts({ featured: true, limit: 8, sort: 'featured' }),
-        ]);
-        let productList = featuredData.products || [];
-        if (!productList.length) {
-          const newest = await getProducts({ limit: 8, sort: 'newest' });
-          productList = newest.products || [];
-        }
+        const categoryData = await getCategories();
         if (!active) return;
         setCategories(getParentCategories(categoryData || []));
-        setProducts(productList);
-      } catch (err) {
-        if (active) setError(getErrorMessage(err, 'Unable to load products. Please try again.'));
+      } catch {
+        if (active) setCategories([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -190,14 +177,14 @@ const Home = () => {
 
   addSlide({
     id: 'hero-banner',
-    name: hero.heading || content?.storeName || 'Anant Exotika Foods',
+    name: toTitleCase(hero.heading || content?.storeName || 'Anant Exotika Foods'),
     src: heroImage,
     to: primaryCta.to || hampersTo,
   });
   categories.forEach((category) => {
     addSlide({
       id: category._id,
-      name: category.name,
+      name: toTitleCase(category.name),
       src: resolveAssetUrl(category.image),
       to: `/shop/${category.slug}`,
     });
@@ -221,7 +208,7 @@ const Home = () => {
       <section className="hero" aria-label="Hero">
         <div className="hero__copy">
           <p className="hero__brand">{content?.storeName || 'Anant Exotika Foods'}</p>
-          <h1 className="hero__title">{hero.heading || 'Thoughtfully Curated. Elegantly Gifted.'}</h1>
+          <h1 className="hero__title">{toTitleCase(hero.heading || 'Crafted with love & shared with joy')}</h1>
           <p className="hero__subtitle">
             {hero.subheading ||
               'Premium dry fruits and gifting, selected for flavour, freshness and the occasion — from family festivals to corporate courtesy.'}
@@ -246,7 +233,7 @@ const Home = () => {
                 <Link key={item._id || item.title} to={item.to || '/shop'} className="gifting-card">
                   {item.image ? <img src={resolveAssetUrl(item.image)} alt="" loading="lazy" /> : null}
                   <span>
-                    <strong>{item.title}</strong>
+                    <strong>{toTitleCase(item.title)}</strong>
                     {item.text ? <em>{item.text}</em> : null}
                   </span>
                 </Link>
@@ -284,7 +271,7 @@ const Home = () => {
                   <Link key={category._id} to={`/shop/${category.slug}`} className="category-card">
                     {imageSrc ? <img src={imageSrc} alt="" loading="lazy" /> : <span className="category-card__fallback">{category.name.charAt(0)}</span>}
                     <span className="category-card__overlay">
-                      <strong>{category.name}</strong>
+                      <strong>{toTitleCase(category.name)}</strong>
                       {category.description ? <em>{category.description}</em> : null}
                     </span>
                   </Link>
@@ -295,44 +282,7 @@ const Home = () => {
         </div>
       </Reveal>
 
-      <Reveal as="section" className="section section--ivory">
-        <div className="container">
-          <div className="section-heading-row">
-            <SectionTitle
-              align="left"
-              eyebrow="The collection"
-              title="Selected for the table"
-              subtitle="Featured dry fruits and hampers, published from the catalogue."
-            />
-            <Button as={Link} to="/shop" variant="ghost" className="hide-mobile">
-              View all
-            </Button>
-          </div>
-          {loading ? (
-            <ProductSkeleton count={8} />
-          ) : error ? (
-            <EmptyState title="Unable to load products" message={error} actionLabel="Shop now" actionTo="/shop" />
-          ) : products.length === 0 ? (
-            <EmptyState
-              title="The collection is being prepared"
-              message="New dry fruits and hampers will appear here when they are published."
-            />
-          ) : (
-            <>
-              <div className="product-grid">
-                {products.map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-              </div>
-              <div className="home-view-all show-mobile-only">
-                <Button as={Link} to="/shop" variant="outline" className="btn--full">
-                  View all
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </Reveal>
+      <CollectionShowcase categories={categories} />
 
       <Reveal as="section" className="section">
         <div className="container">
@@ -347,7 +297,7 @@ const Home = () => {
               return (
                 <article key={item.title} className="trust-card">
                   <Icon size={22} strokeWidth={1.4} />
-                  <h3>{item.title}</h3>
+                  <h3>{toTitleCase(item.title)}</h3>
                   <p>{item.text}</p>
                 </article>
               );
@@ -369,7 +319,7 @@ const Home = () => {
                 <Link key={item._id || item.title} to={item.to || '/shop'} className="gifting-card">
                   {item.image ? <img src={resolveAssetUrl(item.image)} alt="" loading="lazy" /> : null}
                   <span>
-                    <strong>{item.title}</strong>
+                    <strong>{toTitleCase(item.title)}</strong>
                     {item.text ? <em>{item.text}</em> : null}
                   </span>
                 </Link>
@@ -412,7 +362,7 @@ const Home = () => {
         <div className="container">
           <div className="newsletter">
             <p className="eyebrow">Stay close</p>
-            <h2>{content?.newsletter?.heading || 'Invitations, harvests and gifting notes'}</h2>
+            <h2>{toTitleCase(content?.newsletter?.heading || 'Invitations, harvests and gifting notes')}</h2>
             <p>
               {content?.newsletter?.body ||
                 'Be first to know about festive collections, corporate programmes and limited harvests.'}

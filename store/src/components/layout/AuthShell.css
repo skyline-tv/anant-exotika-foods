@@ -15,8 +15,9 @@
 
 .auth-split__visual p {
   font-family: var(--font-heading);
-  font-style: italic;
-  font-size: var(--fs-xl);
+  font-style: normal;
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-lg);
   color: var(--soft-gold);
   letter-spacing: 0.02em;
   margin: 0;

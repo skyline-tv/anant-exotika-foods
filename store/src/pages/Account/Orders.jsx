@@ -10,6 +10,8 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import { resolveAssetUrl } from '../../utils/assetUrl';
+import { toTitleCase } from '../../utils/titleCase';
+import HamperSelections from '../../components/product/HamperSelections';
 
 const stepIndexForStatus = (status) => {
   const index = SHIPMENT_STEPS.findIndex((step) => step.key === status);
@@ -136,7 +138,8 @@ const Orders = () => {
                   <article key={`${item.sku}-${item.name}`} className="order-item">
                     {item.image ? <img src={resolveAssetUrl(item.image)} alt={item.name} /> : <div />}
                     <div>
-                      <strong>{item.name}</strong>
+                      <strong>{toTitleCase(item.name)}</strong>
+                      <HamperSelections selections={item.selections} />
                       <p>
                         {item.quantity} × {formatCurrency(item.price)}
                       </p>

@@ -12,8 +12,10 @@ import { useCart } from '../../context/CartContext';
 import { useToast } from '../../context/ToastContext';
 import { validateCoupon } from '../../services/couponService';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { toTitleCase } from '../../utils/titleCase';
 import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
 import { getErrorMessage } from '../../utils/getErrorMessage';
+import HamperSelections from '../../components/product/HamperSelections';
 import { formatWeight, getMrp, getPrimaryImage } from '../../utils/productHelpers';
 
 const Cart = () => {
@@ -23,17 +25,17 @@ const Cart = () => {
   const [couponCode, setCouponCode] = useState('');
   const [coupon, setCoupon] = useState(null);
 
-  const handleQuantity = async (productId, quantity) => {
+  const handleQuantity = async (productId, quantity, selectionKey = '') => {
     try {
-      await updateItem(productId, quantity);
+      await updateItem(productId, quantity, selectionKey);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Unable to update cart.'));
     }
   };
 
-  const handleRemove = async (productId) => {
+  const handleRemove = async (productId, selectionKey = '') => {
     try {
-      await removeItem(productId);
+      await removeItem(productId, selectionKey);
     } catch (error) {
       toast.error(getErrorMessage(error, 'Unable to remove item.'));
     }
@@ -88,7 +90,7 @@ const Cart = () => {
               const image = getPrimaryImage(product);
               const weight = formatWeight(product?.weight);
               return (
-                <article key={productId} className="cart-item">
+                <article key={`${productId}-${item.selectionKey || ''}`} className="cart-item">
                   {image ? (
                     <img src={image} alt={product?.name} />
                   ) : (
@@ -96,9 +98,10 @@ const Cart = () => {
                   )}
                   <div>
                     <h2>
-                      <Link to={`/product/${product?.slug}`}>{product?.name}</Link>
+                      <Link to={`/product/${product?.slug}`}>{toTitleCase(product?.name)}</Link>
                     </h2>
                     {weight ? <p>{weight}</p> : null}
+                    <HamperSelections selections={item.selections} />
                     <p>{product?.status === 'out_of_stock' || Number(product?.stock) <= 0 ? 'Out of Stock' : 'In Stock'}</p>
                     <p>
                       {formatCurrency(item.price)}
@@ -109,9 +112,9 @@ const Cart = () => {
                       min={1}
                       max={product?.stock || 99}
                       label=""
-                      onChange={(quantity) => handleQuantity(productId, quantity)}
+                      onChange={(quantity) => handleQuantity(productId, quantity, item.selectionKey)}
                     />
-                    <button type="button" className="text-link" onClick={() => handleRemove(productId)}>
+                    <button type="button" className="text-link" onClick={() => handleRemove(productId, item.selectionKey)}>
                       Remove
                     </button>
                   </div>

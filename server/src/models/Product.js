@@ -145,6 +145,26 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isPersonalizedHamper: {
+      type: Boolean,
+      default: false,
+    },
+    packaging: {
+      type: String,
+      trim: true,
+      default: '',
+      maxlength: [180, 'Packaging cannot exceed 180 characters'],
+    },
+    slots: {
+      type: [
+        {
+          label: { type: String, required: true, trim: true, maxlength: 80 },
+          required: { type: Boolean, default: true },
+          products: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
+        },
+      ],
+      default: [],
+    },
     displayOrder: {
       type: Number,
       default: 0,

@@ -68,10 +68,11 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-tight);
   color: var(--dark-text);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
+  text-transform: capitalize;
 }
 
 p {
@@ -99,7 +100,7 @@ p {
   color: var(--ivory);
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
 }
 
 .skip-link:focus {
@@ -148,7 +149,7 @@ p {
   font-size: 0.7rem;
   font-weight: var(--fw-medium);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--luxury-gold);
   margin-bottom: var(--space-md);
 }
@@ -172,7 +173,7 @@ p {
 }
 
 .page-placeholder__title {
-  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
   margin-bottom: var(--space-md);
 }
 
@@ -297,10 +298,11 @@ p {
 }
 
 .field label {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
-  color: var(--muted-text);
+  text-transform: capitalize;
+  color: var(--dark-text);
 }
 
 .field input,
@@ -369,7 +371,7 @@ p {
 .text-link {
   font-size: var(--fs-xs);
   letter-spacing: var(--ls-wide);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--muted-text);
 }
 

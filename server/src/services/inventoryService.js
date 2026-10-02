@@ -1,4 +1,5 @@
 const Product = require('../models/Product');
+const AppError = require('../utils/AppError');
 
 const decrementStock = async (productId, quantity) => {
   const qty = Number(quantity);
@@ -54,8 +55,50 @@ const restoreStockItems = async (items = []) => {
   }
 };
 
+const stockMovesForItem = (item) => {
+  const moves = [{ product: item.product, quantity: item.quantity, name: item.name }];
+  for (const selection of item.selections || []) {
+    if (!selection?.product) continue;
+    moves.push({
+      product: selection.product?._id || selection.product,
+      quantity: item.quantity,
+      name: selection.name || item.name,
+    });
+  }
+  return moves;
+};
+
+const decrementOrderStock = async (items = []) => {
+  const decremented = [];
+  try {
+    for (const item of items) {
+      for (const move of stockMovesForItem(item)) {
+        const updated = await decrementStock(move.product, move.quantity);
+        if (!updated) {
+          throw new AppError(`Insufficient stock for ${move.name}.`, 409);
+        }
+        decremented.push(move);
+      }
+    }
+    return decremented;
+  } catch (error) {
+    await restoreStockItems(decremented);
+    throw error;
+  }
+};
+
+const restoreOrderStock = async (items = []) => {
+  for (const item of items) {
+    for (const move of stockMovesForItem(item)) {
+      await restoreStock(move.product, move.quantity);
+    }
+  }
+};
+
 module.exports = {
   decrementStock,
   restoreStock,
   restoreStockItems,
+  decrementOrderStock,
+  restoreOrderStock,
 };

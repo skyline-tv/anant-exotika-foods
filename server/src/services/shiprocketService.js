@@ -242,15 +242,22 @@ const buildAdhocOrderPayload = ({ order, email, weightGrams }) => {
     shipping.postalCode === billing.postalCode &&
     shipping.fullName === billing.fullName;
 
-  const items = (order.items || []).map((item) => ({
-    name: String(item.name || 'Item').slice(0, 200),
+  const items = (order.items || []).map((item) => {
+    const picks = (item.selections || [])
+      .map((selection) => `${selection.slotLabel}: ${selection.name}`)
+      .filter(Boolean)
+      .join(', ');
+    const label = picks ? `${item.name || 'Item'} (${picks})` : item.name || 'Item';
+    return {
+    name: String(label).slice(0, 200),
     sku: String(item.sku || 'SKU').slice(0, 50),
     units: Math.max(1, Number(item.quantity) || 1),
     selling_price: Math.max(0, Number(item.price) || 0),
     discount: 0,
     tax: 0,
     hsn: '',
-  }));
+    };
+  });
 
   if (items.length === 0) {
     throw new AppError('Order has no items to ship.', 400);

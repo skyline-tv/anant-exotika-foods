@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { resolveAssetUrl } from '../../utils/assetUrl';
+import { toTitleCase } from '../../utils/titleCase';
 import { useStoreContent } from '../../context/ContentContext';
 import { usePageMeta } from '../../hooks/usePageMeta';
 
@@ -35,8 +36,8 @@ const About = () => {
             </div>
           ) : null}
           <div>
-            <span className="eyebrow">{story?.eyebrow || 'Our story'}</span>
-            <h1>{story?.heading || 'Quality, elegance and thoughtful gifting'}</h1>
+            <span className="eyebrow">{toTitleCase(story?.eyebrow || 'Our story')}</span>
+            <h1>{toTitleCase(story?.heading || 'Quality, elegance and thoughtful gifting')}</h1>
             <p>
               {story?.body ||
                 'Anant Exotika Foods is a premium Indian house for dry fruits, mukhwas and gifting. We select for flavour and freshness, then present each piece so it feels worthy of the occasion.'}

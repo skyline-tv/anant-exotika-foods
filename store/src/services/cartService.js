@@ -15,13 +15,13 @@ export async function mergeCart(items) {
   return data.data.cart;
 }
 
-export async function updateCartItem(productId, quantity) {
-  const { data } = await api.put(`/cart/${productId}`, { quantity });
+export async function updateCartItem(productId, quantity, selectionKey = '') {
+  const { data } = await api.put(`/cart/${productId}`, { quantity, selectionKey });
   return data.data.cart;
 }
 
-export async function removeCartItem(productId) {
-  const { data } = await api.delete(`/cart/${productId}`);
+export async function removeCartItem(productId, selectionKey = '') {
+  const { data } = await api.delete(`/cart/${productId}`, { params: { selectionKey } });
   return data.data.cart;
 }
 

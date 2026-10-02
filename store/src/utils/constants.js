@@ -1,5 +1,5 @@
 export const BRAND_NAME = 'Anant Exotika Foods';
-export const BRAND_TAGLINE = 'Thoughtfully Curated. Elegantly Gifted.';
+export const BRAND_TAGLINE = 'Crafted with love & shared with joy';
 
 export const CONTACT = {
   emails: ['info@anantexotika.in', 'anantexotika.in@gmail.com'],

@@ -63,13 +63,13 @@ const Footer = () => {
           <h3 className="footer__heading">Shop</h3>
           <ul className="footer__links">
             <li>
-              <Link to="/shop">All products</Link>
+              <Link to="/shop">All Products</Link>
             </li>
             <li>
-              <Link to="/shop/new-arrivals">New arrivals</Link>
+              <Link to="/shop/new-arrivals">New Arrivals</Link>
             </li>
             <li>
-              <Link to="/shop/featured">Featured collection</Link>
+              <Link to="/shop/featured">Featured Collection</Link>
             </li>
             <li>
               <Link to={{ pathname: '/', hash: 'gifting' }}>Gifting</Link>
@@ -78,22 +78,22 @@ const Footer = () => {
         </div>
 
         <div className="footer__col">
-          <h3 className="footer__heading">Customer care</h3>
+          <h3 className="footer__heading">Customer Care</h3>
           <ul className="footer__links">
             <li>
-              <Link to="/contact">Contact us</Link>
+              <Link to="/contact">Contact Us</Link>
             </li>
             <li>
-              <Link to="/shipping-policy">Shipping policy</Link>
+              <Link to="/shipping-policy">Shipping Policy</Link>
             </li>
             <li>
-              <Link to="/returns-policy">Returns &amp; refunds</Link>
+              <Link to="/returns-policy">Returns &amp; Refunds</Link>
             </li>
             <li>
-              <Link to="/privacy-policy">Privacy policy</Link>
+              <Link to="/privacy-policy">Privacy Policy</Link>
             </li>
             <li>
-              <Link to="/terms">Terms &amp; conditions</Link>
+              <Link to="/terms">Terms &amp; Conditions</Link>
             </li>
           </ul>
         </div>
@@ -108,13 +108,13 @@ const Footer = () => {
               <Link to="/shop">Shop</Link>
             </li>
             <li>
-              <Link to="/about">About us</Link>
+              <Link to="/about">About Us</Link>
             </li>
             <li>
-              <Link to="/about#our-story">Our story</Link>
+              <Link to="/about#our-story">Our Story</Link>
             </li>
             <li>
-              <Link to="/contact">Contact us</Link>
+              <Link to="/contact">Contact Us</Link>
             </li>
           </ul>
         </div>

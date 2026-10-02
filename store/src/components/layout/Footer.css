@@ -23,8 +23,9 @@
 
 .footer__tagline {
   font-family: var(--font-heading);
-  font-size: var(--fs-lg);
-  font-style: italic;
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  font-style: normal;
   color: var(--soft-gold);
   margin: 0.85rem 0 var(--space-md);
   line-height: 1.35;
@@ -32,10 +33,10 @@
 
 .footer__heading {
   font-family: var(--font-body);
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-wider);
-  text-transform: uppercase;
+  text-transform: capitalize;
   color: var(--soft-gold);
   margin-bottom: var(--space-md);
 }
@@ -100,7 +101,7 @@
 
 .footer__copyright {
   font-size: var(--fs-xs);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.01em;
   color: rgba(248, 245, 240, 0.48);
   margin: 0;
 }

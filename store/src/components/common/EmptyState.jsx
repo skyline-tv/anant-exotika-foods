@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { toTitleCase } from '../../utils/titleCase';
 import Button from './Button';
 
 const EmptyState = ({
@@ -11,8 +12,8 @@ const EmptyState = ({
 }) => {
   return (
     <div className="empty-state">
-      {eyebrow ? <span className="eyebrow">{eyebrow}</span> : null}
-      <h2>{title}</h2>
+      {eyebrow ? <span className="eyebrow">{toTitleCase(eyebrow)}</span> : null}
+      <h2>{toTitleCase(title)}</h2>
       <p>{message}</p>
       {actionLabel && actionTo ? (
         <Button as={Link} to={actionTo} variant="primary">

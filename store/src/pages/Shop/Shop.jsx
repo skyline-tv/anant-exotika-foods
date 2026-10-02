@@ -13,6 +13,7 @@ import { getErrorMessage } from '../../utils/getErrorMessage';
 import { getParentCategories } from '../../utils/categories';
 import { isOutOfStock } from '../../utils/productHelpers';
 import { usePageMeta } from '../../hooks/usePageMeta';
+import { toTitleCase } from '../../utils/titleCase';
 
 const SPECIAL_SLUGS = {
   'new-arrivals': { title: 'New Arrivals', newArrival: true },
@@ -144,7 +145,7 @@ const Shop = () => {
             className={category === item.slug ? 'is-active' : undefined}
             onClick={() => setFiltersOpen(false)}
           >
-            {item.name}
+            {toTitleCase(item.name)}
           </Link>
         ))}
       </div>
@@ -211,7 +212,7 @@ const Shop = () => {
                     to={`/shop/${item.slug}`}
                     className={category === item.slug ? 'is-active' : undefined}
                   >
-                    {item.name}
+                    {toTitleCase(item.name)}
                   </Link>
                 ))}
               </div>

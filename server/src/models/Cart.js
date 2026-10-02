@@ -18,6 +18,21 @@ const cartItemSchema = new mongoose.Schema(
       required: true,
       min: [0, 'Price cannot be negative'],
     },
+    selectionKey: {
+      type: String,
+      default: '',
+    },
+    selections: {
+      type: [
+        {
+          slotLabel: { type: String, required: true, trim: true },
+          product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+          name: { type: String, trim: true, default: '' },
+          sku: { type: String, trim: true, default: '' },
+        },
+      ],
+      default: [],
+    },
   },
   { _id: false }
 );

@@ -16,7 +16,8 @@ const {
 } = require('../services/pricingService');
 const { PAYMENT_METHOD, ORDER_STATUS } = require('../utils/constants');
 const { toStoredAssetPath } = require('../utils/assetUrl');
-const { decrementStock, restoreStock, restoreStockItems } = require('../services/inventoryService');
+const { decrementOrderStock, restoreStockItems, restoreOrderStock } = require('../services/inventoryService');
+const { resolveHamperLine } = require('../services/hamperService');
 const {
   isRazorpayConfigured,
   createRazorpayOrder,
@@ -159,6 +160,7 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     const price = product.price;
+    const hamperLine = await resolveHamperLine(product, item.quantity, item.selections);
     orderItems.push({
       product: product._id,
       name: product.name,
@@ -167,6 +169,7 @@ const createOrder = asyncHandler(async (req, res) => {
       price,
       quantity: item.quantity,
       total: calculateItemTotal(price, item.quantity),
+      selections: hamperLine.selections,
     });
     weightedItems.push({
       quantity: item.quantity,
@@ -303,13 +306,8 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const decremented = [];
   try {
-    for (const item of orderItems) {
-      const updated = await decrementStock(item.product, item.quantity);
-      if (!updated) {
-        throw new AppError(`Insufficient stock for ${item.name}.`, 409);
-      }
-      decremented.push(item);
-    }
+    const reserved = await decrementOrderStock(orderItems);
+    decremented.push(...reserved);
 
     orderPayload.orderStatus = 'confirmed';
     orderPayload.statusHistory.push({
@@ -563,9 +561,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       (order.payment.method === 'razorpay' && order.payment.paymentStatus === 'paid'));
 
   if (shouldRestoreStock) {
-    for (const item of order.items) {
-      await restoreStock(item.product, item.quantity);
-    }
+    await restoreOrderStock(order.items);
 
     if (order.coupon && order.coupon.code && order.payment.method === 'cod' && order.payment.paymentStatus === 'pending') {
       await Coupon.updateOne(
