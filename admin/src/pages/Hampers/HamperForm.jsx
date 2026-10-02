@@ -33,10 +33,43 @@ function HamperForm() {
   });
 
   useEffect(() => {
-    getProducts({ isPersonalizedHamper: false, status: 'active', limit: 200, sort: 'name_asc' })
-      .then((data) => setCatalog(data.products || []))
-      .catch(() => setCatalog([]));
-  }, []);
+    let active = true;
+
+    const loadCatalog = async () => {
+      const products = [];
+      let page = 1;
+      let pages = 1;
+
+      while (page <= pages) {
+        const data = await getProducts({
+          isPersonalizedHamper: false,
+          status: 'active',
+          limit: 50,
+          page,
+          sort: 'name_asc',
+        });
+        products.push(...(data.products || []));
+        pages = data.pagination?.pages || 1;
+        page += 1;
+      }
+
+      return products;
+    };
+
+    loadCatalog()
+      .then((products) => {
+        if (active) setCatalog(products);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setCatalog([]);
+        toast.error(getErrorMessage(error, 'Unable to load products for the slots.'));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [toast]);
 
   useEffect(() => {
     if (!id) return undefined;

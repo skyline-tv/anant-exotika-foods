@@ -69,7 +69,8 @@ const buildProductQuery = async (query, { isAdmin = false } = {}) => {
   if (bestSeller !== undefined) filter.isBestSeller = bestSeller;
 
   const personalized = parseBoolean(query.isPersonalizedHamper);
-  if (personalized !== undefined) filter.isPersonalizedHamper = personalized;
+  if (personalized === true) filter.isPersonalizedHamper = true;
+  if (personalized === false) filter.isPersonalizedHamper = { $ne: true };
 
   if (isAdmin && query.status && PRODUCT_STATUS.includes(query.status)) {
     filter.status = query.status;
