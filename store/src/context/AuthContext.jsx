@@ -46,10 +46,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   const register = useCallback(async (payload) => {
-    const { user: nextUser, token } = await authService.register(payload);
-    setToken(token);
-    setUser(nextUser);
-    return nextUser;
+    const data = await authService.register(payload);
+    if (data?.token && data?.user) {
+      setToken(data.token);
+      setUser(data.user);
+    }
+    return data;
+  }, []);
+
+  const verifyRegistration = useCallback(async (payload) => {
+    const data = await authService.verifyRegistration(payload);
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
   }, []);
 
   const logout = useCallback(async () => {
@@ -76,10 +85,11 @@ export function AuthProvider({ children }) {
       isAuthenticated: Boolean(user),
       login,
       register,
+      verifyRegistration,
       logout,
       applyAuth,
     }),
-    [user, loading, login, register, logout, applyAuth]
+    [user, loading, login, register, verifyRegistration, logout, applyAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

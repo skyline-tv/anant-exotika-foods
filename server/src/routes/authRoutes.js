@@ -1,6 +1,8 @@
 const express = require('express');
 const {
   register,
+  verifyRegistration,
+  resendRegistrationCodes,
   login,
   getMe,
   logout,
@@ -12,6 +14,8 @@ const { authenticateUser } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.post('/register', register);
+router.post('/register/verify', verifyRegistration);
+router.post('/register/resend', resendRegistrationCodes);
 router.post('/login', login);
 router.get('/me', authenticateUser, getMe);
 router.post('/logout', authenticateUser, logout);

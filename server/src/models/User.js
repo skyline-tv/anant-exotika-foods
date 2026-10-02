@@ -37,6 +37,27 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    emailOtpHash: {
+      type: String,
+      select: false,
+    },
+    phoneOtpHash: {
+      type: String,
+      select: false,
+    },
+    otpExpires: {
+      type: Date,
+      select: false,
+    },
+    otpAttempts: {
+      type: Number,
+      select: false,
+      default: 0,
+    },
+    otpSentAt: {
+      type: Date,
+      select: false,
+    },
     status: {
       type: String,
       enum: USER_STATUS,
@@ -87,6 +108,11 @@ userSchema.methods.toJSON = function toJSON() {
   delete obj.password;
   delete obj.passwordResetToken;
   delete obj.passwordResetExpires;
+  delete obj.emailOtpHash;
+  delete obj.phoneOtpHash;
+  delete obj.otpExpires;
+  delete obj.otpAttempts;
+  delete obj.otpSentAt;
   delete obj.__v;
   return obj;
 };

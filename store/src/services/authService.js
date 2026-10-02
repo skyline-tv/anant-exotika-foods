@@ -5,6 +5,16 @@ export async function register(payload) {
   return data.data;
 }
 
+export async function verifyRegistration(payload) {
+  const { data } = await api.post('/auth/register/verify', payload);
+  return data.data;
+}
+
+export async function resendRegistrationCodes(email) {
+  const { data } = await api.post('/auth/register/resend', { email });
+  return data.data;
+}
+
 export async function login(payload) {
   const { data } = await api.post('/auth/login', payload);
   return data.data;

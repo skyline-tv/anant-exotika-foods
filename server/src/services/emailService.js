@@ -402,6 +402,29 @@ const sendOrderStatusEmail = async ({ to, name, order, status }) => {
   return sendEmail({ to, subject: copy.subject, html, text });
 };
 
+const sendSignupVerificationEmail = async ({ to, name, code }) => {
+  if (!to || !code) return { skipped: true };
+  const subject = 'Your Anant Exotika verification code';
+  const html = emailShell({
+    title: subject,
+    preview: 'Enter this code to finish creating your account.',
+    body: `
+      <p style="margin:0 0 12px;font-size:22px;color:${BRAND.green};">Hello ${escapeHtml(name || 'there')},</p>
+      ${paragraph('Enter this code with the code sent to your phone to finish creating your Anant Exotika account.')}
+      <p style="margin:20px 0;font-size:32px;letter-spacing:0.28em;color:${BRAND.green};">${escapeHtml(code)}</p>
+      ${paragraph('This code expires in 10 minutes. If you did not request it, you can ignore this email.')}
+    `,
+  });
+  const text = [
+    `Hello ${name || 'there'},`,
+    'Enter this code with the code sent to your phone to finish creating your Anant Exotika account.',
+    `Email code: ${code}`,
+    'This code expires in 10 minutes.',
+  ].join('\n');
+
+  return sendEmail({ to, subject, html, text });
+};
+
 const sendWelcomeEmail = async ({ to, name }) => {
   if (!to) return { skipped: true };
   const storeUrl = getClientUrl();
@@ -494,6 +517,7 @@ module.exports = {
   sendPasswordChangedEmail,
   sendOrderConfirmationEmail,
   sendOrderStatusEmail,
+  sendSignupVerificationEmail,
   sendWelcomeEmail,
   sendLeadEnquiryEmail,
   safeSend,
