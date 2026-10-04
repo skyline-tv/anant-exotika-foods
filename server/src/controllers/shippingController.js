@@ -10,7 +10,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Address = require('../models/Address');
 const { getValidCoupon } = require('../services/couponService');
-const { calculateItemTotal, applyCouponDiscount, roundMoney } = require('../services/pricingService');
+const { applyCouponDiscount, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
 const { quoteShipping, getPublicShippingConfig } = require('../services/shippingService');
 const { verifyWebhookToken } = require('../services/shiprocketService');
 const { applyShiprocketWebhook } = require('../services/shipmentService');
@@ -61,21 +61,19 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
   const productIds = cart.items.map((item) => item.product);
   const products = await Product.find({ _id: { $in: productIds } });
   const productMap = new Map(products.map((product) => [String(product._id), product]));
+  const lines = linesFromProducts(cart.items, productMap);
 
   const weightedItems = [];
-  let subtotal = 0;
   for (const item of cart.items) {
     const product = productMap.get(String(item.product));
     if (!product) continue;
-    const lineTotal = calculateItemTotal(product.price, item.quantity);
-    subtotal += lineTotal;
     weightedItems.push({
       quantity: item.quantity,
       weight: product.weight,
       product,
     });
   }
-  subtotal = roundMoney(subtotal);
+  const subtotal = roundMoney(lines.reduce((sum, line) => sum + line.total, 0));
 
   let coupon = null;
   if (couponCode) {
@@ -85,7 +83,7 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
       subtotal,
     });
   }
-  const discount = applyCouponDiscount(subtotal, coupon);
+  const discount = applyCouponDiscount(subtotal, coupon, lines);
 
   const quote = await quoteShipping({
     postalCode: pin,
@@ -108,6 +106,9 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
         ? {
             code: coupon.code,
             kind: coupon.kind || 'promo',
+            discountType: coupon.discountType,
+            discountValue: coupon.discountValue,
+            discountApplyOn: normalizeDiscountApplyOn(coupon),
           }
         : null,
     },

@@ -33,7 +33,7 @@ import {
   validatePhone,
 } from '../../utils/addressValidation';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { couponDiscountAmount } from '../../utils/couponDiscount';
+import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
 import { formatWeight, getPrimaryImage } from '../../utils/productHelpers';
 import { getErrorMessage, getFieldErrors } from '../../utils/getErrorMessage';
 
@@ -520,7 +520,7 @@ const Checkout = () => {
     Number(shippingQuote?.discount) > 0
       ? Number(shippingQuote.discount)
       : coupon
-        ? couponDiscountAmount(coupon, cart.subtotal)
+        ? couponDiscountAmount(coupon)
         : 0;
   const payable = shippingQuote?.estimatedTotal !== undefined ? shippingQuote.estimatedTotal : cart.subtotal;
   const codOffered = paymentMethods.some((method) => method.value === 'cod');
@@ -963,7 +963,9 @@ const Checkout = () => {
               </div>
             </details>
             {coupon && discountAmount > 0 ? (
-              <p className="field-ok">You saved {formatCurrency(discountAmount)}</p>
+              <p className="field-ok">
+                {coupon.coupon.code} · {couponDiscountLabel(coupon)} · -{formatCurrency(discountAmount)}
+              </p>
             ) : coupon ? (
               <p className="field-ok">{coupon.coupon.code} applied</p>
             ) : null}
@@ -1008,7 +1010,11 @@ const Checkout = () => {
             </div>
             {discountAmount > 0 ? (
               <div className="summary-row">
-                <span>{coupon?.coupon?.kind === 'gift_voucher' ? 'Gift voucher' : 'Coupon discount'}</span>
+                <span>
+                  {coupon?.coupon?.code
+                    ? `${coupon.coupon.kind === 'gift_voucher' ? 'Gift voucher' : 'Coupon'} (${coupon.coupon.code})`
+                    : 'Coupon discount'}
+                </span>
                 <span>-{formatCurrency(discountAmount)}</span>
               </div>
             ) : null}

@@ -236,6 +236,13 @@ p {
   font-size: var(--fs-sm);
 }
 
+.discount-basis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem 1.5rem;
+  margin-top: 0.45rem;
+}
+
 .checkbox-row input {
   width: 16px;
   height: 16px;

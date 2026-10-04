@@ -13,7 +13,7 @@ import {
   getCoupons,
   updateCoupon,
 } from '../../services/couponService';
-import { DISCOUNT_TYPES } from '../../utils/constants';
+import { DISCOUNT_APPLY_ON, DISCOUNT_TYPES } from '../../utils/constants';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate, toDateInputValue } from '../../utils/formatDate';
 import { getErrorMessage } from '../../utils/getErrorMessage';
@@ -26,6 +26,7 @@ const EMPTY_PROMO = {
   code: '',
   description: '',
   discountType: 'percentage',
+  discountApplyOn: '',
   discountValue: '',
   minimumOrderAmount: '',
   maximumDiscount: '',
@@ -84,6 +85,7 @@ function Coupons() {
   const [formKind, setFormKind] = useState(KIND_PROMO);
   const [values, setValues] = useState(EMPTY_PROMO);
   const [saving, setSaving] = useState(false);
+  const [basisError, setBasisError] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -116,6 +118,7 @@ function Coupons() {
     setEditing(null);
     setFormKind(KIND_PROMO);
     setValues({ ...EMPTY_PROMO });
+    setBasisError('');
     setModalOpen(true);
   };
 
@@ -123,6 +126,7 @@ function Coupons() {
     setEditing(null);
     setFormKind(KIND_GIFT);
     setValues(emptyGift());
+    setBasisError('');
     setModalOpen(true);
   };
 
@@ -135,6 +139,7 @@ function Coupons() {
       code: coupon.code || '',
       description: coupon.description || '',
       discountType: gift ? 'fixed' : coupon.discountType || 'percentage',
+      discountApplyOn: coupon.discountApplyOn === 'MRP' ? 'MRP' : 'CHECKOUT_PRICE',
       discountValue: coupon.discountValue ?? '',
       minimumOrderAmount: coupon.minimumOrderAmount ?? '',
       maximumDiscount: coupon.maximumDiscount ?? '',
@@ -161,6 +166,12 @@ function Coupons() {
       toast.warning('Code, discount value, start date and end date are required.');
       return;
     }
+    if (!['MRP', 'CHECKOUT_PRICE'].includes(values.discountApplyOn)) {
+      setBasisError('Choose whether the discount applies on MRP or checkout price.');
+      toast.warning('Choose whether the discount applies on MRP or checkout price.');
+      return;
+    }
+    setBasisError('');
 
     setSaving(true);
     try {
@@ -170,6 +181,7 @@ function Coupons() {
             code: values.code.trim().toUpperCase(),
             description: values.description.trim(),
             discountType: 'fixed',
+            discountApplyOn: values.discountApplyOn,
             discountValue: Number(values.discountValue),
             minimumOrderAmount: Number(values.minimumOrderAmount) || 0,
             maximumDiscount: 0,
@@ -184,6 +196,7 @@ function Coupons() {
             code: values.code.trim().toUpperCase(),
             description: values.description.trim(),
             discountType: values.discountType,
+            discountApplyOn: values.discountApplyOn,
             discountValue: Number(values.discountValue),
             minimumOrderAmount: Number(values.minimumOrderAmount) || 0,
             maximumDiscount: Number(values.maximumDiscount) || 0,
@@ -314,6 +327,7 @@ function Coupons() {
                   <th>Kind</th>
                   <th>Description</th>
                   <th>Type</th>
+                  <th>Applies on</th>
                   <th>Value</th>
                   <th>Min Order</th>
                   <th>Usage</th>
@@ -336,6 +350,7 @@ function Coupons() {
                       </td>
                       <td className="cell-wrap">{coupon.description || '—'}</td>
                       <td style={{ textTransform: 'capitalize' }}>{coupon.discountType}</td>
+                      <td>{coupon.discountApplyOn === 'MRP' ? 'MRP' : 'Checkout price'}</td>
                       <td>
                         {coupon.discountType === 'percentage'
                           ? `${coupon.discountValue}%`
@@ -514,8 +529,8 @@ function Coupons() {
                 />
                 <p className="hint">
                   {values.discountType === 'percentage'
-                    ? 'Taken as a percent of the order. 10 means 10% off the cart.'
-                    : 'Taken as a flat rupee amount off the order.'}
+                    ? '10 means 10%. The price it is taken from is chosen below.'
+                    : 'A flat rupee amount, taken off the checkout total. It cannot make the total negative.'}
                 </p>
               </div>
               <div className="field">
@@ -560,6 +575,37 @@ function Coupons() {
               </div>
             </>
           )}
+          <div className="field span-2">
+            <span id="discountApplyOn-label">Discount Applies On</span>
+            <div className="discount-basis" role="radiogroup" aria-labelledby="discountApplyOn-label">
+              {DISCOUNT_APPLY_ON.map((option) => (
+                <label key={option.value} className="checkbox-row">
+                  <input
+                    type="radio"
+                    name="discountApplyOn"
+                    value={option.value}
+                    checked={values.discountApplyOn === option.value}
+                    onChange={() => {
+                      setBasisError('');
+                      setValues((current) => ({ ...current, discountApplyOn: option.value }));
+                    }}
+                    disabled={voucherUsed}
+                  />
+                  {option.label}
+                </label>
+              ))}
+            </div>
+            {basisError ? <p className="field-error">{basisError}</p> : null}
+            <p className="hint">
+              {values.discountApplyOn === 'MRP'
+                ? 'A percentage is calculated from each product’s MRP, then taken off the checkout price. Example: MRP ₹999, checkout ₹799, 10% saves ₹99.90.'
+                : values.discountApplyOn === 'CHECKOUT_PRICE'
+                  ? 'A percentage is calculated from the current selling price. Example: MRP ₹999, checkout ₹799, 10% saves ₹79.90.'
+                  : 'Choose MRP or the current checkout price. This choice is required.'}
+              {' '}
+              Minimum order is checked against the checkout total. A fixed amount is capped so the product total cannot go below zero.
+            </p>
+          </div>
           <div className="field">
             <label htmlFor="minimumOrderAmount">Minimum Order Amount</label>
             <input

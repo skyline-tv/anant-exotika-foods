@@ -13,6 +13,7 @@ const { getValidCoupon } = require('../services/couponService');
 const {
   calculateItemTotal,
   calculateOrderPricing,
+  normalizeDiscountApplyOn,
 } = require('../services/pricingService');
 const { PAYMENT_METHOD, ORDER_STATUS } = require('../utils/constants');
 const { toStoredAssetPath } = require('../utils/assetUrl');
@@ -160,6 +161,7 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     const price = product.price;
+    const mrp = Math.max(0, Number(product.compareAtPrice) || 0);
     const hamperLine = await resolveHamperLine(product, item.quantity, item.selections);
     orderItems.push({
       product: product._id,
@@ -167,6 +169,8 @@ const createOrder = asyncHandler(async (req, res) => {
       sku: product.sku,
       image: getPrimaryImage(product),
       price,
+      mrp,
+      compareAtPrice: mrp,
       quantity: item.quantity,
       total: calculateItemTotal(price, item.quantity),
       selections: hamperLine.selections,
@@ -274,6 +278,8 @@ const createOrder = asyncHandler(async (req, res) => {
           code: coupon.code,
           discountType: coupon.discountType,
           discountValue: coupon.discountValue,
+          discountApplyOn: normalizeDiscountApplyOn(coupon),
+          discountAmount: pricing.discount,
         }
       : undefined,
     notes: notes || '',

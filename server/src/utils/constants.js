@@ -2,6 +2,7 @@ const USER_STATUS = ['active', 'inactive', 'blocked'];
 const PRODUCT_STATUS = ['draft', 'active', 'inactive', 'out_of_stock'];
 const ADDRESS_TYPE = ['home', 'work', 'other'];
 const DISCOUNT_TYPE = ['percentage', 'fixed'];
+const DISCOUNT_APPLY_ON = ['MRP', 'CHECKOUT_PRICE'];
 const COUPON_KIND = ['promo', 'gift_voucher'];
 const PAYMENT_METHOD = ['cod', 'razorpay'];
 const PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
@@ -34,6 +35,7 @@ module.exports = {
   PRODUCT_STATUS,
   ADDRESS_TYPE,
   DISCOUNT_TYPE,
+  DISCOUNT_APPLY_ON,
   COUPON_KIND,
   PAYMENT_METHOD,
   PAYMENT_STATUS,

@@ -12,17 +12,54 @@ const calculateTax = () => {
   return 0;
 };
 
-const applyCouponDiscount = (subtotal, coupon) => {
+const isPercentageDiscount = (coupon) => {
+  const type = String(coupon?.discountType || '').trim().toLowerCase();
+  return type === 'percentage' || type === 'percent' || type === '%';
+};
+
+const normalizeDiscountApplyOn = (coupon) => {
+  const value = String(coupon?.discountApplyOn || 'CHECKOUT_PRICE').trim().toUpperCase();
+  return value === 'MRP' ? 'MRP' : 'CHECKOUT_PRICE';
+};
+
+const lineMoney = (unit, quantity) =>
+  roundMoney(Math.max(0, Number(unit) || 0) * Math.max(0, Number(quantity) || 0));
+
+const couponBases = (items, coupon) => {
+  const applyOn = normalizeDiscountApplyOn(coupon);
+  let checkout = 0;
+  let basis = 0;
+
+  items.forEach((item) => {
+    const price = Math.max(0, Number(item.price) || 0);
+    const quantity = Math.max(0, Number(item.quantity) || 0);
+    const listedMrp = Number(item.compareAtPrice ?? item.mrp);
+    const mrp = Number.isFinite(listedMrp) && listedMrp > 0 ? listedMrp : price;
+    checkout += lineMoney(price, quantity);
+    basis += lineMoney(applyOn === 'MRP' ? mrp : price, quantity);
+  });
+
+  return {
+    checkout: roundMoney(checkout),
+    basis: roundMoney(basis),
+    applyOn,
+  };
+};
+
+const applyCouponDiscount = (subtotal, coupon, items) => {
   if (!coupon) {
     return 0;
   }
 
-  const type = String(coupon?.discountType || '').trim().toLowerCase();
+  const priced = Array.isArray(items) && items.length ? couponBases(items, coupon) : null;
+  const checkout = priced ? priced.checkout : Math.max(0, Number(subtotal) || 0);
+  const basis = priced ? priced.basis : checkout;
   const value = Number(coupon.discountValue) || 0;
-  const base = Math.max(0, Number(subtotal) || 0);
+  const type = String(coupon.discountType || '').trim().toLowerCase();
   let discount = 0;
-  if (type === 'percentage' || type === 'percent' || type === '%') {
-    discount = (base * value) / 100;
+
+  if (isPercentageDiscount(coupon)) {
+    discount = (basis * value) / 100;
   } else if (type === 'fixed') {
     discount = value;
   }
@@ -32,9 +69,24 @@ const applyCouponDiscount = (subtotal, coupon) => {
     discount = Math.min(discount, cap);
   }
 
-  discount = Math.min(discount, base);
+  discount = Math.min(Math.max(0, discount), checkout);
   return roundMoney(discount);
 };
+
+const linesFromProducts = (cartItems, productMap) =>
+  cartItems.reduce((lines, item) => {
+    const product = productMap.get(String(item.product));
+    if (!product) return lines;
+    const price = Math.max(0, Number(product.price) || 0);
+    const quantity = Math.max(0, Number(item.quantity) || 0);
+    lines.push({
+      price,
+      compareAtPrice: Math.max(0, Number(product.compareAtPrice) || 0),
+      quantity,
+      total: calculateItemTotal(price, quantity),
+    });
+    return lines;
+  }, []);
 
 const calculateOrderPricing = ({
   items,
@@ -49,7 +101,7 @@ const calculateOrderPricing = ({
   const subtotal = roundMoney(
     items.reduce((sum, item) => sum + item.total, 0)
   );
-  const discount = applyCouponDiscount(subtotal, coupon);
+  const discount = applyCouponDiscount(subtotal, coupon, items);
   const shippingAmount = roundMoney(Math.max(0, Number(shipping) || 0));
   const packagingAmount = roundMoney(Math.max(0, Number(packaging) || 0));
   const handlingAmount = roundMoney(Math.max(0, Number(handling) || 0));
@@ -83,5 +135,7 @@ module.exports = {
   calculateShipping,
   calculateTax,
   applyCouponDiscount,
+  normalizeDiscountApplyOn,
+  linesFromProducts,
   calculateOrderPricing,
 };

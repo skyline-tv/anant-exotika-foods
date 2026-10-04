@@ -32,6 +32,11 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    mrp: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
     quantity: {
       type: Number,
       required: true,
@@ -313,6 +318,8 @@ const orderSchema = new mongoose.Schema(
       code: { type: String, default: '' },
       discountType: { type: String, default: '' },
       discountValue: { type: Number, default: 0 },
+      discountApplyOn: { type: String, default: '' },
+      discountAmount: { type: Number, min: 0, default: 0 },
     },
     notes: {
       type: String,

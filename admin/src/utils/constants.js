@@ -37,6 +37,11 @@ export const DISCOUNT_TYPES = [
   { value: 'fixed', label: 'Fixed' },
 ];
 
+export const DISCOUNT_APPLY_ON = [
+  { value: 'MRP', label: 'MRP' },
+  { value: 'CHECKOUT_PRICE', label: 'Checkout Price' },
+];
+
 export const COUPON_KINDS = [
   { value: 'promo', label: 'Coupon' },
   { value: 'gift_voucher', label: 'Gift voucher' },

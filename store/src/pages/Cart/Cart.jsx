@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import Button from '../../components/common/Button';
@@ -40,6 +40,24 @@ const Cart = () => {
       toast.error(getErrorMessage(error, 'Unable to remove item.'));
     }
   };
+
+  useEffect(() => {
+    const code = coupon?.coupon?.code;
+    if (!code || !cart.subtotal) return undefined;
+    let active = true;
+    validateCoupon(code)
+      .then((result) => {
+        if (active) setCoupon(result);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setCoupon(null);
+        toast.error(getErrorMessage(err, 'This code could not be applied.'));
+      });
+    return () => {
+      active = false;
+    };
+  }, [cart.subtotal, coupon?.coupon?.code]);
 
   const handleCoupon = async (event) => {
     event.preventDefault();
@@ -132,8 +150,10 @@ const Cart = () => {
             </div>
             {coupon ? (
               <div className="summary-row">
-                <span>{couponDiscountLabel(coupon)}</span>
-                <span>-{formatCurrency(couponDiscountAmount(coupon, cart.subtotal))}</span>
+                <span>
+                  {coupon.coupon?.code ? `Coupon (${coupon.coupon.code})` : couponDiscountLabel(coupon)}
+                </span>
+                <span>-{formatCurrency(couponDiscountAmount(coupon))}</span>
               </div>
             ) : null}
             {isAuthenticated ? (

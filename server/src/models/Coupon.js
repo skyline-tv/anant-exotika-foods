@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { COUPON_KIND, DISCOUNT_TYPE } = require('../utils/constants');
+const { COUPON_KIND, DISCOUNT_APPLY_ON, DISCOUNT_TYPE } = require('../utils/constants');
 
 const couponSchema = new mongoose.Schema(
   {
@@ -29,6 +29,11 @@ const couponSchema = new mongoose.Schema(
       type: Number,
       required: [true, 'Discount value is required'],
       min: [0, 'Discount value cannot be negative'],
+    },
+    discountApplyOn: {
+      type: String,
+      enum: DISCOUNT_APPLY_ON,
+      default: 'CHECKOUT_PRICE',
     },
     minimumOrderAmount: {
       type: Number,

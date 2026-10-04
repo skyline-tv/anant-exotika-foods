@@ -5,8 +5,8 @@ const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
 const { getValidCoupon } = require('../services/couponService');
-const { applyCouponDiscount, roundMoney } = require('../services/pricingService');
-const { COUPON_KIND, DISCOUNT_TYPE } = require('../utils/constants');
+const { applyCouponDiscount, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
+const { COUPON_KIND, DISCOUNT_APPLY_ON, DISCOUNT_TYPE } = require('../utils/constants');
 const {
   applyGiftVoucherRules,
   ensureUniqueCouponCode,
@@ -17,20 +17,31 @@ const {
 const getCartSubtotal = async (userId) => {
   const cart = await Cart.findOne({ user: userId });
   if (!cart || cart.items.length === 0) {
-    return 0;
+    return { subtotal: 0, lines: [] };
   }
 
   const products = await Product.find({
     _id: { $in: cart.items.map((item) => item.product) },
-  }).select('price');
-  const priceMap = new Map(products.map((product) => [String(product._id), product.price]));
+  }).select('price compareAtPrice');
+  const productMap = new Map(products.map((product) => [String(product._id), product]));
+  const lines = linesFromProducts(cart.items, productMap);
+  const subtotal = roundMoney(lines.reduce((sum, line) => sum + line.total, 0));
+  return { subtotal, lines };
+};
 
-  return roundMoney(
-    cart.items.reduce((sum, item) => {
-      const price = priceMap.get(String(item.product)) || 0;
-      return sum + price * item.quantity;
-    }, 0)
-  );
+const readDiscountApplyOn = (value, { required = false } = {}) => {
+  if (value === undefined || value === null || value === '') {
+    if (required) {
+      throw new AppError('Choose whether the discount applies on MRP or checkout price.', 400);
+    }
+    return 'CHECKOUT_PRICE';
+  }
+
+  const normalized = String(value).trim().toUpperCase();
+  if (!DISCOUNT_APPLY_ON.includes(normalized)) {
+    throw new AppError('Discount basis must be MRP or checkout price.', 400);
+  }
+  return normalized;
 };
 
 const validateCoupon = asyncHandler(async (req, res) => {
@@ -40,7 +51,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
     throw new AppError('Coupon code is required.', 400);
   }
 
-  const subtotal = await getCartSubtotal(req.user._id);
+  const { subtotal, lines } = await getCartSubtotal(req.user._id);
 
   if (subtotal <= 0) {
     throw new AppError('Your cart is empty.', 400);
@@ -52,7 +63,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
     subtotal,
   });
 
-  const discount = applyCouponDiscount(subtotal, coupon);
+  const discount = applyCouponDiscount(subtotal, coupon, lines);
 
   successResponse(res, {
     message: isGiftVoucher(coupon) ? 'Gift voucher is valid' : 'Coupon is valid',
@@ -63,6 +74,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
         description: coupon.description,
         discountType: coupon.discountType,
         discountValue: coupon.discountValue,
+        discountApplyOn: normalizeDiscountApplyOn(coupon),
         maximumDiscount: coupon.maximumDiscount,
         minimumOrderAmount: coupon.minimumOrderAmount,
       },
@@ -96,6 +108,7 @@ const createCoupon = asyncHandler(async (req, res) => {
     usageLimit,
     perUserLimit,
     isActive,
+    discountApplyOn,
   } = req.body;
 
   if (kind === 'gift_voucher') {
@@ -147,12 +160,15 @@ const createCoupon = asyncHandler(async (req, res) => {
     throw new AppError('End date must be after start date.', 400);
   }
 
+  const applyOn = readDiscountApplyOn(discountApplyOn, { required: kind !== 'gift_voucher' });
+
   const coupon = await Coupon.create({
     kind,
     code: String(code).toUpperCase().trim(),
     description: description || '',
     discountType,
     discountValue: Number(discountValue),
+    discountApplyOn: applyOn,
     minimumOrderAmount: Number(minimumOrderAmount) || 0,
     maximumDiscount: Number(maximumDiscount) || 0,
     startDate,
@@ -184,6 +200,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
     'description',
     'discountType',
     'discountValue',
+    'discountApplyOn',
     'minimumOrderAmount',
     'maximumDiscount',
     'startDate',
@@ -195,7 +212,9 @@ const updateCoupon = asyncHandler(async (req, res) => {
 
   allowed.forEach((field) => {
     if (req.body[field] !== undefined) {
-      coupon[field] = req.body[field];
+      coupon[field] = field === 'discountApplyOn'
+        ? readDiscountApplyOn(req.body[field], { required: true })
+        : req.body[field];
     }
   });
 
