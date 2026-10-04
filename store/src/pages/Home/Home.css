@@ -667,45 +667,16 @@
 
   .hero__visual {
     order: -1;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    place-items: center;
     width: 100%;
     min-height: 0;
-    padding: 0;
-    background: var(--cream);
+    padding: 1.15rem 16px 0.35rem;
+    background: transparent;
   }
 
   .hero__showcase {
-    width: 100%;
-  }
-
-  .hero__stage {
-    width: 100%;
-    height: auto;
-    aspect-ratio: 560 / 446;
-    min-height: 0;
-    border-radius: 0;
-    overflow: hidden;
-  }
-
-  .hero__slide {
-    inset: 2% 4%;
-  }
-
-  .hero__slide.is-active .hero__float {
-    animation: none;
-  }
-
-  .hero__slide img {
-    object-fit: contain;
-  }
-
-  .hero__showcase-meta {
-    position: relative;
-    z-index: 2;
-    margin-top: 0.75rem;
-    padding: 0 16px;
-    background: var(--ivory);
+    width: min(78vw, 280px);
   }
 
   .hero__caption {
@@ -714,7 +685,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.75rem;
   }
 
   .home > .section {
