@@ -1105,22 +1105,22 @@
 }
 
 .checkout-coupon {
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.85rem;
 }
 
-.checkout-coupon > summary {
-  cursor: pointer;
-  list-style: none;
+.checkout-coupon > p {
+  margin: 0 0 0.45rem;
   color: var(--green-mid);
   font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
 }
 
-.checkout-coupon > summary::-webkit-details-marker {
-  display: none;
+.checkout-coupon .field-error {
+  margin: 0.5rem 0 0;
 }
 
-.checkout-coupon .coupon-row {
-  margin-top: 0.65rem;
+.checkout-coupon__remove {
+  margin-top: 0.55rem;
 }
 
 .order-lines {

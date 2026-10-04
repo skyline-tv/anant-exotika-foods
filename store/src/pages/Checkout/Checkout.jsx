@@ -386,6 +386,12 @@ const Checkout = () => {
     }
   };
 
+  const handleRemoveCoupon = () => {
+    setCoupon(null);
+    setCouponCode('');
+    setCouponMessage('');
+  };
+
   const completeOrder = async (order) => {
     idempotencyKeyRef.current = '';
     await refresh();
@@ -938,8 +944,8 @@ const Checkout = () => {
 
           <aside className="cart-summary">
             <h2>Order summary</h2>
-            <details className="checkout-coupon">
-              <summary>{coupon ? `${coupon.coupon.code} applied` : 'Have a coupon? Apply'}</summary>
+            <div className="checkout-coupon">
+              <p>Have a coupon?</p>
               <div className="coupon-row">
                 <input
                   value={couponCode}
@@ -961,7 +967,13 @@ const Checkout = () => {
                   {couponBusy ? 'Applying...' : 'Apply'}
                 </Button>
               </div>
-            </details>
+              {couponMessage ? <p className="field-error">{couponMessage}</p> : null}
+              {coupon ? (
+                <button type="button" className="text-link checkout-coupon__remove" onClick={handleRemoveCoupon}>
+                  Remove {coupon.coupon.code}
+                </button>
+              ) : null}
+            </div>
             {coupon && discountAmount > 0 ? (
               <p className="field-ok">
                 {coupon.coupon.code} · {couponDiscountLabel(coupon)} · -{formatCurrency(discountAmount)}
@@ -969,7 +981,6 @@ const Checkout = () => {
             ) : coupon ? (
               <p className="field-ok">{coupon.coupon.code} applied</p>
             ) : null}
-            {couponMessage ? <p className="field-error">{couponMessage}</p> : null}
 
             <details className="order-lines">
               <summary>
