@@ -74,7 +74,7 @@ const Cart = () => {
   }
 
   return (
-    <section className="page-shell">
+    <section className="page-shell cart-page">
       <div className="container">
         <PageHeader eyebrow="Shopping bag" title="Bag" subtitle="Review your selection, then continue to a simple checkout." />
         {cart.warnings?.length ? (
@@ -96,7 +96,7 @@ const Cart = () => {
                   ) : (
                     <div className="cart-item__media" aria-hidden="true">AE</div>
                   )}
-                  <div>
+                  <div className="cart-item__body">
                     <h2>
                       <Link to={`/product/${product?.slug}`}>{toTitleCase(product?.name)}</Link>
                     </h2>
@@ -118,7 +118,7 @@ const Cart = () => {
                       Remove
                     </button>
                   </div>
-                  <strong>{formatCurrency(item.lineTotal)}</strong>
+                  <strong className="cart-item__total">{formatCurrency(item.lineTotal)}</strong>
                 </article>
               );
             })}
@@ -166,6 +166,21 @@ const Cart = () => {
             </p>
           </aside>
         </div>
+      </div>
+      <div className="cart-dock">
+        <div>
+          <span>Subtotal</span>
+          <strong>{formatCurrency(cart.subtotal)}</strong>
+        </div>
+        {isAuthenticated ? (
+          <Button as={Link} to="/checkout" variant="primary">
+            Checkout
+          </Button>
+        ) : (
+          <Button as={Link} to="/login" state={{ from: '/checkout' }} variant="primary">
+            Login to checkout
+          </Button>
+        )}
       </div>
     </section>
   );

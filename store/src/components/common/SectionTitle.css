@@ -2,6 +2,25 @@
   margin-bottom: var(--space-6);
 }
 
+@media (max-width: 767px) {
+  .section-title {
+    margin-bottom: 1rem;
+  }
+
+  .section-title__heading {
+    font-size: clamp(1.375rem, 5.6vw, 1.7rem);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title__subtitle {
+    font-size: 0.9375rem;
+  }
+
+  .section-title__divider {
+    margin-top: 0.75rem;
+  }
+}
+
 .section-title--center {
   text-align: center;
 }
@@ -22,7 +41,7 @@
 }
 
 .section-title__heading {
-  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-size: clamp(1.5rem, 3vw, 2.15rem);
   font-weight: var(--fw-semibold);
   line-height: var(--lh-tight);
   color: var(--dark-text);

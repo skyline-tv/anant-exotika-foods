@@ -92,7 +92,11 @@
 @media (max-width: 767px) {
   :root {
     --container-padding: 16px;
-    --header-height: 60px;
+    --header-height: 56px;
+    --announcement-height: 32px;
+    --fs-hero: 1.85rem;
+    --fs-3xl: 1.75rem;
+    --fs-2xl: 1.5rem;
   }
 }
 
@@ -112,6 +116,6 @@
 
 @media (max-width: 1023px) {
   :root {
-    --bottom-nav-height: 64px;
+    --bottom-nav-height: calc(52px + env(safe-area-inset-bottom, 0px));
   }
 }

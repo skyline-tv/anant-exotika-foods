@@ -1,6 +1,7 @@
 @import './variables.css';
 @import './responsive.css';
 @import './pages.css';
+@import './mobile.css';
 
 *,
 *::before,

@@ -55,8 +55,8 @@ const Footer = () => {
           </ul>
         </div>
 
-        <div className="footer__col">
-          <h3 className="footer__heading">Shop</h3>
+        <details className="footer__col">
+          <summary className="footer__heading">Shop</summary>
           <ul className="footer__links">
             <li>
               <Link to="/shop">All Products</Link>
@@ -71,10 +71,10 @@ const Footer = () => {
               <Link to={{ pathname: '/', hash: 'gifting' }}>Gifting</Link>
             </li>
           </ul>
-        </div>
+        </details>
 
-        <div className="footer__col">
-          <h3 className="footer__heading">Customer Care</h3>
+        <details className="footer__col">
+          <summary className="footer__heading">Customer Care</summary>
           <ul className="footer__links">
             <li>
               <Link to="/contact">Contact Us</Link>
@@ -92,10 +92,10 @@ const Footer = () => {
               <Link to="/terms">Terms &amp; Conditions</Link>
             </li>
           </ul>
-        </div>
+        </details>
 
-        <div className="footer__col">
-          <h3 className="footer__heading">About</h3>
+        <details className="footer__col">
+          <summary className="footer__heading">About</summary>
           <ul className="footer__links">
             <li>
               <Link to="/">Home</Link>
@@ -110,10 +110,10 @@ const Footer = () => {
               <Link to="/contact">Contact Us</Link>
             </li>
           </ul>
-        </div>
+        </details>
 
-        <div className="footer__col">
-          <h3 className="footer__heading">Socials</h3>
+        <details className="footer__col">
+          <summary className="footer__heading">Socials</summary>
           <div className="footer__social" aria-label="Social media">
             <a href={CONTACT.instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <InstagramIcon />
@@ -125,7 +125,7 @@ const Footer = () => {
               <WhatsAppIcon />
             </a>
           </div>
-        </div>
+        </details>
       </div>
 
       <div className="footer__bottom">

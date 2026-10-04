@@ -80,6 +80,26 @@
   text-underline-offset: 0.18em;
 }
 
+@media (max-width: 767px) {
+  .auth-split__panel {
+    padding: 1rem 0 1.5rem;
+    align-items: flex-start;
+  }
+
+  .auth-split__content {
+    padding: 1.15rem 1rem 1.25rem;
+  }
+
+  .auth-split__content h1 {
+    font-size: clamp(1.75rem, 7vw, 2rem);
+  }
+
+  .auth-split__lead {
+    font-size: 0.9375rem;
+    margin-bottom: 0.85rem;
+  }
+}
+
 @media (min-width: 900px) {
   .auth-split {
     grid-template-columns: 1fr 1fr;

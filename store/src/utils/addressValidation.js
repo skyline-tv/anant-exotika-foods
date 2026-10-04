@@ -65,3 +65,42 @@ export function validateAddressForm(form) {
     },
   };
 }
+
+export function formatMobile(value) {
+  const digits = normalizePhone(value).slice(0, 10);
+  if (digits.length <= 5) return digits;
+  return `${digits.slice(0, 5)} ${digits.slice(5)}`;
+}
+
+export function addressFieldError(field, value, { requireStreet = false } = {}) {
+  const text = String(value || '').trim();
+
+  if (field === 'fullName') return text ? '' : 'Please enter the recipient’s full name.';
+  if (field === 'phone') {
+    if (!text) return 'Please enter a 10-digit mobile number.';
+    return validatePhone(text).valid ? '' : 'Please enter a valid 10-digit mobile number.';
+  }
+  if (field === 'addressLine1') return text ? '' : 'Please enter your flat, house or building.';
+  if (field === 'addressLine2') {
+    if (!requireStreet) return '';
+    return text ? '' : 'Please enter your area or street.';
+  }
+  if (field === 'city') return text ? '' : 'Please enter your city.';
+  if (field === 'state') return text ? '' : 'Please enter your state.';
+  if (field === 'postalCode') {
+    if (!text) return 'Please enter your 6-digit pincode.';
+    return validatePostalCode(text).valid ? '' : 'Please enter a valid 6-digit pincode.';
+  }
+  return '';
+}
+
+export function collectAddressErrors(form, options) {
+  const errors = {};
+  ['fullName', 'phone', 'addressLine1', 'addressLine2', 'city', 'state', 'postalCode'].forEach(
+    (field) => {
+      const message = addressFieldError(field, form[field], options);
+      if (message) errors[field] = message;
+    }
+  );
+  return errors;
+}

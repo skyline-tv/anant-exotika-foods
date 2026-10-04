@@ -16,6 +16,7 @@ import { useUi } from '../../context/UiContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { PRODUCT_FAQS, PRODUCT_HIGHLIGHTS } from '../../data/brandContent';
 import { getProductBySlug, getProducts } from '../../services/productService';
+import { getProductReviews } from '../../services/reviewService';
 import { checkPincode } from '../../services/shippingService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { toTitleCase } from '../../utils/titleCase';
@@ -51,13 +52,30 @@ const ProductDetails = () => {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [openPanel, setOpenPanel] = useState('description');
   const [pincode, setPincode] = useState('');
+  const [pincodeMessage, setPincodeMessage] = useState('');
+  const [pincodeLoading, setPincodeLoading] = useState(false);
   const [choices, setChoices] = useState({});
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     setChoices({});
+    setReviews([]);
   }, [product?._id]);
-  const [pincodeMessage, setPincodeMessage] = useState('');
-  const [pincodeLoading, setPincodeLoading] = useState(false);
+
+  useEffect(() => {
+    if (!product?._id) return undefined;
+    let active = true;
+    getProductReviews(product._id)
+      .then((data) => {
+        if (active) setReviews(Array.isArray(data?.reviews) ? data.reviews : []);
+      })
+      .catch(() => {
+        if (active) setReviews([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [product?._id]);
 
   useEffect(() => {
     let active = true;
@@ -140,6 +158,10 @@ const ProductDetails = () => {
   const categoryName = getCategoryName(product.category);
   const categorySlug = product.category?.slug;
   const weight = formatWeight(product.weight);
+  const reviewCount = reviews.length;
+  const reviewAverage = reviewCount
+    ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviewCount
+    : 0;
 
   const handleAdd = async () => {
     if (product.isPersonalizedHamper && !hamperReady(product, choices)) {
@@ -309,6 +331,15 @@ const ProductDetails = () => {
           <div className="product-info">
             <p className="eyebrow">{toTitleCase(categoryName)}</p>
             <h1>{toTitleCase(product.name)}</h1>
+            {reviewCount ? (
+              <p className="pdp-rating">
+                <span aria-hidden="true">{'★'.repeat(Math.round(reviewAverage))}{'☆'.repeat(Math.max(0, 5 - Math.round(reviewAverage)))}</span>
+                <strong>{reviewAverage.toFixed(1)}</strong>
+                <a href="#reviews">
+                  {reviewCount} {reviewCount === 1 ? 'review' : 'reviews'}
+                </a>
+              </p>
+            ) : null}
             <div className="price-compare">
               <strong>{formatCurrency(sellingRate)}</strong>
               {mrp > sellingRate ? <s>{formatCurrency(mrp)}</s> : null}
@@ -414,6 +445,23 @@ const ProductDetails = () => {
             </section>
           ))}
         </div>
+
+        {reviewCount ? (
+          <div className="pdp-reviews" id="reviews">
+            <h2>Reviews</h2>
+            {reviews.map((review) => (
+              <article key={review._id} className="review-card">
+                <span aria-label={`${review.rating} out of 5`}>
+                  {'★'.repeat(Number(review.rating) || 0)}
+                  {'☆'.repeat(Math.max(0, 5 - (Number(review.rating) || 0)))}
+                </span>
+                <strong>{toTitleCase(review.user?.name || 'Customer')}</strong>
+                {review.title ? <p className="review-card__title">{review.title}</p> : null}
+                {review.comment ? <p>{review.comment}</p> : null}
+              </article>
+            ))}
+          </div>
+        ) : null}
 
         {related.length ? (
           <div className="pdp-related">

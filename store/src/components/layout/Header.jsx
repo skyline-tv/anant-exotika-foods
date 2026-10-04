@@ -13,13 +13,45 @@ import { getCategories } from '../../services/categoryService';
 import { getChildCategories, getParentCategories } from '../../utils/categories';
 import './Header.css';
 
+const CATEGORY_ORDER = [
+  ['almond'],
+  ['cashew'],
+  ['raisin'],
+  ['apricot'],
+  ['mukhwas'],
+  ['hamper'],
+];
+
+const orderDrawerCategories = (parents = []) => {
+  const used = new Set();
+  const ordered = [];
+
+  CATEGORY_ORDER.forEach((keywords) => {
+    const match = parents.find((category) => {
+      if (used.has(String(category._id))) return false;
+      const haystack = `${category.name || ''} ${category.slug || ''}`.toLowerCase();
+      return keywords.some((keyword) => haystack.includes(keyword));
+    });
+    if (!match) return;
+    used.add(String(match._id));
+    ordered.push(match);
+  });
+
+  parents.forEach((category) => {
+    if (!used.has(String(category._id))) ordered.push(category);
+  });
+
+  return ordered;
+};
+
 const Header = () => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
-  const [openMobileShop, setOpenMobileShop] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [openChild, setOpenChild] = useState('');
   const [pulse, setPulse] = useState(false);
   const shopTimer = useRef(null);
   const prevCount = useRef(0);
@@ -43,10 +75,31 @@ const Header = () => {
   }, [location.pathname]);
 
   useEffect(() => {
+    const slug = location.pathname.match(/^\/shop\/([^/]+)/)?.[1];
+    if (!slug || slug === 'featured' || slug === 'new-arrivals') return;
+    setCategoriesOpen(true);
+    const current = categories.find((category) => category.slug === slug);
+    if (!current) return;
+    const parentId = current.parentCategory
+      ? current.parentCategory._id || current.parentCategory
+      : current._id;
+    setOpenChild(String(parentId));
+  }, [location.pathname, categories]);
+
+  useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
     };
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === 'Escape') setDrawerOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
 
   useEffect(() => {
@@ -67,6 +120,7 @@ const Header = () => {
   }, [itemCount]);
 
   const parents = getParentCategories(categories);
+  const drawerCategories = orderDrawerCategories(parents);
   const closeDrawer = () => setDrawerOpen(false);
   const dryFruitsTo = matchCategoryPath(parents, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
   const hampersTo = matchCategoryPath(
@@ -74,6 +128,8 @@ const Header = () => {
     ['hamper', 'box', 'combo', 'gift']
   );
   const navClass = ({ isActive }) => `site-header__nav-link${isActive ? ' is-active' : ''}`;
+  const drawerLinkClass = ({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`;
+  const drawerSubClass = ({ isActive }) => `nav-drawer__sublink${isActive ? ' is-active' : ''}`;
 
   return (
     <>
@@ -232,91 +288,130 @@ const Header = () => {
         id="mobile-nav-drawer"
         className={`nav-drawer ${drawerOpen ? 'is-open' : ''}`}
         aria-hidden={!drawerOpen}
+        aria-modal={drawerOpen || undefined}
+        role="dialog"
+        inert={!drawerOpen}
         aria-label="Mobile navigation"
       >
         <div className="nav-drawer__header">
-          <BrandMark compact to="/" />
-          <button type="button" className="site-header__icon-btn" aria-label="Close menu" onClick={closeDrawer}>
-            <X size={20} strokeWidth={1.4} />
+          <span onClick={closeDrawer}>
+            <BrandMark compact to="/" />
+          </span>
+          <button type="button" className="nav-drawer__close" aria-label="Close menu" onClick={closeDrawer}>
+            <X size={20} strokeWidth={1.6} />
           </button>
         </div>
 
         <nav className="nav-drawer__nav" aria-label="Mobile primary">
+          <p className="nav-drawer__label">Main</p>
           <ul>
             <li>
-              <NavLink to="/" end className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`} onClick={closeDrawer}>
+              <NavLink to="/" end className={drawerLinkClass} onClick={closeDrawer}>
                 Home
               </NavLink>
             </li>
             <li>
+              <NavLink to="/shop" end className={drawerLinkClass} onClick={closeDrawer}>
+                Shop
+              </NavLink>
+            </li>
+            {hampersTo !== '/shop' ? (
+              <li>
+                <NavLink to={hampersTo} className={drawerLinkClass} onClick={closeDrawer}>
+                  Hampers
+                </NavLink>
+              </li>
+            ) : null}
+            <li>
               <button
                 type="button"
                 className="nav-drawer__link nav-drawer__toggle"
-                aria-expanded={openMobileShop}
-                onClick={() => setOpenMobileShop((value) => !value)}
+                aria-expanded={categoriesOpen}
+                onClick={() => setCategoriesOpen((value) => !value)}
               >
-                Shop
-                <ChevronDown size={16} strokeWidth={1.4} />
+                Categories
+                <ChevronDown className="nav-drawer__chevron" size={16} strokeWidth={1.6} />
               </button>
-              {openMobileShop ? (
-                <ul className="nav-drawer__sub">
-                  <li>
-                    <Link to="/shop" onClick={closeDrawer}>
-                      All Products
-                    </Link>
-                  </li>
-                  {parents.map((category) => {
-                    const children = getChildCategories(categories, category._id);
-                    return (
-                      <li key={category._id}>
-                        <Link to={`/shop/${category.slug}`} onClick={closeDrawer}>
-                          {toTitleCase(category.name)}
-                        </Link>
-                        {children.length ? (
-                          <ul>
-                            {children.map((child) => (
-                              <li key={child._id}>
-                                <Link to={`/shop/${child.slug}`} onClick={closeDrawer}>
-                                  {toTitleCase(child.name)}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              ) : null}
+              <div className={`nav-drawer__panel${categoriesOpen ? ' is-open' : ''}`}>
+                <div className="nav-drawer__panel-inner">
+                  <ul className="nav-drawer__sub">
+                    {drawerCategories.map((category) => {
+                      const children = getChildCategories(categories, category._id);
+                      const childOpen = openChild === String(category._id);
+                      return (
+                        <li key={category._id}>
+                          <div className="nav-drawer__subrow">
+                            <NavLink
+                              to={`/shop/${category.slug}`}
+                              className={drawerSubClass}
+                              onClick={closeDrawer}
+                            >
+                              {toTitleCase(category.name)}
+                            </NavLink>
+                            {children.length ? (
+                              <button
+                                type="button"
+                                className="nav-drawer__expand"
+                                aria-expanded={childOpen}
+                                aria-label={`${childOpen ? 'Collapse' : 'Expand'} ${category.name}`}
+                                onClick={() => setOpenChild(childOpen ? '' : String(category._id))}
+                              >
+                                <ChevronDown className="nav-drawer__chevron" size={16} strokeWidth={1.6} />
+                              </button>
+                            ) : null}
+                          </div>
+                          {children.length ? (
+                            <div className={`nav-drawer__panel${childOpen ? ' is-open' : ''}`}>
+                              <div className="nav-drawer__panel-inner">
+                                <ul className="nav-drawer__nested">
+                                  {children.map((child) => (
+                                    <li key={child._id}>
+                                      <NavLink
+                                        to={`/shop/${child.slug}`}
+                                        className={drawerSubClass}
+                                        onClick={closeDrawer}
+                                      >
+                                        {toTitleCase(child.name)}
+                                      </NavLink>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          ) : null}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
             </li>
             <li>
-              <NavLink
-                to="/about"
-                className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`}
-                onClick={closeDrawer}
-              >
-                About Us
+              <NavLink to="/account/orders" className={drawerLinkClass} onClick={closeDrawer}>
+                My Orders
+              </NavLink>
+            </li>
+          </ul>
+
+          <p className="nav-drawer__label">Support</p>
+          <ul>
+            <li>
+              <NavLink to="/contact" className={drawerLinkClass} onClick={closeDrawer}>
+                Contact Us
               </NavLink>
             </li>
             <li>
-              <NavLink to="/contact" className={({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`} onClick={closeDrawer}>
-                Contact Us
+              <NavLink to="/shipping-policy" className={drawerLinkClass} onClick={closeDrawer}>
+                Shipping &amp; Delivery
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/returns-policy" className={drawerLinkClass} onClick={closeDrawer}>
+                Returns &amp; Refunds
               </NavLink>
             </li>
           </ul>
         </nav>
-
-        <div className="nav-drawer__meta">
-          <button type="button" className="nav-drawer__meta-link" onClick={() => { closeDrawer(); setSearchOpen(true); }}>
-            Search
-          </button>
-          <Link to={isAuthenticated ? '/account' : '/login'} className="nav-drawer__meta-link" onClick={closeDrawer}>
-            {isAuthenticated ? 'My Account' : 'Account'}
-          </Link>
-          <Link to="/wishlist" className="nav-drawer__meta-link" onClick={closeDrawer}>
-            Wishlist
-          </Link>
-        </div>
       </aside>
 
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} categories={parents} />
