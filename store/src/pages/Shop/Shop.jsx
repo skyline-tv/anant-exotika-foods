@@ -10,10 +10,13 @@ import { getCategories } from '../../services/categoryService';
 import { getProducts } from '../../services/productService';
 import { PRODUCT_SORT_OPTIONS } from '../../utils/constants';
 import { getErrorMessage } from '../../utils/getErrorMessage';
-import { getParentCategories } from '../../utils/categories';
 import { isOutOfStock } from '../../utils/productHelpers';
 import { usePageMeta } from '../../hooks/usePageMeta';
 import { toTitleCase } from '../../utils/titleCase';
+import { resolveAssetUrl } from '../../utils/assetUrl';
+import { useStoreContent } from '../../context/ContentContext';
+import { orderedHomeCategories } from '../../components/home/CollectionShowcase';
+import '../Home/Home.css';
 
 const SPECIAL_SLUGS = {
   'new-arrivals': { title: 'New Arrivals', newArrival: true },
@@ -22,6 +25,7 @@ const SPECIAL_SLUGS = {
 
 const Shop = () => {
   const { category } = useParams();
+  const { content } = useStoreContent();
   const [searchParams, setSearchParams] = useSearchParams();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
@@ -40,7 +44,7 @@ const Shop = () => {
   const availability = searchParams.get('availability') || '';
   const special = SPECIAL_SLUGS[category];
 
-  const parentCategories = getParentCategories(categories);
+  const shopCategories = orderedHomeCategories(categories, content);
   const activeCategory = categories.find((item) => item.slug === category);
 
   const title = useMemo(() => {
@@ -138,7 +142,7 @@ const Shop = () => {
         <Link to="/shop" className={!category ? 'is-active' : undefined} onClick={() => setFiltersOpen(false)}>
           All products
         </Link>
-        {parentCategories.map((item) => (
+        {shopCategories.map((item) => (
           <Link
             key={item._id}
             to={`/shop/${item.slug}`}
@@ -196,17 +200,38 @@ const Shop = () => {
           crumbs={crumbs}
         />
 
+        {shopCategories.length ? (
+          <div className="category-scroller shop-categories" aria-label="Shop by category">
+            {shopCategories.map((item) => {
+              const imageSrc = resolveAssetUrl(item.image);
+              return (
+                <Link
+                  key={item._id}
+                  to={`/shop/${item.slug}`}
+                  className={`category-card${category === item.slug ? ' is-active' : ''}`}
+                >
+                  {imageSrc ? <img src={imageSrc} alt="" /> : <span className="category-card__fallback">{item.name.charAt(0)}</span>}
+                  <span className="category-card__overlay">
+                    <strong>{toTitleCase(item.name)}</strong>
+                    {item.description ? <em>{item.description}</em> : null}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
+
         <div className="shop-layout">
           <aside className="shop-filters shop-filters--desk" aria-label="Filters">
             {renderFilters('desk')}
           </aside>
           <div>
-            {parentCategories.length ? (
+            {shopCategories.length ? (
               <div className="shop-chips" aria-label="Categories">
                 <Link to="/shop" className={!category ? 'is-active' : undefined}>
                   All
                 </Link>
-                {parentCategories.map((item) => (
+                {shopCategories.map((item) => (
                   <Link
                     key={item._id}
                     to={`/shop/${item.slug}`}

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { ChevronDown, Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, User, X } from 'lucide-react';
 import BrandMark from '../brand/BrandMark';
 import SearchOverlay from '../common/SearchOverlay';
 import { useAuth } from '../../context/AuthContext';
@@ -10,48 +10,18 @@ import { useWishlist } from '../../context/WishlistContext';
 import { matchCategoryPath } from '../../data/brandContent';
 import { toTitleCase } from '../../utils/titleCase';
 import { getCategories } from '../../services/categoryService';
-import { getChildCategories, getParentCategories } from '../../utils/categories';
+import { getParentCategories } from '../../utils/categories';
+import { orderedHomeCategories } from '../home/CollectionShowcase';
+import { useStoreContent } from '../../context/ContentContext';
 import './Header.css';
-
-const CATEGORY_ORDER = [
-  ['almond'],
-  ['cashew'],
-  ['raisin'],
-  ['apricot'],
-  ['mukhwas'],
-  ['hamper'],
-];
-
-const orderDrawerCategories = (parents = []) => {
-  const used = new Set();
-  const ordered = [];
-
-  CATEGORY_ORDER.forEach((keywords) => {
-    const match = parents.find((category) => {
-      if (used.has(String(category._id))) return false;
-      const haystack = `${category.name || ''} ${category.slug || ''}`.toLowerCase();
-      return keywords.some((keyword) => haystack.includes(keyword));
-    });
-    if (!match) return;
-    used.add(String(match._id));
-    ordered.push(match);
-  });
-
-  parents.forEach((category) => {
-    if (!used.has(String(category._id))) ordered.push(category);
-  });
-
-  return ordered;
-};
 
 const Header = () => {
   const location = useLocation();
+  const { content } = useStoreContent();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [openChild, setOpenChild] = useState('');
   const [pulse, setPulse] = useState(false);
   const shopTimer = useRef(null);
   const prevCount = useRef(0);
@@ -73,18 +43,6 @@ const Header = () => {
     setShopOpen(false);
     setSearchOpen(false);
   }, [location.pathname]);
-
-  useEffect(() => {
-    const slug = location.pathname.match(/^\/shop\/([^/]+)/)?.[1];
-    if (!slug || slug === 'featured' || slug === 'new-arrivals') return;
-    setCategoriesOpen(true);
-    const current = categories.find((category) => category.slug === slug);
-    if (!current) return;
-    const parentId = current.parentCategory
-      ? current.parentCategory._id || current.parentCategory
-      : current._id;
-    setOpenChild(String(parentId));
-  }, [location.pathname, categories]);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen ? 'hidden' : '';
@@ -120,7 +78,7 @@ const Header = () => {
   }, [itemCount]);
 
   const parents = getParentCategories(categories);
-  const drawerCategories = orderDrawerCategories(parents);
+  const menuCategories = orderedHomeCategories(categories, content);
   const closeDrawer = () => setDrawerOpen(false);
   const dryFruitsTo = matchCategoryPath(parents, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
   const hampersTo = matchCategoryPath(
@@ -129,7 +87,6 @@ const Header = () => {
   );
   const navClass = ({ isActive }) => `site-header__nav-link${isActive ? ' is-active' : ''}`;
   const drawerLinkClass = ({ isActive }) => `nav-drawer__link${isActive ? ' is-active' : ''}`;
-  const drawerSubClass = ({ isActive }) => `nav-drawer__sublink${isActive ? ' is-active' : ''}`;
 
   return (
     <>
@@ -186,7 +143,7 @@ const Header = () => {
                             All Products
                           </Link>
                         </li>
-                        {parents.map((category) => (
+                        {menuCategories.map((category) => (
                           <li key={category._id}>
                             <Link to={`/shop/${category.slug}`} onClick={() => setShopOpen(false)}>
                               {toTitleCase(category.name)}
@@ -323,70 +280,6 @@ const Header = () => {
               </li>
             ) : null}
             <li>
-              <button
-                type="button"
-                className="nav-drawer__link nav-drawer__toggle"
-                aria-expanded={categoriesOpen}
-                onClick={() => setCategoriesOpen((value) => !value)}
-              >
-                Categories
-                <ChevronDown className="nav-drawer__chevron" size={16} strokeWidth={1.6} />
-              </button>
-              <div className={`nav-drawer__panel${categoriesOpen ? ' is-open' : ''}`}>
-                <div className="nav-drawer__panel-inner">
-                  <ul className="nav-drawer__sub">
-                    {drawerCategories.map((category) => {
-                      const children = getChildCategories(categories, category._id);
-                      const childOpen = openChild === String(category._id);
-                      return (
-                        <li key={category._id}>
-                          <div className="nav-drawer__subrow">
-                            <NavLink
-                              to={`/shop/${category.slug}`}
-                              className={drawerSubClass}
-                              onClick={closeDrawer}
-                            >
-                              {toTitleCase(category.name)}
-                            </NavLink>
-                            {children.length ? (
-                              <button
-                                type="button"
-                                className="nav-drawer__expand"
-                                aria-expanded={childOpen}
-                                aria-label={`${childOpen ? 'Collapse' : 'Expand'} ${category.name}`}
-                                onClick={() => setOpenChild(childOpen ? '' : String(category._id))}
-                              >
-                                <ChevronDown className="nav-drawer__chevron" size={16} strokeWidth={1.6} />
-                              </button>
-                            ) : null}
-                          </div>
-                          {children.length ? (
-                            <div className={`nav-drawer__panel${childOpen ? ' is-open' : ''}`}>
-                              <div className="nav-drawer__panel-inner">
-                                <ul className="nav-drawer__nested">
-                                  {children.map((child) => (
-                                    <li key={child._id}>
-                                      <NavLink
-                                        to={`/shop/${child.slug}`}
-                                        className={drawerSubClass}
-                                        onClick={closeDrawer}
-                                      >
-                                        {toTitleCase(child.name)}
-                                      </NavLink>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          ) : null}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            </li>
-            <li>
               <NavLink to="/account/orders" className={drawerLinkClass} onClick={closeDrawer}>
                 My Orders
               </NavLink>
@@ -414,7 +307,7 @@ const Header = () => {
         </nav>
       </aside>
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} categories={parents} />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} categories={menuCategories} />
     </>
   );
 };

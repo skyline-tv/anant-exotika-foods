@@ -2016,6 +2016,15 @@
   }
 }
 
+.shop-categories {
+  margin: 0 0 1.25rem;
+}
+
+.category-card.is-active {
+  outline: 2px solid var(--luxury-gold);
+  outline-offset: 3px;
+}
+
 .shop-chips {
   display: flex;
   gap: 0.5rem;

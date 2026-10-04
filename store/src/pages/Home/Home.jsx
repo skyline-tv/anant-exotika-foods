@@ -11,7 +11,7 @@ import {
 import Button from '../../components/common/Button';
 import Reveal from '../../components/common/Reveal';
 import SectionTitle from '../../components/common/SectionTitle';
-import CollectionShowcase, { buildCollectionTabs, orderCollectionTabs } from '../../components/home/CollectionShowcase';
+import CollectionShowcase from '../../components/home/CollectionShowcase';
 import OccasionEnquiry from '../../components/home/OccasionEnquiry';
 import {
   BabyIcon,
@@ -23,7 +23,6 @@ import {
   ReturnGiftIcon,
   WeddingIcon,
 } from '../../components/home/occasionArt';
-import EmptyState from '../../components/common/EmptyState';
 import { getCategories } from '../../services/categoryService';
 import { resolveAssetUrl } from '../../utils/assetUrl';
 import { toTitleCase } from '../../utils/titleCase';
@@ -115,17 +114,10 @@ const HeroShowcase = ({ slides }) => {
   );
 };
 
-const CategoryScroller = ({ children }) => (
-  <div className="category-scroller" tabIndex={0} aria-label="Shop by category">
-    {children}
-  </div>
-);
-
 const Home = () => {
   const location = useLocation();
   const { content } = useStoreContent();
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [subscribed, setSubscribed] = useState(false);
   const [enquiry, setEnquiry] = useState('');
 
@@ -133,15 +125,12 @@ const Home = () => {
     let active = true;
 
     const load = async () => {
-      setLoading(true);
       try {
         const categoryData = await getCategories();
         if (!active) return;
         setCategories(getParentCategories(categoryData || []));
       } catch {
         if (active) setCategories([]);
-      } finally {
-        if (active) setLoading(false);
       }
     };
 
@@ -171,17 +160,6 @@ const Home = () => {
   const heroImage = resolveAssetUrl(hero.image);
   const primaryCta = hero.primaryCta || { label: 'Shop Hampers', to: hampersTo };
   const secondaryCta = hero.secondaryCta || { label: 'Explore Dry Fruits', to: dryFruitsTo };
-
-  const featuredIds = (content?.featuredCategoryIds || [])
-    .map((item) => item?._id || item)
-    .filter(Boolean);
-  const orderedCategories = orderCollectionTabs(buildCollectionTabs(categories), content?.collectionOrder)
-    .filter((tab) => tab.id !== 'all')
-    .map((tab) => categories.find((category) => String(category._id) === tab.id))
-    .filter((category) => category && category.isActive !== false);
-  const categoryCards = featuredIds.length
-    ? orderedCategories.filter((category) => featuredIds.some((id) => String(id) === String(category._id)))
-    : orderedCategories;
 
   const giftingTiles = (content?.gifting || [])
     .filter((item) => item.isActive !== false && item.title)
@@ -263,45 +241,6 @@ const Home = () => {
           </div>
         </section>
       ) : null}
-
-      <Reveal as="section" className="section">
-        <div className="container">
-          <SectionTitle
-            eyebrow="Collections"
-            title="Shop by category"
-            subtitle="Begin with dry fruits, a hamper, or a gift for the season."
-          />
-          {loading ? (
-            <CategoryScroller>
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="skeleton category-card" aria-hidden="true" />
-              ))}
-            </CategoryScroller>
-          ) : categoryCards.length === 0 ? (
-            <EmptyState
-              title="Categories arriving soon"
-              message="Collections will appear here as they are published from the admin panel."
-              actionLabel="Browse shop"
-              actionTo="/shop"
-            />
-          ) : (
-            <CategoryScroller>
-              {categoryCards.map((category) => {
-                const imageSrc = resolveAssetUrl(category.image);
-                return (
-                  <Link key={category._id} to={`/shop/${category.slug}`} className="category-card">
-                    {imageSrc ? <img src={imageSrc} alt="" loading="lazy" /> : <span className="category-card__fallback">{category.name.charAt(0)}</span>}
-                    <span className="category-card__overlay">
-                      <strong>{toTitleCase(category.name)}</strong>
-                      {category.description ? <em>{category.description}</em> : null}
-                    </span>
-                  </Link>
-                );
-              })}
-            </CategoryScroller>
-          )}
-        </div>
-      </Reveal>
 
       <CollectionShowcase categories={categories} />
 

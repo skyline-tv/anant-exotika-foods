@@ -81,6 +81,20 @@ export function buildCollectionTabs(categories = []) {
   return tabs;
 }
 
+export function orderedHomeCategories(categories = [], content) {
+  const featuredIds = (content?.featuredCategoryIds || [])
+    .map((item) => item?._id || item)
+    .filter(Boolean);
+  const ordered = orderCollectionTabs(buildCollectionTabs(categories), content?.collectionOrder)
+    .filter((tab) => tab.id !== 'all')
+    .map((tab) => categories.find((category) => String(category._id) === tab.id))
+    .filter((category) => category && category.isActive !== false);
+
+  if (!featuredIds.length) return ordered;
+  const featured = ordered.filter((category) => featuredIds.some((id) => String(id) === String(category._id)));
+  return featured.length ? featured : ordered;
+}
+
 export function orderCollectionTabs(tabs, order = []) {
   const rank = new Map((order || []).map((id, index) => [String(id), index]));
   if (!rank.size) return tabs;
