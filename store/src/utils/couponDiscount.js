@@ -13,10 +13,18 @@ export function couponDiscountAmount(result) {
   return Math.round((amount + Number.EPSILON) * 100) / 100;
 }
 
+export function isMrpPercentageCoupon(result) {
+  const coupon = result?.coupon;
+  return Boolean(coupon) && coupon.discountApplyOn === 'MRP' && percentageType(coupon);
+}
+
 export function couponDiscountLabel(result) {
   const coupon = result?.coupon;
   if (!coupon) return 'Discount';
   if (coupon.kind === 'gift_voucher') return 'Gift voucher';
+  if (percentageType(coupon) && coupon.discountApplyOn === 'MRP') {
+    return `${Number(coupon.discountValue) || 0}% off MRP`;
+  }
   if (percentageType(coupon)) return `${Number(coupon.discountValue) || 0}% off`;
   if (String(coupon.discountType || '').toLowerCase() === 'fixed') return 'Fixed amount';
   return 'Discount';

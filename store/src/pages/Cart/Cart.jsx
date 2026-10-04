@@ -13,7 +13,7 @@ import { useToast } from '../../context/ToastContext';
 import { validateCoupon } from '../../services/couponService';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { toTitleCase } from '../../utils/titleCase';
-import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
+import { couponDiscountAmount, couponDiscountLabel, isMrpPercentageCoupon } from '../../utils/couponDiscount';
 import { getErrorMessage } from '../../utils/getErrorMessage';
 import HamperSelections from '../../components/product/HamperSelections';
 import { formatWeight, getMrp, getPrimaryImage } from '../../utils/productHelpers';
@@ -144,18 +144,37 @@ const Cart = () => {
 
           <aside className="cart-summary">
             <h2>Order summary</h2>
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>{formatCurrency(cart.subtotal)}</span>
-            </div>
-            {coupon ? (
-              <div className="summary-row">
-                <span>
-                  {coupon.coupon?.code ? `Coupon (${coupon.coupon.code})` : couponDiscountLabel(coupon)}
-                </span>
-                <span>-{formatCurrency(couponDiscountAmount(coupon))}</span>
-              </div>
-            ) : null}
+            {isMrpPercentageCoupon(coupon) && Number(coupon.productPayable) < Number(coupon.subtotal) ? (
+              <>
+                <div className="summary-row">
+                  <span>MRP</span>
+                  <span>{formatCurrency(coupon.mrpSubtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>Listed price</span>
+                  <span>{formatCurrency(coupon.subtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>After {couponDiscountLabel(coupon)}</span>
+                  <span>{formatCurrency(coupon.productPayable)}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="summary-row">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(cart.subtotal)}</span>
+                </div>
+                {coupon ? (
+                  <div className="summary-row">
+                    <span>
+                      {coupon.coupon?.code ? `Coupon (${coupon.coupon.code})` : couponDiscountLabel(coupon)}
+                    </span>
+                    <span>-{formatCurrency(couponDiscountAmount(coupon))}</span>
+                  </div>
+                ) : null}
+              </>
+            )}
             {isAuthenticated ? (
               <form className="coupon-row" onSubmit={handleCoupon}>
                 <input

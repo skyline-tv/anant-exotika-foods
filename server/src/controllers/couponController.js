@@ -5,7 +5,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const AppError = require('../utils/AppError');
 const { successResponse } = require('../utils/apiResponse');
 const { getValidCoupon } = require('../services/couponService');
-const { applyCouponDiscount, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
+const { couponDiscountBreakdown, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
 const { COUPON_KIND, DISCOUNT_APPLY_ON, DISCOUNT_TYPE } = require('../utils/constants');
 const {
   applyGiftVoucherRules,
@@ -63,7 +63,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
     subtotal,
   });
 
-  const discount = applyCouponDiscount(subtotal, coupon, lines);
+  const breakdown = couponDiscountBreakdown(subtotal, coupon, lines);
 
   successResponse(res, {
     message: isGiftVoucher(coupon) ? 'Gift voucher is valid' : 'Coupon is valid',
@@ -79,8 +79,10 @@ const validateCoupon = asyncHandler(async (req, res) => {
         minimumOrderAmount: coupon.minimumOrderAmount,
       },
       subtotal,
-      discount,
-      total: roundMoney(Math.max(0, subtotal - discount)),
+      mrpSubtotal: breakdown.mrpSubtotal,
+      productPayable: breakdown.productPayable,
+      discount: breakdown.discount,
+      total: breakdown.productPayable,
     },
   });
 });

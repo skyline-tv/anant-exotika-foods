@@ -33,7 +33,7 @@ import {
   validatePhone,
 } from '../../utils/addressValidation';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { couponDiscountAmount, couponDiscountLabel } from '../../utils/couponDiscount';
+import { couponDiscountAmount, couponDiscountLabel, isMrpPercentageCoupon } from '../../utils/couponDiscount';
 import { formatWeight, getPrimaryImage } from '../../utils/productHelpers';
 import { getErrorMessage, getFieldErrors } from '../../utils/getErrorMessage';
 
@@ -522,13 +522,24 @@ const Checkout = () => {
   }
 
   const itemCount = cart.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  const discountAmount =
-    Number(shippingQuote?.discount) > 0
+  const priceSource = shippingQuote?.coupon ? shippingQuote : coupon;
+  const mrpPercentage = isMrpPercentageCoupon(priceSource);
+  const mrpSubtotal = Number(priceSource?.mrpSubtotal) || 0;
+  const listedSubtotal = Number(priceSource?.subtotal ?? cart.subtotal) || 0;
+  const productPayable = Number(priceSource?.productPayable);
+  const paysFromMrp = mrpPercentage && mrpSubtotal > 0 && Number.isFinite(productPayable) && productPayable < listedSubtotal;
+  const discountAmount = paysFromMrp
+    ? 0
+    : Number(shippingQuote?.discount) > 0
       ? Number(shippingQuote.discount)
       : coupon
         ? couponDiscountAmount(coupon)
         : 0;
-  const payable = shippingQuote?.estimatedTotal !== undefined ? shippingQuote.estimatedTotal : cart.subtotal;
+  const payable = shippingQuote?.estimatedTotal !== undefined
+    ? shippingQuote.estimatedTotal
+    : paysFromMrp
+      ? productPayable
+      : Math.max(0, cart.subtotal - discountAmount);
   const codOffered = paymentMethods.some((method) => method.value === 'cod');
   const placeDisabled =
     submitting ||
@@ -974,7 +985,11 @@ const Checkout = () => {
                 </button>
               ) : null}
             </div>
-            {coupon && discountAmount > 0 ? (
+            {paysFromMrp ? (
+              <p className="field-ok">
+                {coupon.coupon.code} · {couponDiscountLabel(priceSource)} · MRP {formatCurrency(mrpSubtotal)} · You pay {formatCurrency(productPayable)}
+              </p>
+            ) : coupon && discountAmount > 0 ? (
               <p className="field-ok">
                 {coupon.coupon.code} · {couponDiscountLabel(coupon)} · -{formatCurrency(discountAmount)}
               </p>
@@ -1015,11 +1030,28 @@ const Checkout = () => {
               </div>
             </details>
 
-            <div className="summary-row">
-              <span>Subtotal</span>
-              <span>{formatCurrency(cart.subtotal)}</span>
-            </div>
-            {discountAmount > 0 ? (
+            {paysFromMrp ? (
+              <>
+                <div className="summary-row">
+                  <span>MRP</span>
+                  <span>{formatCurrency(mrpSubtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>Listed price</span>
+                  <span>{formatCurrency(listedSubtotal)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>After {couponDiscountLabel(priceSource)}</span>
+                  <span>{formatCurrency(productPayable)}</span>
+                </div>
+              </>
+            ) : (
+              <div className="summary-row">
+                <span>Subtotal</span>
+                <span>{formatCurrency(cart.subtotal)}</span>
+              </div>
+            )}
+            {!paysFromMrp && discountAmount > 0 ? (
               <div className="summary-row">
                 <span>
                   {coupon?.coupon?.code

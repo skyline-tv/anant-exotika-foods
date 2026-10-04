@@ -598,7 +598,7 @@ function Coupons() {
             {basisError ? <p className="field-error">{basisError}</p> : null}
             <p className="hint">
               {values.discountApplyOn === 'MRP'
-                ? 'A percentage is calculated from each product’s MRP, then taken off the checkout price. Example: MRP ₹999, checkout ₹799, 10% saves ₹99.90.'
+                ? 'A percentage is taken off the MRP, and the customer pays that price when it is lower than the listed price. Example: MRP ₹700, listed ₹600, 50% off MRP, they pay ₹350.'
                 : values.discountApplyOn === 'CHECKOUT_PRICE'
                   ? 'A percentage is calculated from the current selling price. Example: MRP ₹999, checkout ₹799, 10% saves ₹79.90.'
                   : 'Choose MRP or the current checkout price. This choice is required.'}

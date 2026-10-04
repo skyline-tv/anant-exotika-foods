@@ -46,32 +46,61 @@ const couponBases = (items, coupon) => {
   };
 };
 
-const applyCouponDiscount = (subtotal, coupon, items) => {
-  if (!coupon) {
-    return 0;
-  }
-
+const couponDiscountBreakdown = (subtotal, coupon, items) => {
   const priced = Array.isArray(items) && items.length ? couponBases(items, coupon) : null;
   const checkout = priced ? priced.checkout : Math.max(0, Number(subtotal) || 0);
   const basis = priced ? priced.basis : checkout;
+  const applyOn = priced ? priced.applyOn : normalizeDiscountApplyOn(coupon);
+  const empty = {
+    discount: 0,
+    mrpSubtotal: basis,
+    listedSubtotal: checkout,
+    productPayable: checkout,
+    applyOn,
+  };
+
+  if (!coupon) return empty;
+
   const value = Number(coupon.discountValue) || 0;
   const type = String(coupon.discountType || '').trim().toLowerCase();
-  let discount = 0;
+  const cap = Number(coupon.maximumDiscount) || 0;
 
+  if (applyOn === 'MRP' && isPercentageDiscount(coupon) && value > 0) {
+    let cut = (basis * value) / 100;
+    if (cap > 0) cut = Math.min(cut, cap);
+    cut = Math.min(Math.max(0, cut), basis);
+    const afterMrp = roundMoney(basis - cut);
+    const productPayable = roundMoney(Math.min(checkout, afterMrp));
+    return {
+      discount: roundMoney(checkout - productPayable),
+      mrpSubtotal: basis,
+      listedSubtotal: checkout,
+      productPayable,
+      applyOn,
+    };
+  }
+
+  let discount = 0;
   if (isPercentageDiscount(coupon)) {
     discount = (basis * value) / 100;
   } else if (type === 'fixed') {
     discount = value;
   }
 
-  const cap = Number(coupon.maximumDiscount) || 0;
-  if (cap > 0) {
-    discount = Math.min(discount, cap);
-  }
+  if (cap > 0) discount = Math.min(discount, cap);
+  discount = roundMoney(Math.min(Math.max(0, discount), checkout));
 
-  discount = Math.min(Math.max(0, discount), checkout);
-  return roundMoney(discount);
+  return {
+    discount,
+    mrpSubtotal: basis,
+    listedSubtotal: checkout,
+    productPayable: roundMoney(checkout - discount),
+    applyOn,
+  };
 };
+
+const applyCouponDiscount = (subtotal, coupon, items) =>
+  couponDiscountBreakdown(subtotal, coupon, items).discount;
 
 const linesFromProducts = (cartItems, productMap) =>
   cartItems.reduce((lines, item) => {
@@ -135,6 +164,7 @@ module.exports = {
   calculateShipping,
   calculateTax,
   applyCouponDiscount,
+  couponDiscountBreakdown,
   normalizeDiscountApplyOn,
   linesFromProducts,
   calculateOrderPricing,

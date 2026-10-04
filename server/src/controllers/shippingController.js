@@ -10,7 +10,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const Address = require('../models/Address');
 const { getValidCoupon } = require('../services/couponService');
-const { applyCouponDiscount, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
+const { couponDiscountBreakdown, linesFromProducts, normalizeDiscountApplyOn, roundMoney } = require('../services/pricingService');
 const { quoteShipping, getPublicShippingConfig } = require('../services/shippingService');
 const { verifyWebhookToken } = require('../services/shiprocketService');
 const { applyShiprocketWebhook } = require('../services/shipmentService');
@@ -83,7 +83,8 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
       subtotal,
     });
   }
-  const discount = applyCouponDiscount(subtotal, coupon, lines);
+  const breakdown = couponDiscountBreakdown(subtotal, coupon, lines);
+  const discount = breakdown.discount;
 
   const quote = await quoteShipping({
     postalCode: pin,
@@ -100,6 +101,8 @@ const quoteCheckoutShipping = asyncHandler(async (req, res) => {
     data: {
       ...publicQuote,
       subtotal,
+      mrpSubtotal: breakdown.mrpSubtotal,
+      productPayable: breakdown.productPayable,
       discount,
       estimatedTotal: quote.estimatedTotal,
       coupon: coupon
