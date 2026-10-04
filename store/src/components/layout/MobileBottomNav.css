@@ -8,7 +8,7 @@
   grid-template-columns: repeat(5, 1fr);
   height: var(--bottom-nav-height);
   min-height: var(--bottom-nav-height);
-  background: rgba(255, 255, 255, 0.98);
+  background: #fff;
   backdrop-filter: blur(14px);
   border-top: 1px solid rgba(201, 162, 39, 0.32);
   padding: 0.2rem 0.15rem env(safe-area-inset-bottom, 0px);

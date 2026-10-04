@@ -12,9 +12,9 @@
 
 @media (max-width: 767px) {
   .announcement-bar__text {
-    font-size: 0.8125rem;
+    font-size: 0.75rem;
     letter-spacing: 0;
-    line-height: 1.35;
+    line-height: var(--announcement-height);
   }
 
   .footer__grid {

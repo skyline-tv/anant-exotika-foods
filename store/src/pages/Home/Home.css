@@ -681,14 +681,15 @@
 
   .hero__stage {
     width: 100%;
-    height: min(38svh, 250px);
-    min-height: 176px;
-    aspect-ratio: auto;
+    height: auto;
+    aspect-ratio: 560 / 446;
+    min-height: 0;
     border-radius: 0;
+    overflow: hidden;
   }
 
   .hero__slide {
-    inset: 4% 8% 2%;
+    inset: 2% 4%;
   }
 
   .hero__slide.is-active .hero__float {
@@ -700,16 +701,25 @@
   }
 
   .hero__showcase-meta {
-    margin-top: 0;
-    padding: 0.55rem 16px 0.7rem;
+    position: relative;
+    z-index: 2;
+    margin-top: 0.75rem;
+    padding: 0 16px;
+    background: var(--ivory);
   }
 
   .hero__caption {
-    max-width: min(68%, 220px);
+    min-width: 0;
+    max-width: calc(100% - 5.5rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: 0.75rem;
+  }
+
+  .home > .section {
+    padding-top: 1.75rem;
+    padding-bottom: 1.75rem;
   }
 
   .hero__dots button {
@@ -739,24 +749,24 @@
   }
 
   .hero__copy {
-    padding: 0.95rem 16px 1.15rem;
+    padding: 1rem 16px 0.35rem;
   }
 
   .hero__brand {
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.4rem;
     font-size: 0.75rem;
   }
 
   .hero__title {
-    font-size: clamp(1.75rem, 7.4vw, 2.05rem);
-    line-height: 1.15;
-    margin-bottom: 0.45rem;
+    font-size: clamp(1.85rem, 8vw, 2.2rem);
+    line-height: 1.12;
+    margin-bottom: 0.55rem;
   }
 
   .hero__subtitle {
     font-size: 0.9375rem;
-    line-height: 1.45;
-    margin-bottom: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 0.9rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -766,13 +776,14 @@
   .hero__actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.55rem;
+    gap: 0.65rem;
     width: 100%;
   }
 
   .hero__actions .btn {
     width: 100%;
     min-height: 48px;
+    padding: 0.85rem 1.1rem;
     font-size: 0.9375rem;
   }
 

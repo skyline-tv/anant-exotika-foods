@@ -30,6 +30,24 @@
   margin: 0;
 }
 
+@media (max-width: 767px) {
+  .announcement-bar {
+    min-height: var(--announcement-height);
+    max-height: var(--announcement-height);
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .announcement-bar__text {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    -webkit-line-clamp: unset;
+    line-height: var(--announcement-height);
+  }
+}
+
 @media (min-width: 768px) {
   .announcement-bar__text {
     display: block;
