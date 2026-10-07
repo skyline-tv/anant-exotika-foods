@@ -11,7 +11,7 @@ import {
 import Button from '../../components/common/Button';
 import Reveal from '../../components/common/Reveal';
 import SectionTitle from '../../components/common/SectionTitle';
-import CollectionShowcase from '../../components/home/CollectionShowcase';
+import CollectionShowcase, { orderedHomeCategories } from '../../components/home/CollectionShowcase';
 import OccasionEnquiry from '../../components/home/OccasionEnquiry';
 import {
   BabyIcon,
@@ -154,6 +154,7 @@ const Home = () => {
     setSubscribed(true);
   };
 
+  const homeCategories = orderedHomeCategories(categories, content);
   const dryFruitsTo = matchCategoryPath(categories, ['dry fruit', 'dryfruit', 'nuts', 'almond', 'cashew']);
   const hampersTo = matchCategoryPath(categories, ['hamper', 'box', 'combo', 'gift']);
   const hero = content?.hero || {};
@@ -223,6 +224,32 @@ const Home = () => {
         </div>
         <HeroShowcase slides={heroSlides} />
       </section>
+
+      {homeCategories.length ? (
+        <section className="section home-categories" aria-label="Shop by category">
+          <div className="container">
+            <SectionTitle eyebrow="Collections" title="Shop by category" />
+            <div className="category-scroller">
+              {homeCategories.map((item) => {
+                const imageSrc = resolveAssetUrl(item.image);
+                return (
+                  <Link key={item._id} to={`/shop/${item.slug}`} className="category-card">
+                    {imageSrc ? (
+                      <img src={imageSrc} alt="" />
+                    ) : (
+                      <span className="category-card__fallback">{item.name.charAt(0)}</span>
+                    )}
+                    <span className="category-card__overlay">
+                      <strong>{toTitleCase(item.name)}</strong>
+                      {item.description ? <em>{item.description}</em> : null}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {banners.length ? (
         <section className="section section--ivory">
